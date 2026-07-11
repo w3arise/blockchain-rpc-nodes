@@ -7,6 +7,7 @@
 
 # Engine API JWT secrets
 **/jwt.hex
+**/jwt.txt
 
 # Data directories and logs
 .sonic/

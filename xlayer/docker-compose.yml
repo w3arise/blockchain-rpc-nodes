@@ -14,8 +14,8 @@ services:
       - "35303:30303/udp" # P2P UDP
     volumes:
       - ${HOME}/data-mainnet:/data
-      - ./config-mainnet/jwt.txt:/jwt.txt
-      - ./config-mainnet/op-geth-config-mainnet.toml:/config.toml
+      - ./config/jwt.txt:/jwt.txt
+      - ./config/op-geth-config-mainnet.toml:/config.toml
       - ./logs-mainnet/op-geth:/var/log/op-geth
     command:
       - --verbosity=3
@@ -46,8 +46,8 @@ services:
       - "127.0.0.1:9555:9545"
     volumes:
       - ${HOME}/xlayer-op-node-data:/data
-      - ./config-mainnet/rollup-mainnet.json:/rollup.json
-      - ./config-mainnet/jwt.txt:/jwt.txt
+      - ./config/rollup-mainnet.json:/rollup.json
+      - ./config/jwt.txt:/jwt.txt
       - ./logs-mainnet/op-node:/var/log/op-node
     command:
       - -c
