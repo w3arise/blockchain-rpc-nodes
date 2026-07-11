@@ -1,0 +1,22 @@
+# macOS hidden files
+.DS_Store
+._*
+
+# Environment variables
+.env
+
+# Engine API JWT secrets
+**/jwt.hex
+
+# Data directories and logs
+.sonic/
+logs/
+*.log
+
+# Hyperliquid
+override_gossip_config.json
+
+# Docker specific
+target/
+target-native/
+.dockerignore
