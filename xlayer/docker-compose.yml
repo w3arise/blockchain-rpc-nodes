@@ -10,8 +10,8 @@ services:
     ports:
       - "127.0.0.1:28545:8545"   # HTTP RPC
       - "127.0.0.1:28546:7546"     # WebSocket
-      - "35303:30303" # P2P TCP
-      - "35303:30303/udp" # P2P UDP
+      - "35303:35303" # P2P TCP
+      - "35303:35303/udp" # P2P UDP
     volumes:
       - ${HOME}/xlayer-op-geth-data:/data
       - ./config/jwt.txt:/jwt.txt
@@ -27,6 +27,8 @@ services:
       - --rollup.sequencerhttp=https://rpc.xlayer.tech
       - --log.file=/var/log/op-geth/geth.log
       - --pp-rpc-url=${X_LAYER_PP_RPC_URL}
+      - --port=35303
+      - --nat=extip:${EXT_IP}
     networks:
       - xlayer-network
     healthcheck:
