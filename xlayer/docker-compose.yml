@@ -13,7 +13,7 @@ services:
       - "35303:30303" # P2P TCP
       - "35303:30303/udp" # P2P UDP
     volumes:
-      - ./data-mainnet:/data
+      - ${HOME}/data-mainnet:/data
       - ./config-mainnet/jwt.txt:/jwt.txt
       - ./config-mainnet/op-geth-config-mainnet.toml:/config.toml
       - ./logs-mainnet/op-geth:/var/log/op-geth
@@ -26,7 +26,7 @@ services:
       - --rollup.enabletxpooladmission
       - --rollup.sequencerhttp=https://rpc.xlayer.tech
       - --log.file=/var/log/op-geth/geth.log
-      - --pp-rpc-url=http://172.17.0.1:15301
+      - --pp-rpc-url=${X_LAYER_PP_RPC_URL}
     networks:
       - xlayer-network
     healthcheck:
@@ -45,7 +45,7 @@ services:
     ports:
       - "127.0.0.1:9555:9545"
     volumes:
-      - ./data-mainnet/op-node:/data
+      - ${HOME}/xlayer-op-node-data:/data
       - ./config-mainnet/rollup-mainnet.json:/rollup.json
       - ./config-mainnet/jwt.txt:/jwt.txt
       - ./logs-mainnet/op-node:/var/log/op-node
@@ -89,11 +89,8 @@ services:
     restart: unless-stopped
     mem_limit: ${MEM_LIMIT}
     stop_grace_period: 120s
-    ports:
-      - "${HTTP_PORT}:8545"
-      - "${WS_PORT}:8546"
     volumes:
-      - "${HOME}/erigon-data:${DATADIR}"
+      - ${HOME}/erigon-data:${DATADIR}
       - "./xlayer.yaml:/app/config/xlayer.yaml:ro"
     command:
       - "--config=/app/config/xlayer.yaml"
