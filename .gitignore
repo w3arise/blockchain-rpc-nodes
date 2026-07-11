@@ -13,6 +13,16 @@
 logs/
 *.log
 
+# Planned chain configs (uncommitted for now)
+0g/
+bob/
+ftm/
+hyperliquid/
+mantle/
+mode/
+ronin/
+sonic/
+
 # Hyperliquid
 override_gossip_config.json
 
