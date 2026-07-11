@@ -1,0 +1,64 @@
+services:
+  bsc-geth-rpc:
+    image: ${BSC_IMAGE}
+    container_name: bsc-geth-rpc
+    restart: unless-stopped
+    cpus: ${CPU_COUNT_LIMIT}
+    stop_grace_period: 120s
+    environment:
+      - GOGC=${GOGC}
+      - GOMEMLIMIT=${GO_MEM_LIMIT}
+    mem_limit: ${MEM_LIMIT}
+    memswap_limit: ${MEM_LIMIT}
+    network_mode: host
+    ports: # Usable when network_mode: host is not set
+      - "127.0.0.1:${HTTP_PORT}:${HTTP_PORT}"
+      - "127.0.0.1:${WS_PORT}:${WS_PORT}"
+      - "127.0.0.1:${P2P_PORT}:${P2P_PORT}"
+      - "127.0.0.1:${P2P_PORT}:${P2P_PORT}/udp"
+      - "127.0.0.1:${PPROF_PORT}:${PPROF_PORT}"
+      - "127.0.0.1:${METRICS_PORT}:${METRICS_PORT}"
+    entrypoint: [geth]
+    command:
+      - --cache=${CACHE}
+      - --datadir=/bsc/.ethereum
+      - --syncmode=${SYNC_MODE}
+      - --gcmode=${GCMODE}
+      - --state.scheme=path
+      - --port=${P2P_PORT}
+      - --nat=extip:${EXT_IP}
+      - --pprof
+      - --pprof.addr=127.0.0.1
+      - --pprof.port=${PPROF_PORT}
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=${HTTP_PORT}
+      - --http.vhosts=*
+      - --http.api=${HTTP_API}
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=${WS_PORT}
+      - --ws.api=${WS_API}
+      - --ws.origins=*
+      - --maxpeers=${MAX_PEERS}
+      - --metrics
+      - --metrics.addr=0.0.0.0
+      - --metrics.port=${METRICS_PORT}
+      - --rpc.txfeecap=${TX_FEE_CAP}
+      - --rpc.gascap=${GAS_CAP}
+      - --rpc.batch-response-max-size=${RPC_BATCH_MAX_SIZE}
+      - --rpc.evmtimeout=${RPC_EVM_TIMEOUT}
+      - --txpool.locals=${TXPOOL_LOCALS}
+      - --txpool.pricelimit=${TXPOOL_PRICE_LIMIT}
+      - --history.blocks=${HISTORY_BLOCKS}
+      - --history.transactions=${HISTORY_TRANSACTIONS}
+      - --history.state=${HISTORY_STATE}
+      - --history.logs=${HISTORY_LOGS}
+      - --miner.gasprice=${MINER_GASPRICE}
+      - --bootnodes=${BOOTNODES}
+    volumes:
+      - "${HOST_DATADIR:-$HOME/chain-data}:/bsc/.ethereum"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
