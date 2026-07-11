@@ -19,7 +19,7 @@ chain/
 | Arbitrum | L2 (Nitro) | nitro | ✅ Ready |
 | Optimism | L2 (OP Stack) | op-reth + op-node | ✅ Ready |
 | Linea | L2 (ZK) | Besu / Nethermind + Maru | ✅ Ready |
-| Bob | L2 (OP Stack) | op-reth | 🚧 Planned |
+| Bob | L2 (OP Stack) | op-reth + op-node | ✅ Ready |
 | Mode | L2 (OP Stack) | op-reth | 🚧 Planned |
 | Ronin | L1 (Gaming) | ronin-geth | 🚧 Planned |
 | Sonic | L1 | sonic-node | 🚧 Planned |

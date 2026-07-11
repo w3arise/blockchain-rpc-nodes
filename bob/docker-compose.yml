@@ -1,0 +1,58 @@
+services:
+  bob-op-reth:
+    image: ${OP_RETH_IMAGE}
+    container_name: bob-op-reth
+    command:
+      - node
+      - --chain=/data/genesis.json
+      - --storage.v2
+      - --datadir=/data
+      - --rollup.sequencer-http=https://rpc-bob-mainnet-0.t.conduit.xyz
+      - --rollup.historicalrpc=https://rpc-bob-mainnet-0.t.conduit.xyz
+      - --rollup.disable-tx-pool-gossip
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=web3,debug,eth,txpool,net
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=web3,debug,eth,txpool,net
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=9551
+      - --authrpc.jwtsecret=/config/jwt.hex
+      - --nat=extip:${EXT_IP}
+      - --port=${RETH_PORT}
+      - --metrics=127.0.0.1:9001
+      - --trusted-peers=enode://71a0b3093d57e66e9d2c8c2f5c28ec2d7d2e31853b1bb21a81430e1ede5bdcc64c7ff6e3c4709c3a9dc01a546b1689a7f3ec6957e3dfa7b23aaed3222552344b@217.22.153.182:30300
+    volumes:
+      - $HOME/op-reth-data:/data
+      - ./config:/config
+    ports:
+      - 127.0.0.1:8141:8545
+      - 127.0.0.1:8142:8546
+      - ${RETH_PORT}:${RETH_PORT}
+      - ${RETH_PORT}:${RETH_PORT}/udp
+    restart: unless-stopped
+    networks:
+      - bob-network
+
+  bob-op-node:
+    image: ${OP_NODE_IMAGE}
+    container_name: bob-op-node
+    command:
+      - op-node
+    env_file: .env
+    volumes:
+      - $HOME/op-node-data:/data
+      - ./config:/config
+    restart: unless-stopped
+    depends_on:
+      bob-op-reth:
+        condition: service_started
+    networks:
+      - bob-network
+
+networks:
+  bob-network:
+    driver: bridge

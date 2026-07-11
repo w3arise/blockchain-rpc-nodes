@@ -222,3 +222,4 @@ Karst activation requires op-reth (not op-geth) and compatible op-node/op-reth p
 7. Store datadirs under `$HOME`.
 8. Add `**/jwt.hex` to `.gitignore` (already in repo root).
 9. Check whether Karst `keep_karst_upgrade_gas` override is needed (Mode/Metal/Zora only).
+10. **Update `README.md`** — review the "Supported Chains" table and update the chain's status, type, and execution client. Also check `.gitignore` and remove the chain from the "Planned" section if it was listed there.
