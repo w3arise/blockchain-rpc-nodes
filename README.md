@@ -24,6 +24,7 @@ chain/
 | Ronin | L1 (Gaming) | ronin-geth | 🚧 Planned |
 | Sonic | L1 | sonic-node | 🚧 Planned |
 | XLayer | L2 (Polygon CDK) | op-geth + op-node + xlayer-cdk-erigon (archival) | ✅ Ready |
+| XLayer (op-reth) | L2 (Polygon CDK) | xlayer-reth + op-node | ✅ Ready |
 | Fantom (FTM) | L1 | go-opera | 🚧 Planned |
 | Hyperliquid | L1 | hl-node | 🚧 Planned |
 | Mantle | L2 (OP Stack) | mantle-node | 🚧 Planned |
@@ -85,4 +86,5 @@ docker compose up -d
 - OP Stack chains require a shared JWT for Engine API authentication between `op-node` and `op-reth`.
 - Environment variables are documented inline in each `env.template`.
 - Linea provides two execution client options: Besu (`besu-compose.yml`) or Nethermind (`nether-compose.yml`).
+- XLayer has two setups: `xlayer/` (op-geth, with archival cdk-erigon) and `xlayer-reth/` (op-reth alternative). Run one or the other — ports don't clash. The op-reth variant supports snapshot restore and forwards pre-OP-Stack historical/trace RPC to a legacy endpoint.
 - Status legend: ✅ Ready — Docker setup available and tested. 🚧 Planned — on the roadmap, not yet added.

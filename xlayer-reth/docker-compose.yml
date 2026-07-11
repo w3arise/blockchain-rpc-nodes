@@ -1,0 +1,104 @@
+networks:
+  xlayer-reth-network:
+    name: xlayer-reth-network
+
+services:
+  op-reth:
+    image: "${OP_RETH_IMAGE_TAG}"
+    container_name: xlayer-mainnet-op-reth
+    entrypoint: ["op-reth"]
+    ports:
+      - "127.0.0.1:48545:8545"   # HTTP RPC
+      - "127.0.0.1:48546:8546"   # WebSocket
+      - "36303:36303"            # P2P TCP
+      - "36303:36303/udp"        # P2P UDP
+    volumes:
+      - ${HOME}/xlayer-op-reth-data:/datadir
+      - ./config/jwt.txt:/jwt.txt
+      - ./config/op-reth-config-mainnet.toml:/config.toml
+      - ./logs-mainnet/op-reth:/logs
+    command:
+      - node
+      - --datadir=/datadir
+      - --chain=xlayer-mainnet
+      - --config=/config.toml
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.corsdomain=*
+      - --http.api=web3,debug,eth,txpool,net,miner
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.origins=*
+      - --ws.api=debug,eth,txpool,net
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8552
+      - --authrpc.jwtsecret=/jwt.txt
+      - --rollup.disable-tx-pool-gossip
+      - --rollup.sequencer-http=https://rpc.xlayer.tech
+      - --port=36303
+      - --nat=extip:${EXT_IP}
+      # Full discv5 discovery (no --disable-discovery / --trusted-only).
+      # Trusted peers are bootstrap hints only; peer limits come from config.toml.
+      - --trusted-peers=${RETH_TRUSTED_PEERS}
+      - --rpc.legacy-url=${X_LAYER_LEGACY_RPC_URL}
+      - --rpc.legacy-timeout=${X_LAYER_LEGACY_RPC_TIMEOUT}
+      - --log.stdout.filter=info
+      - --log.file.directory=/logs
+      - --log.file.filter=info
+    restart: unless-stopped
+    stop_grace_period: 300s
+    networks:
+      - xlayer-reth-network
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "-X", "POST", "-H", "Content-Type: application/json", "--data", "{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":1}", "http://localhost:8545"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+
+  op-node:
+    image: "${OP_STACK_IMAGE_TAG}"
+    container_name: xlayer-mainnet-reth-op-node
+    entrypoint: sh
+    networks:
+      - xlayer-reth-network
+    ports:
+      - "127.0.0.1:9565:9545"
+    volumes:
+      - ${HOME}/xlayer-reth-op-node-data:/data
+      - ./config/rollup-mainnet.json:/rollup.json
+      - ./config/jwt.txt:/jwt.txt
+      - ./logs-mainnet/op-node:/var/log/op-node
+    command:
+      - -c
+      - |
+        exec /app/op-node/bin/op-node \
+          --log.level=info \
+          --l2=http://op-reth:8552 \
+          --l2.jwt-secret=/jwt.txt \
+          --l2.enginekind=reth \
+          --sequencer.enabled=false \
+          --verifier.l1-confs=1 \
+          --rollup.config=/rollup.json \
+          --rpc.addr=0.0.0.0 \
+          --rpc.port=9545 \
+          --p2p.listen.tcp=9233 \
+          --p2p.listen.udp=9233 \
+          --p2p.peerstore.path=/data/p2p/opnode_peerstore_db \
+          --p2p.discovery.path=/data/p2p/opnode_discovery_db \
+          --p2p.bootnodes=${OP_NODE_BOOTNODES} \
+          --p2p.static=${OP_NODE_P2P_STATIC} \
+          --rpc.enable-admin=true \
+          --l1=${L1_RPC_URL} \
+          --l1.beacon=${L1_BEACON_URL} \
+          --l1.rpckind=standard \
+          --conductor.enabled=false \
+          --safedb.path=/data/safedb \
+          --syncmode=execution-layer \
+          2>&1 | tee /var/log/op-node/op-node.log
+    restart: unless-stopped
+    stop_grace_period: 60s
+    depends_on:
+      - op-reth
