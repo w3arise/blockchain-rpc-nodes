@@ -1,0 +1,34 @@
+name: xlayer-erigon
+
+services:
+  xlayer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        XERIGON_REF: ${ERIGON_VERSION}
+    image: xlayer-cdk-erigon:${ERIGON_VERSION}
+    container_name: xlayer-cdk-erigon
+    restart: unless-stopped
+    mem_limit: ${MEM_LIMIT}
+    stop_grace_period: 120s
+    ports:
+      - "${HTTP_PORT}:8545"
+      - "${WS_PORT}:8546"
+    volumes:
+      - "${HOME}/erigon-data:${DATADIR}"
+      - "./xlayer.yaml:/app/config/xlayer.yaml:ro"
+    command:
+      - "--config=/app/config/xlayer.yaml"
+      - --zkevm.l1-rpc-url=${ZKEVM_L1_RPC_URL}
+      - --nodiscover 
+      - --maxpeers=0
+      - --zkevm.increment-tree-always=true
+      - --zkevm.sync-limit=0
+      - --zkevm.sequencer-paused=true
+      - --zkevm.executor-enabled=false
+      - --zkevm.l1-contract-address-retrieve=false
+      - --zkevm.l1-contract-address-check=false
+      - --zkevm.l1-sync-start-block=0
+      - --zkevm.l1-sync-stop-batch=1
+      - --debug.no-sync=true
