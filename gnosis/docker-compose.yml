@@ -1,0 +1,80 @@
+networks:
+  gnosis-network:
+    driver: bridge
+
+services:
+  gnosis-reth:
+    image: ${GNOSIS_RETH_IMAGE}
+    container_name: gnosis-reth
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file:
+      - .env
+    volumes:
+      - $HOME/gnosis-reth-data:/data
+      - ./config:/config:ro
+    ports:
+      - 127.0.0.1:${HTTP_PORT}:9045
+      - 127.0.0.1:${WS_PORT}:9046
+      - ${P2P_PORT}:${P2P_PORT}/tcp
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    command:
+      - node
+      - --chain=gnosis
+      - --datadir=/data
+      - --port=${P2P_PORT}
+      - --discovery.port=${P2P_PORT}
+      - --nat=extip:${EXT_IP}
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=9045
+      - --http.api=admin,net,eth,web3,debug,trace
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=9046
+      - --ws.api=admin,net,eth,web3,debug,trace
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8661
+      - --authrpc.jwtsecret=/config/jwt.hex
+      - --rpc.max-connections=2000
+      - --rpc.max-logs-per-response=20000
+      - --rpc.max-blocks-per-filter=100000
+      - --max-outbound-peers=50
+      - --max-inbound-peers=10
+      - --rpc-cache.max-blocks=10000
+    entrypoint: ["reth"]
+    networks:
+      - gnosis-network
+
+  gnosis-lighthouse:
+    image: ${LIGHTHOUSE_IMAGE}
+    container_name: gnosis-lighthouse
+    restart: unless-stopped
+    stop_grace_period: 360s
+    depends_on:
+      - gnosis-reth
+    env_file:
+      - .env
+    volumes:
+      - $HOME/gnosis-lighthouse-data:/data
+      - ./config:/config:ro
+    ports:
+      - ${BEACON_P2P_PORT}:${BEACON_P2P_PORT}/tcp
+      - ${BEACON_P2P_PORT}:${BEACON_P2P_PORT}/udp
+      - 127.0.0.1:${BEACON_HTTP_PORT}:5052
+    command:
+      - lighthouse
+      - beacon_node
+      - --network=gnosis
+      - --datadir=/data
+      - --port=${BEACON_P2P_PORT}
+      - --http
+      - --http-address=0.0.0.0
+      - --http-port=5052
+      - --execution-endpoint=http://gnosis-reth:8661
+      - --execution-jwt=/config/jwt.hex
+      - --checkpoint-sync-url=${CHECKPOINT_SYNC_URL}
+      - --disable-upnp
+      - --enr-address=${EXT_IP}
+    networks:
+      - gnosis-network

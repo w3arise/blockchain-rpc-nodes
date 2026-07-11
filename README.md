@@ -39,7 +39,7 @@ chain/
 | Core | L1 | — | 🚧 Planned |
 | Cronos | L1 | — | 🚧 Planned |
 | Etherlink (Tezos) | L2 | — | 🚧 Planned |
-| Gnosis Chain (xDai) | L1 | — | 🚧 Planned |
+| Gnosis Chain (xDai) | L1 | reth_gnosis + lighthouse | ✅ Ready |
 | Hashkey Chain | L2 (OP Stack) | — | 🚧 Planned |
 | Hedera | L1 | — | 🚧 Planned |
 | Hemi | L2 (Bitcoin/Ethereum) | — | 🚧 Planned |
