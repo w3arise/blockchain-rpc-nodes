@@ -13,7 +13,7 @@ services:
       - "35303:30303" # P2P TCP
       - "35303:30303/udp" # P2P UDP
     volumes:
-      - ${HOME}/data-mainnet:/data
+      - ${HOME}/xlayer-op-geth-data:/data
       - ./config/jwt.txt:/jwt.txt
       - ./config/op-geth-config-mainnet.toml:/config.toml
       - ./logs-mainnet/op-geth:/var/log/op-geth
@@ -90,7 +90,7 @@ services:
     mem_limit: ${MEM_LIMIT}
     stop_grace_period: 120s
     volumes:
-      - ${HOME}/erigon-data:${DATADIR}
+      - ${HOME}/xlayer-cdk-erigon-data:${DATADIR}
       - "./xlayer.yaml:/app/config/xlayer.yaml:ro"
     command:
       - "--config=/app/config/xlayer.yaml"
