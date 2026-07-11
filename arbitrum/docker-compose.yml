@@ -1,0 +1,45 @@
+services:
+  arbitrum-main:
+    image: ${NITRO_IMAGE}
+    container_name: arbitrum-main
+    restart: always
+    user: "0:0"
+    ports:
+      - "127.0.0.1:${HTTP_PORT}:8547"
+      - "127.0.0.1:${WS_PORT}:8548"
+    volumes:
+      - "${HOME}/arbitrum-data:/root/.arbitrum"
+    command:
+      - --parent-chain.connection.url=${L1_URL}
+      - --node.feed.input.url=${FEED_URL}
+      - --parent-chain.blob-client.beacon-url=${L1_BEACON_URL}
+      - --chain.id=${CHAIN_ID}
+      - --http.addr=0.0.0.0
+      - --http.port=8547
+      - --http.api=${HTTP_API}
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --ws.addr=0.0.0.0
+      - --ws.port=8548
+      - --ws.api=${WS_API}
+      - --ws.origins=*
+      - --log-level=${LOG_LEVEL}
+      - --node.staker.enable=false
+      - --execution.tx-indexer.tx-lookup-limit=0
+      - --execution.rpc.tx-fee-cap=${TX_FEE_CAP}
+      - --execution.rpc.gas-cap=${GAS_CAP}
+      - --execution.caching.state-scheme=${STATE_SCHEME}
+      # Archive mode settings
+      - --execution.caching.state-history=${STATE_HISTORY}
+      - --execution.caching.archive
+      # Optimisations
+      - --execution.caching.database-cache=16384
+      - --execution.caching.snapshot-cache=2048
+      - --execution.caching.trie-clean-cache=4096
+      - --execution.caching.trie-dirty-cache=4096
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    init: true
+    stop_grace_period: 120s

@@ -1,0 +1,73 @@
+version: '2.2'
+
+networks:
+  op-network:
+    driver: bridge
+
+services:
+######## Optimism exec geth node ########
+  op-reth:
+    image: ${OP_RETH_IMAGE}
+    container_name: op-reth-archive
+    restart: unless-stopped
+    volumes:
+      - ${HOME}/op-reth-datadir/:/data
+    ports:
+      - 127.0.0.1:8991:8545
+      - 127.0.0.1:8992:8546
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    command:
+      - node
+      - --chain=optimism
+      - --datadir=/data
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=${OP_RETH_HTTP_API:-eth,net,web3}
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=${OP_RETH_WS_API:-eth,net,web3}
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --authrpc.jwtsecret=/data/jwt.hex
+      - --port=${P2P_PORT}
+      - --rpc.max-connections=${OP_RETH_RPC_MAX_CONNECTIONS:-2000}
+      - --rpc-cache.max-blocks=${OP_RETH_RPC_CACHE_MAX_BLOCKS:-20000}
+      - --rpc-cache.max-receipts=${OP_RETH_RPC_CACHE_MAX_RECEIPTS:-20000}
+      - --rpc-cache.max-headers=${OP_RETH_RPC_CACHE_MAX_HEADERS:-20000}
+      - --rpc.gascap=${OP_RETH_RPC_GASCAP:-600000000}
+      - --rpc-cache.max-concurrent-db-requests=${OP_RETH_RPC_CACHE_MAX_CONCURRENT_DB_REQUESTS:-2000}
+      - --engine.cross-block-cache-size=${OP_RETH_ENGINE_CROSS_BLOCK_CACHE_SIZE:-10240}
+      - --rollup.sequencer=${OP_RETH_ROLLUP_SEQUENCER:-https://mainnet-sequencer.optimism.io/}
+      - --rollup.disable-tx-pool-gossip
+    entrypoint: ["op-reth"]
+    networks:
+      - op-network      
+### --debug.tip      
+######## Optimism rollup  node ########
+  op-node:
+    init: true
+    image: ${OP_NODE_IMAGE}
+    container_name: op-node-archive
+    volumes:
+      - ${HOME}/op-node-datadir/:/data
+    restart: unless-stopped
+    stop_grace_period: 360s
+    ports:
+      - 21545:9545
+    entrypoint: op-node
+    command:
+     - --l1=${L1_RPC}
+     - --l1.beacon=${L1_BEACON}
+     - --l2=http://op-reth-archive:8551
+     - --network=op-mainnet
+     - --rpc.addr=127.0.0.1
+     - --rpc.port=9545
+     - --l2.jwt-secret=/data/jwt-secret
+     - --p2p.advertise.ip=${EXT_IP}
+       # - --syncmode=execution-layer 
+     - --l1.trustrpc
+    networks:
+      - op-network 

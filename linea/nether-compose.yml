@@ -1,0 +1,59 @@
+services:
+  linea:
+    image: nethermind/nethermind:${NETHERMIND_VERSION}
+    hostname: el-client
+    container_name: linea-el
+    restart: unless-stopped
+    mem_limit: ${MEM_LIMIT}
+    stop_grace_period: 120s
+    ports:
+      - ${P2P_PORT}:${P2P_PORT}
+      - 127.0.0.1:${HTTP_PORT}:8545
+      - 127.0.0.1:${WS_PORT}:8546
+    volumes:
+      - ${HOME}/linea-nether-db:${NETH_DATADIR}
+      - ./engine-jwt:${NETH_DATADIR}/keystore/jwt-secret:ro
+
+    command:
+      - --datadir
+      - ${NETH_DATADIR}
+      - --config
+      - linea-mainnet
+      - --JsonRpc.Enabled=true
+      - --JsonRpc.Host=${HTTP_ADDR}
+      - --JsonRpc.Port=8545
+      - --JsonRpc.WebSocketsPort=8546
+      - --JsonRpc.EngineHost=0.0.0.0
+      - --JsonRpc.EnginePort=8550
+      - --Network.P2PPort=${P2P_PORT}
+      - --Metrics.Enabled=true
+      - --Metrics.ExposePort=${METRICS_PORT}
+
+  # Maru Consensus Layer
+  maru:
+    hostname: linea-maru
+    container_name: linea-cl
+    image: ${MARU_IMAGE}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8088:8080" # Beacon/REST API
+      - "9000:9000/tcp" # P2P main port
+      - "9000:9000/udp" # P2P discovery port (UDP only)
+      - "127.0.0.1:9090:9090" # Metrics (optional)
+    environment:
+      - JAVA_OPTS=-Xmx2g
+    volumes:
+      - ./maru/maru-config.toml:/opt/consensys/maru/configs/maru-config.toml:ro
+      - ./maru/maru-genesis.json:/opt/consensys/maru/configs/maru-genesis.json:ro
+      - ./maru/log4j.xml:/opt/consensys/maru/configs/log4j.xml:ro
+      - ./engine-jwt:/opt/consensys/maru/configs/jwt:ro
+      - ${HOME}/linea-maru-db:/opt/maru
+    command:
+      - "java"
+      - "-Dlog4j2.configurationFile=/opt/consensys/maru/configs/log4j.xml"
+      - "-jar"
+      - "/opt/consensys/maru/maru.jar"
+      - "--maru-genesis-file"
+      - "/opt/consensys/maru/configs/maru-genesis.json"
+      - "--config"
+      - "/opt/consensys/maru/configs/maru-config.toml"
