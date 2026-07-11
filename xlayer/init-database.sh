@@ -5,10 +5,10 @@
 # You do NOT need this when bootstrapping from a snapshot. For the snapshot
 # flow just run:
 #   ./create-jwt.sh
-#   restore the snapshot into $HOME/data-mainnet
+#   restore the snapshot into $HOME/xlayer-op-geth-data
 #   docker compose up -d
 #
-# Use this script only to build $HOME/data-<network> from scratch: it downloads
+# Use this script only to build the op-geth datadir from scratch: it downloads
 # the (large) genesis and runs a one-time `geth init`. Config files (rollup +
 # op-geth toml) are already committed under config/.
 #
@@ -26,14 +26,15 @@ case "${NETWORK}" in
   mainnet)
     GENESIS_URL="https://okg-pub-hk.oss-cn-hongkong.aliyuncs.com/cdn/chain/xlayer/snapshot/merged.genesis.json.mainnet.tar.gz"
     EXPECTED_CHAIN_ID="196"
+    DATA_DIR="${HOME}/xlayer-op-geth-data"
     ;;
   testnet)
     GENESIS_URL="https://okg-pub-hk.oss-cn-hongkong.aliyuncs.com/cdn/chain/xlayer/snapshot/merged.genesis.json.tar.gz"
     EXPECTED_CHAIN_ID="1952"
+    DATA_DIR="${HOME}/xlayer-op-geth-data-testnet"
     ;;
   *) echo "ERROR: unknown network: ${NETWORK} (use mainnet|testnet)" >&2; exit 1 ;;
 esac
-DATA_DIR="${HOME}/data-${NETWORK}"   # matches op-geth volume in docker-compose.yml
 
 for tool in curl tar docker; do
   command -v "$tool" >/dev/null 2>&1 || { echo "ERROR: '$tool' is required." >&2; exit 1; }
