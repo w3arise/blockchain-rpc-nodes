@@ -23,8 +23,8 @@ chain/
 | Mode | L2 (OP Stack) | op-reth | 🚧 Planned |
 | Ronin | L1 (Gaming) | ronin-geth | 🚧 Planned |
 | Sonic | L1 | sonic-node | 🚧 Planned |
-| XLayer | L2 (Polygon CDK) | op-geth + op-node + xlayer-cdk-erigon (archival) | ✅ Ready |
-| XLayer (op-reth) | L2 (Polygon CDK) | xlayer-reth + op-node | ✅ Ready |
+| XLayer | L2 (OP Stack) | op-geth + op-node + xlayer-cdk-erigon (archival) | ✅ Ready |
+| XLayer (op-reth) | L2 (OP Stack) | xlayer-reth + op-node | ✅ Ready |
 | Fantom (FTM) | L1 | go-opera | 🚧 Planned |
 | Hyperliquid | L1 | hl-node | 🚧 Planned |
 | Mantle | L2 (OP Stack) | mantle-node | 🚧 Planned |
