@@ -72,6 +72,5 @@ services:
       - --engine.memory-block-buffer-target=0
       - --max-inbound-peers=30
       - --max-outbound-peers=30
-    entrypoint: ["reth"]
     networks:
       - berachain-network
