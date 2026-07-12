@@ -33,7 +33,7 @@ chain/
 | Apechain | L2 (Arbitrum Orbit) | — | 🚧 Planned |
 | Astar (L1) | L1 | — | 🚧 Planned |
 | B² Network | L2 (Bitcoin) | — | 🚧 Planned |
-| Berachain | L1 | — | 🚧 Planned |
+| Berachain | L1 | bera-reth + beacon-kit | ✅ Ready |
 | Bitlayer | L2 (Bitcoin) | — | 🚧 Planned |
 | Bittensor | L1 | — | 🚧 Planned |
 | Core | L1 | — | 🚧 Planned |

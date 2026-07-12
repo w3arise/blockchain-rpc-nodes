@@ -1,0 +1,75 @@
+networks:
+  berachain-network:
+    driver: bridge
+
+services:
+  berachain-mainnet-beacond:
+    image: ${BEACON_KIT_IMAGE}
+    container_name: berachain-mainnet-beacond
+    restart: unless-stopped
+    stop_grace_period: 60s
+    env_file:
+      - .env
+    volumes:
+      - $HOME/berachain-beacond-data:/root/.beacond
+      - ./config:/config:ro
+    ports:
+      - ${BEACON_P2P_PORT}:${BEACON_P2P_PORT}/tcp
+      - ${BEACON_P2P_PORT}:${BEACON_P2P_PORT}/udp
+      - ${BEACON_QUIC_HOST_PORT}:${BEACON_QUIC_PORT}/tcp
+      - ${BEACON_QUIC_HOST_PORT}:${BEACON_QUIC_PORT}/udp
+    command:
+      - start
+    networks:
+      - berachain-network
+
+  berachain-mainnet-reth:
+    image: ${BERA_RETH_IMAGE}
+    container_name: berachain-mainnet-reth
+    user: root
+    restart: unless-stopped
+    stop_grace_period: 60s
+    depends_on:
+      - berachain-mainnet-beacond
+    env_file:
+      - .env
+    volumes:
+      - $HOME/berachain-reth-data:/data
+      - ./config:/config:ro
+    ports:
+      - 127.0.0.1:${HTTP_PORT}:8545
+      - ${P2P_PORT}:${P2P_PORT}/tcp
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    command:
+      - node
+      - --chain=mainnet
+      - --datadir=/data
+      - --metrics=0.0.0.0:9001
+      - --port=${P2P_PORT}
+      - --discovery.port=${P2P_PORT}
+      - --nat=extip:${EXT_IP}
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --authrpc.jwtsecret=/config/jwt.hex
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8545
+      - --ws.origins=*
+      - --http.api=debug,eth,net,trace,txpool,web3,rpc,reth
+      - --ws.api=debug,eth,net,trace,txpool,web3,rpc,reth
+      - --http.corsdomain=*
+      - --rpc.max-logs-per-response=1100000
+      - --rpc.gascap=600000000
+      - --rpc-max-connections=1024
+      - --bootnodes=${BOOTNODES}
+      - --trusted-peers=${TRUSTED_PEERS}
+      - --engine.persistence-threshold=0
+      - --engine.memory-block-buffer-target=0
+      - --max-inbound-peers=30
+      - --max-outbound-peers=30
+    entrypoint: ["reth"]
+    networks:
+      - berachain-network
