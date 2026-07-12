@@ -13,6 +13,8 @@ services:
     volumes:
       - $HOME/berachain-beacond-data:/root/.beacond
       - ./config:/config:ro
+      - ./config/genesis.json:/root/.beacond/config/genesis.json:ro
+      - ./config/kzg-trusted-setup.json:/root/.beacond/config/kzg-trusted-setup.json:ro
     ports:
       - ${BEACON_P2P_PORT}:${BEACON_P2P_PORT}/tcp
       - ${BEACON_P2P_PORT}:${BEACON_P2P_PORT}/udp
