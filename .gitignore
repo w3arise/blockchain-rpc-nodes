@@ -30,6 +30,3 @@ override_gossip_config.json
 target/
 target-native/
 .dockerignore
-
-# Neo X — downloaded geth binary (use ./download-geth.sh)
-neox/geth

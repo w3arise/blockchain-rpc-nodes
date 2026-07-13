@@ -38,12 +38,6 @@ if [[ -f "${ENV_FILE}" ]]; then
 fi
 
 DATA_DIR="${HOST_DATADIR:-${HOME}/neox-data}"
-GETH_BIN="${SCRIPT_DIR}/geth"
-
-if [[ ! -x "${GETH_BIN}" ]]; then
-  echo "ERROR: ${GETH_BIN} not found. Run ./download-geth.sh first." >&2
-  exit 1
-fi
 
 if [[ ! -f "${GENESIS_FILE}" ]]; then
   echo "ERROR: missing ${GENESIS_FILE}" >&2
@@ -69,8 +63,22 @@ fi
 
 mkdir -p "${DATA_DIR}"
 
+for tool in docker; do
+  command -v "${tool}" >/dev/null 2>&1 || {
+    echo "ERROR: '${tool}' is required." >&2
+    exit 1
+  }
+done
+
+echo "==> Building Neo X image (if needed)"
+docker compose build neox-node
+
 echo "==> Initializing Neo X ${NETWORK} into ${DATA_DIR}"
-"${GETH_BIN}" init --datadir "${DATA_DIR}" "${GENESIS_FILE}"
+docker compose run --rm \
+  --entrypoint geth \
+  -v "${DATA_DIR}:/data" \
+  -v "${GENESIS_FILE}:/config/genesis.json:ro" \
+  neox-node init --datadir /data /config/genesis.json
 
 echo ""
 echo "==> Initialization complete"

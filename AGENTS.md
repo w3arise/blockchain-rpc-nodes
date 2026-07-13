@@ -4,6 +4,10 @@ Generic knowledge for adding or maintaining Layer 2 rollup nodes in this repo (e
 
 Nodes in this repo are meant to run on **Linux hosts**. Do not target macOS for deployment scripts.
 
+## Chain links (`CHAIN_LINKS.md`)
+
+When adding or updating a chain setup, add its **official** documentation and repositories to [`CHAIN_LINKS.md`](CHAIN_LINKS.md). Include links you rely on during setup (node run guides, network specs, client repos/releases). Use the existing table format — one row per chain, multiple links separated by ` · `.
+
 ## Architecture
 
 ```
@@ -242,4 +246,5 @@ Karst activation requires op-reth (not op-geth) and compatible op-node/op-reth p
 8. Add `**/jwt.hex` to `.gitignore` (already in repo root).
 9. Check whether Karst `keep_karst_upgrade_gas` override is needed (Mode/Metal/Zora only).
 10. **Update** `README.md` — review the "Supported Chains" table and update the chain's status, type, and execution client. Also check `.gitignore` and remove the chain from the "Planned" section if it was listed there.
+11. **Update** `CHAIN_LINKS.md` — add official docs, network specs, and client repo/release links for the chain.
 
