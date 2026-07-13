@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # Patch beacond config after init (or IP change): P2P external address,
-# Engine API dial URL, and KZG path for docker-compose networking.
+# Engine API dial URL, and fee recipient. JWT and KZG paths are set via
+# docker-compose command flags.
 #
 # Usage: ./run-setup-initialisation.sh
 
@@ -13,7 +14,6 @@ BEACOND_HOME="${BEACOND_HOME:-$HOME/berachain-beacond-data}"
 RETH_DATA="${RETH_DATA:-$HOME/berachain-reth-data}"
 CONFIG_TOML="${BEACOND_HOME}/config/config.toml"
 APP_TOML="${BEACOND_HOME}/config/app.toml"
-KZG_PATH="${KZG_PATH:-/root/.beacond/config/kzg-trusted-setup.json}"
 
 if [[ -f "${ENV_FILE}" ]]; then
   # shellcheck disable=SC1090
@@ -25,7 +25,6 @@ fi
 BEACON_P2P_PORT="${BEACON_P2P_PORT:-20656}"
 EXT_IP="${EXT_IP:-$(curl -s ifconfig.me --ipv4)}"
 ENGINE_RPC_URL="${ENGINE_RPC_URL:-http://berachain-mainnet-reth:8551}"
-JWT_PATH="${JWT_PATH:-/config/jwt.hex}"
 FEE_RECIPIENT="${FEE_RECIPIENT:-0x0000000000000000000000000000000000000000}"
 NONINTERACTIVE="${NONINTERACTIVE:-0}"
 
@@ -70,27 +69,13 @@ cp "${CONFIG_TOML}" "${CFG_BAK}"
 cp "${ENV_FILE}" "${ENV_BAK}"
 cp "${APP_TOML}" "${APP_BAK}"
 
-if [[ "$(uname -s)" == "Darwin" ]]; then
-  sed -i '' -e "s|laddr = \"tcp://.*26656\"|laddr = \"tcp://0.0.0.0:${BEACON_P2P_PORT}\"|" \
-            -e "s|external_address = .*\"|external_address = \"tcp://${EXT_IP}:${BEACON_P2P_PORT}\"|" \
-            "${CONFIG_TOML}"
-  sed -i '' -E "s|^EXT_IP=.*|EXT_IP=${EXT_IP}|" "${ENV_FILE}"
-  sed -i '' -e "s|^rpc-dial-url = \".*\"|rpc-dial-url = \"${ENGINE_RPC_URL}\"|" \
-            -e "s|^jwt-secret-path = \".*\"|jwt-secret-path = \"${JWT_PATH}\"|" \
-            -e "s|^trusted-setup-path = \".*\"|trusted-setup-path = \"${KZG_PATH}\"|" \
-            -e "s|^suggested-fee-recipient = \".*\"|suggested-fee-recipient = \"${FEE_RECIPIENT}\"|" \
-            "${APP_TOML}"
-else
-  sed -i -e "s|laddr = \"tcp://.*26656\"|laddr = \"tcp://0.0.0.0:${BEACON_P2P_PORT}\"|" \
-         -e "s|external_address = .*\"|external_address = \"tcp://${EXT_IP}:${BEACON_P2P_PORT}\"|" \
-         "${CONFIG_TOML}"
-  sed -i -E "s|^EXT_IP=.*|EXT_IP=${EXT_IP}|" "${ENV_FILE}"
-  sed -i -e "s|^rpc-dial-url = \".*\"|rpc-dial-url = \"${ENGINE_RPC_URL}\"|" \
-         -e "s|^jwt-secret-path = \".*\"|jwt-secret-path = \"${JWT_PATH}\"|" \
-         -e "s|^trusted-setup-path = \".*\"|trusted-setup-path = \"${KZG_PATH}\"|" \
-         -e "s|^suggested-fee-recipient = \".*\"|suggested-fee-recipient = \"${FEE_RECIPIENT}\"|" \
-         "${APP_TOML}"
-fi
+sed -i -e "s|laddr = \"tcp://.*26656\"|laddr = \"tcp://0.0.0.0:${BEACON_P2P_PORT}\"|" \
+       -e "s|external_address = .*\"|external_address = \"tcp://${EXT_IP}:${BEACON_P2P_PORT}\"|" \
+       "${CONFIG_TOML}"
+sed -i -E "s|^EXT_IP=.*|EXT_IP=${EXT_IP}|" "${ENV_FILE}"
+sed -i -e "s|^rpc-dial-url = \".*\"|rpc-dial-url = \"${ENGINE_RPC_URL}\"|" \
+       -e "s|^suggested-fee-recipient = \".*\"|suggested-fee-recipient = \"${FEE_RECIPIENT}\"|" \
+       "${APP_TOML}"
 
 echo "=== config.toml ==="
 diff -u "${CFG_BAK}" "${CONFIG_TOML}" || true
