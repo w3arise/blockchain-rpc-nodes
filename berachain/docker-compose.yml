@@ -12,9 +12,7 @@ services:
       - .env
     volumes:
       - $HOME/berachain-beacond-data:/root/.beacond
-      - ./config:/config:ro
-      - ./config/genesis.json:/root/.beacond/config/genesis.json:ro
-      - ./config/kzg-trusted-setup.json:/root/.beacond/config/kzg-trusted-setup.json:ro
+      - ./config:/config
     ports:
       - ${BEACON_P2P_PORT}:${BEACON_P2P_PORT}/tcp
       - ${BEACON_P2P_PORT}:${BEACON_P2P_PORT}/udp
@@ -22,6 +20,8 @@ services:
       - ${BEACON_QUIC_HOST_PORT}:${BEACON_QUIC_PORT}/udp
     command:
       - start
+      - --beacon-kit.engine.jwt-secret-path=/config/jwt.hex
+      - --beacon-kit.kzg.trusted-setup-path=/config/kzg-trusted-setup.json
     networks:
       - berachain-network
 
