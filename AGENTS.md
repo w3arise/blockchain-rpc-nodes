@@ -1,6 +1,6 @@
-# Agent guide: OP Stack L2 chains (Conduit)
+# Agent guide
 
-Generic knowledge for adding or maintaining Layer 2 rollup nodes in this repo (e.g. `mode/`, `bob/`). These chains typically run **op-reth** (execution client) + **op-node** (rollup consensus client).
+Conventions for adding and maintaining chain nodes in this repo (L1, L2, OP Stack, and others). OP Stack / Conduit-specific notes are in their own sections below.
 
 Nodes in this repo are meant to run on **Linux hosts**. Do not target macOS for deployment scripts.
 
@@ -8,7 +8,22 @@ Nodes in this repo are meant to run on **Linux hosts**. Do not target macOS for 
 
 When adding or updating a chain setup, add its **official** documentation and repositories to [`CHAIN_LINKS.md`](CHAIN_LINKS.md). Include links you rely on during setup (node run guides, network specs, client repos/releases). Use the existing table format — one row per chain, multiple links separated by ` · `.
 
-## Architecture
+## Chain README (`<chain>/README.md`)
+
+Each chain directory gets a **minimal** `README.md` with the exact steps to run it. Keep it short — see `neox/README.md` or `berachain/README.md` for tone and length.
+
+Include:
+
+- One-line description (client, network role)
+- Host datadir path(s)
+- **Start** — numbered shell commands from a fresh setup (configure, build, init, compose up)
+- **Snapshot** — restore path and which init steps to skip (if snapshots are supported)
+- **Testnet** — only if the setup supports it
+- Link to official run docs
+
+Do not duplicate `env.template` comments or long troubleshooting guides.
+
+## Architecture (OP Stack)
 
 ```
 L1 (Ethereum) ──► op-node ──► Engine API (JWT) ──► op-reth ──► JSON-RPC
@@ -28,15 +43,16 @@ L1 (Ethereum) ──► op-node ──► Engine API (JWT) ──► op-reth ─
 chain/
 ├── docker-compose.yml
 ├── env.template          # copy to .env; never commit .env
-├── create-jwt.sh         # writes config/jwt.hex (gitignored)
-├── config/
-│   ├── jwt.hex           # generated; shared by op-reth and op-node
-│   ├── genesis.json      # optional reference / backup
-│   └── rollup.json       # optional reference / backup
+├── README.md             # minimal start steps
+├── configure.sh          # optional: create .env, set EXT_IP
+├── init-database.sh      # optional: genesis / datadir init
+├── Dockerfile            # optional: local image build
+├── create-jwt.sh         # OP Stack only: writes config/jwt.hex
+└── config/               # genesis, rollup, JWT, chain params
 ```
 
-- Store **chain data** under `$HOME` (e.g. `$HOME/op-reth-data`, `$HOME/op-node-data`), not inside the repo.
-- Mount `./config:/config` for JWT (and optional chain config files).
+- Store **chain data** under `$HOME`, not inside the repo.
+- Add setup scripts only when the chain needs them (not every chain uses JWT, Docker build, or genesis init).
 
 
 
@@ -155,7 +171,7 @@ https://api.conduit.xyz/file/v1/optimism/rollup/<network-slug>
 https://api.conduit.xyz/file/v1/optimism/forkTimestamps/<network-slug>
 ```
 
-Local copies drift quickly (missing fork timestamps such as `jovianTime`, `karstTime`). An outdated genesis causes subtle sync failures near fork boundaries.
+Local copies drift quickly (missing fork timestamps). An outdated genesis causes subtle sync failures near fork boundaries.
 
 ## op-node persistence (SafeDB)
 
@@ -164,22 +180,6 @@ OP_NODE_SAFEDB_PATH=/data
 ```
 
 Mount `$HOME/op-node-data:/data` so op-node retains safe-head state across restarts. Without it, the node works but may lose sync progress on container recreate.
-
-## Karst hardfork (`keep_karst_upgrade_gas`)
-
-**Applies to:** OP, Ink, Metal, **Mode**, Soneium, Unichain, **Zora** (and Sepolia equivalents).
-
-**Does not apply to:** BOB and other Conduit chains without `karst_time` in their fork schedule.
-
-Conduit confirmed `keep_karst_upgrade_gas` must be `false` for Mode, Metal, and Zora, even though the superchain registry may set it to `true`. Wrong value can cause finalized head to stall.
-
-For affected chains on op-node v1.19.x:
-
-1. Confirm `karst_time` via `optimism_rollupConfig` RPC (Mode mainnet: `1783526401`).
-2. Check startup logs for `keep_karst_upgrade_gas=true`.
-3. Override: `--override.keep-karst-upgrade-gas=false` or `OP_NODE_OVERRIDE_KEEP_KARST_UPGRADE_GAS=false`.
-
-BOB sync errors (`failed to insert unsafe payload`, `node is syncing`) are usually **not** Karst-related. See sync troubleshooting below.
 
 ## Sync troubleshooting
 
@@ -204,7 +204,7 @@ Head block unchanged for >1–2 hours while L1 origin advances:
 2. **Datadir path change** — `$HOME/op-reth-data` vs `./op-reth-data` pointing at different data.
 3. **Missing L1 env** — `OP_NODE_L1_ETH_RPC` / `OP_NODE_L1_BEACON` not loaded into container.
 4. **JWT mismatch** — Engine API auth failure (usually total failure, not partial stall).
-5. **Outdated fork overrides** — e.g. `OP_NODE_OVERRIDE_JOVIAN` out of sync with network.
+5. **Outdated fork overrides** — manual op-node fork flags out of sync with the network.
 
 Diagnostic commands:
 
@@ -225,26 +225,32 @@ curl -s http://127.0.0.1:<op-node-rpc> -H 'Content-Type: application/json' \
 
 ## Version pins
 
-Pin images in `env.template`:
+Pin client images in `env.template` (op-reth, op-node, etc.) and bump them together when upgrading.
 
-```
-OP_RETH_IMAGE=us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:v2.3.3
-OP_NODE_IMAGE=us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:v1.19.2
-```
+## Checklist for new chain
 
-Karst activation requires op-reth (not op-geth) and compatible op-node/op-reth pairs per [Optimism upgrade notices](https://docs.optimism.io/notices/upgrade-19).
+Apply every item that fits the chain type. Skip sections that do not apply (e.g. JWT for a single-client L1).
 
-## Checklist for new Conduit L2 chain
+### All chains
 
-1. Create chain directory with `docker-compose.yml`, `env.template`, `create-jwt.sh`.
-2. Fetch bootnodes/static peers from Conduit API for the correct network slug.
-3. Fetch genesis/rollup from Conduit API; verify MD5/size.
-4. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and stick with it.
-5. Use `OP_NODE_L1_*` env vars in a single `.env`.
-6. Mount `./config:/config` for shared JWT.
-7. Store datadirs under `$HOME`.
-8. Add `**/jwt.hex` to `.gitignore` (already in repo root).
-9. Check whether Karst `keep_karst_upgrade_gas` override is needed (Mode/Metal/Zora only).
-10. **Update** `README.md` — review the "Supported Chains" table and update the chain's status, type, and execution client. Also check `.gitignore` and remove the chain from the "Planned" section if it was listed there.
-11. **Update** `CHAIN_LINKS.md` — add official docs, network specs, and client repo/release links for the chain.
+1. Create `<chain>/` with `docker-compose.yml`, `env.template`, and any needed setup scripts.
+2. Pin client versions in `env.template` (image tags, release versions, etc.).
+3. Store datadirs under `$HOME`.
+4. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above).
+5. **Update** root `README.md` — Supported Chains table (status, type, execution client); remove from Planned if applicable.
+6. **Update** `CHAIN_LINKS.md` — official docs, network specs, and client repo/release links.
+7. Check `.gitignore` for secrets and generated files (`.env`, JWT, downloaded binaries).
+
+### OP Stack (op-node + execution client)
+
+8. `create-jwt.sh` and mount shared JWT for Engine API auth.
+9. Use `OP_NODE_L1_*` env vars in a single `.env`.
+10. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
+11. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
+12. Set `--nat=extip:${EXT_IP}` (or equivalent) for public P2P where needed.
+
+### Conduit OP Stack (additional)
+
+13. Fetch bootnodes/static peers from Conduit API for the correct network slug.
+14. Fetch genesis/rollup from Conduit API; verify before committing.
 

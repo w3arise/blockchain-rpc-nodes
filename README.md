@@ -1,90 +1,104 @@
 # Blockchain RPC Nodes
 
-Self-hosted RPC & archive nodes for EVM chains — Docker Compose setups for BSC, Arbitrum, Optimism & Linea. More chains added regularly.
+Self-hosted RPC and archive nodes for EVM chains, packaged as Docker Compose setups.
+
+Pick a chain below, open its README, and follow the steps there — setup varies by client and network.
 
 ## Structure
 
 ```
 chain/
-├── docker-compose.yml   # service definition (container, ports, volumes, command flags)
+├── docker-compose.yml   # service definition (ports, volumes, command flags)
 ├── env.template         # configuration variables (copy to .env before use)
-└── config/              # optional: JWT secrets, genesis files, rollup configs
+├── README.md            # minimal start steps for this chain
+├── configure.sh         # optional: create .env, set EXT_IP
+├── init-database.sh     # optional: genesis / datadir init
+├── Dockerfile           # optional: local image build
+├── create-jwt.sh        # OP Stack only: shared Engine API JWT
+└── config/              # genesis, rollup, JWT, chain params
 ```
 
-## Supported Chains
+Not every chain uses every file. Chain data is stored under `$HOME` on the host, not inside the repo.
 
-| Chain | Type | Execution Client | Status |
-| --- | --- | --- | --- |
-| BSC | L1 | bsc-geth | ✅ Ready |
-| Arbitrum | L2 (Nitro) | nitro | ✅ Ready |
-| Optimism | L2 (OP Stack) | op-reth + op-node | ✅ Ready |
-| Linea | L2 (ZK) | Besu / Nethermind + Maru | ✅ Ready |
-| Bob | L2 (OP Stack) | op-reth + op-node | ✅ Ready |
-| Mode | L2 (OP Stack) | op-reth | 🚧 Planned |
-| Ronin | L1 (Gaming) | ronin-geth | 🚧 Planned |
-| Sonic | L1 | sonic-node | 🚧 Planned |
-| XLayer | L2 (OP Stack) | op-geth + op-node + xlayer-cdk-erigon (archival) | ✅ Ready |
-| XLayer (op-reth) | L2 (OP Stack) | xlayer-reth + op-node | ✅ Ready |
-| Fantom (FTM) | L1 | go-opera | 🚧 Planned |
-| Hyperliquid | L1 | hl-node | 🚧 Planned |
-| Mantle | L2 (OP Stack) | mantle-node | 🚧 Planned |
-| 0G | L1 | 0g-node | 🚧 Planned |
-| Abstract | L2 (ZK Stack) | — | 🚧 Planned |
-| Apechain | L2 (Arbitrum Orbit) | — | 🚧 Planned |
-| Astar (L1) | L1 | — | 🚧 Planned |
-| B² Network | L2 (Bitcoin) | — | 🚧 Planned |
-| Berachain | L1 | bera-reth + beacon-kit | ✅ Ready |
-| Bitlayer | L2 (Bitcoin) | — | 🚧 Planned |
-| Bittensor | L1 | — | 🚧 Planned |
-| Core | L1 | — | 🚧 Planned |
-| Cronos | L1 | — | 🚧 Planned |
-| Etherlink (Tezos) | L2 | — | 🚧 Planned |
-| Gnosis Chain (xDai) | L1 | reth_gnosis + lighthouse | ✅ Ready |
-| Hashkey Chain | L2 (OP Stack) | — | 🚧 Planned |
-| Hedera | L1 | — | 🚧 Planned |
-| Hemi | L2 (Bitcoin/Ethereum) | — | 🚧 Planned |
-| Kaia | L1 | — | 🚧 Planned |
-| Katana (Polygon) | L2 (Polygon CDK) | — | 🚧 Planned |
-| Lens | L2 (ZK Stack) | — | 🚧 Planned |
-| Lisk | L2 (OP Stack) | — | 🚧 Planned |
-| MegaETH | L2 | — | 🚧 Planned |
-| Monad | L1 | — | 🚧 Planned |
-| Morph | L2 | — | 🚧 Planned |
-| Neo X | L1 (EVM-compatible) | bane-labs geth | ✅ Ready |
-| Nexon Henesys | L2 | — | 🚧 Planned |
-| Pharos | L1 | — | 🚧 Planned |
-| Robinhood Chain | L2 | — | 🚧 Planned |
-| Scroll | L2 (ZK) | — | 🚧 Planned |
-| Sei | L1 | — | 🚧 Planned |
-| Soneium | L2 (OP Stack) | — | 🚧 Planned |
-| Superseed | L2 (OP Stack) | — | 🚧 Planned |
-| Tac | L2 | — | 🚧 Planned |
-| Tempo | L1 | — | 🚧 Planned |
-| Worldchain | L2 (OP Stack) | — | 🚧 Planned |
-| XDC | L1 | — | 🚧 Planned |
-| Zircuit | L2 (ZK) | — | 🚧 Planned |
-| opBNB | L2 (OP Stack) | — | 🚧 Planned |
+## Ready
+
+| Chain | Directory | Type | Execution Client | Setup |
+| --- | --- | --- | --- | --- |
+| Arbitrum | `arbitrum/` | L2 (Nitro) | nitro | [README](arbitrum/README.md) |
+| Berachain | `berachain/` | L1 | bera-reth + beacon-kit | [README](berachain/README.md) |
+| Bob | `bob/` | L2 (OP Stack) | op-reth + op-node | [README](bob/README.md) |
+| BSC | `bsc/` | L1 | bsc-geth | [README](bsc/README.md) |
+| Gnosis Chain (xDai) | `gnosis/` | L1 | reth_gnosis + lighthouse | [README](gnosis/README.md) |
+| Linea | `linea/` | L2 (ZK) | Besu / Nethermind + Maru | [README](linea/README.md) |
+| Neo X | `neox/` | L1 (EVM-compatible) | bane-labs geth | [README](neox/README.md) |
+| Optimism | `optimism/` | L2 (OP Stack) | op-reth + op-node | [README](optimism/README.md) |
+| XLayer | `xlayer/` | L2 (OP Stack) | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md) |
+| XLayer (op-reth) | `xlayer-reth/` | L2 (OP Stack) | xlayer-reth + op-node | [README](xlayer-reth/README.md) |
+
+## Planned
+
+| Chain | Type | Execution Client |
+| --- | --- | --- |
+| 0G | L1 | 0g-node |
+| Abstract | L2 (ZK Stack) | — |
+| Apechain | L2 (Arbitrum Orbit) | — |
+| Astar (L1) | L1 | — |
+| B² Network | L2 (Bitcoin) | — |
+| Bitlayer | L2 (Bitcoin) | — |
+| Bittensor | L1 | — |
+| Core | L1 | — |
+| Cronos | L1 | — |
+| Etherlink (Tezos) | L2 | — |
+| Fantom (FTM) | L1 | go-opera |
+| Hashkey Chain | L2 (OP Stack) | — |
+| Hedera | L1 | — |
+| Hemi | L2 (Bitcoin/Ethereum) | — |
+| Hyperliquid | L1 | hl-node |
+| Kaia | L1 | — |
+| Katana (Polygon) | L2 (Polygon CDK) | — |
+| Lens | L2 (ZK Stack) | — |
+| Lisk | L2 (OP Stack) | — |
+| Mantle | L2 (OP Stack) | mantle-node |
+| MegaETH | L2 | — |
+| Mode | L2 (OP Stack) | op-reth |
+| Monad | L1 | — |
+| Morph | L2 | — |
+| Nexon Henesys | L2 | — |
+| opBNB | L2 (OP Stack) | — |
+| Pharos | L1 | — |
+| Robinhood Chain | L2 | — |
+| Ronin | L1 (Gaming) | ronin-geth |
+| Scroll | L2 (ZK) | — |
+| Sei | L1 | — |
+| Sonic | L1 | sonic-node |
+| Soneium | L2 (OP Stack) | — |
+| Superseed | L2 (OP Stack) | — |
+| Tac | L2 | — |
+| Tempo | L1 | — |
+| Worldchain | L2 (OP Stack) | — |
+| XDC | L1 | — |
+| Zircuit | L2 (ZK) | — |
 
 ## Quick Start
 
+```bash
+cd <chain>    # e.g. neox, bsc, bob
+# follow <chain>/README.md
 ```
-# 1. Choose a chain
-cd <chain>
 
-# 2. Configure environment
-cp env.template .env
-# edit .env — at minimum set EXT_IP and any credentials
+Repo-wide reminders:
 
-# 3. Start the node
-docker compose up -d
-```
+- Chain datadirs live under `$HOME` on the host.
+- `.env` files are gitignored — never commit secrets or private keys.
+- OP Stack chains need a shared JWT and L1 RPC/beacon URLs.
 
 ## Notes
 
-- Chain data is stored on the host (typically `$HOME/chain-data`), not inside the container.
-- `.env` files are gitignored — never commit secrets or private keys.
-- OP Stack chains require a shared JWT for Engine API authentication between `op-node` and `op-reth`.
-- Environment variables are documented inline in each `env.template`.
-- Linea provides two execution client options: Besu (`besu-compose.yml`) or Nethermind (`nether-compose.yml`).
-- XLayer has two setups: `xlayer/` (op-geth, with archival cdk-erigon) and `xlayer-reth/` (op-reth alternative). Run one or the other — ports don't clash. The op-reth variant supports snapshot restore and forwards pre-OP-Stack historical/trace RPC to a legacy endpoint.
-- Status legend: ✅ Ready — Docker setup available and tested. 🚧 Planned — on the roadmap, not yet added.
+- Ready — Docker setup available. Planned — on the roadmap, not yet added.
+- Linea: Besu (`besu-compose.yml`) or Nethermind (`nether-compose.yml`).
+- XLayer: `xlayer/` (op-geth + archival cdk-erigon) or `xlayer-reth/` (op-reth). Run one or both — ports don't clash.
+
+## Related docs
+
+- [CHAIN_LINKS.md](CHAIN_LINKS.md) — official documentation and client repositories
+- [AGENTS.md](AGENTS.md) — conventions for adding and maintaining chains
