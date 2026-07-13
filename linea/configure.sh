@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Configure Linea Besu deployment: .env, public IP, Maru P2P address, file permissions.
+# Configure Linea Besu deployment: .env, Besu ports, public IP, Maru P2P address, file permissions.
 #
 # Usage: ./configure.sh
 
@@ -12,9 +12,22 @@ cd "${SCRIPT_DIR}"
 ENV_FILE="${SCRIPT_DIR}/.env"
 ENV_TEMPLATE="${SCRIPT_DIR}/env.template"
 MARU_CONFIG="${SCRIPT_DIR}/maru/maru-config.toml"
+BESU_CONFIG="${SCRIPT_DIR}/besu/linea-besu.config.toml"
 
 sed_inplace() {
   sed -i -e "$1" "$2"
+}
+
+set_besu_config_value() {
+  local key="$1"
+  local value="$2"
+  local current
+
+  current="$(grep -E "^${key}=" "${BESU_CONFIG}" | cut -d= -f2 | tr -d '[:space:]')"
+  if [[ "${current}" != "${value}" ]]; then
+    sed_inplace "s|^${key}=.*|${key}=${value}|" "${BESU_CONFIG}"
+    echo "set ${key}=${value} in besu/linea-besu.config.toml"
+  fi
 }
 
 if [[ ! -f "${ENV_FILE}" ]]; then
@@ -33,6 +46,16 @@ if [[ "${CURRENT_EXT_IP}" != "${PUBLIC_IP}" ]]; then
   sed_inplace "s|^EXT_IP=.*|EXT_IP=${PUBLIC_IP}|" "${ENV_FILE}"
   echo "set EXT_IP=${PUBLIC_IP} in .env"
 fi
+
+set -a
+# shellcheck disable=SC1091
+source "${ENV_FILE}"
+set +a
+
+set_besu_config_value rpc-http-port "${HTTP_PORT}"
+set_besu_config_value rpc-ws-port "${WS_PORT}"
+set_besu_config_value p2p-port "${P2P_PORT}"
+set_besu_config_value metrics-port "${METRICS_PORT}"
 
 CURRENT_MARU_IP="$(grep -E '^ip-address' "${MARU_CONFIG}" | sed -E 's/.*"([^"]+)".*/\1/')"
 if [[ "${CURRENT_MARU_IP}" != "${PUBLIC_IP}" ]]; then
