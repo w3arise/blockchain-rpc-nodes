@@ -63,5 +63,5 @@ if [[ "${CURRENT_MARU_IP}" != "${PUBLIC_IP}" ]]; then
   echo "set ip-address=${PUBLIC_IP} in maru/maru-config.toml"
 fi
 
-find besu maru -type f -exec chmod o+r {} +
-echo "chmod o+r besu maru"
+find besu maru execution-layer-static-nodes.json engine-jwt -type f -exec chmod o+r {} +
+echo "chmod o+r besu maru execution-layer-static-nodes.json engine-jwt"
