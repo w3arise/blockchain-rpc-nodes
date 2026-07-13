@@ -1,0 +1,46 @@
+services:
+  neox-node:
+    image: ${ALPINE_IMAGE}
+    container_name: neox-node
+    restart: unless-stopped
+    env_file:
+      - .env
+    working_dir: /app
+    entrypoint: ["/app/geth"]
+    command:
+      - --networkid=${NETWORK_ID}
+      - --port=${P2P_PORT}
+      - --discovery.port=${P2P_PORT}
+      - --authrpc.port=${AUTHRPC_PORT}
+      - --identity=${NODE_IDENTITY}
+      - --maxpeers=${MAX_PEERS}
+      - --syncmode=${SYNC_MODE}
+      - --gcmode=${GCMODE}
+      - --datadir=/data
+      - --bootnodes=${BOOTNODES}
+      - --nat=extip:${EXT_IP}
+      - --http
+      - --http.api=${HTTP_API}
+      - --http.addr=0.0.0.0
+      - --http.port=${HTTP_PORT}
+      - --http.vhosts=*
+      - --http.corsdomain=*
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=${WS_PORT}
+      - --ws.api=${WS_API}
+      - --ws.origins=*
+      - --verbosity=${VERBOSITY}
+    volumes:
+      - ./geth:/app/geth:ro
+      - ${HOST_DATADIR:-$HOME/neox-data}:/data
+    ports:
+      - "${P2P_PORT}:${P2P_PORT}/tcp"
+      - "${P2P_PORT}:${P2P_PORT}/udp"
+      - "127.0.0.1:${HTTP_PORT}:${HTTP_PORT}"
+      - "127.0.0.1:${WS_PORT}:${WS_PORT}"
+      - "127.0.0.1:${AUTHRPC_PORT}:${AUTHRPC_PORT}"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

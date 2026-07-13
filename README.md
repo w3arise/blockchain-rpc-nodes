@@ -50,7 +50,7 @@ chain/
 | MegaETH | L2 | — | 🚧 Planned |
 | Monad | L1 | — | 🚧 Planned |
 | Morph | L2 | — | 🚧 Planned |
-| Neo X | L1 (EVM-compatible) | — | 🚧 Planned |
+| Neo X | L1 (EVM-compatible) | bane-labs geth | ✅ Ready |
 | Nexon Henesys | L2 | — | 🚧 Planned |
 | Pharos | L1 | — | 🚧 Planned |
 | Robinhood Chain | L2 | — | 🚧 Planned |
