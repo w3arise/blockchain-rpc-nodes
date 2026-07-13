@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Initialize Linea Besu deployment: .env, public IP, Maru P2P address, file permissions.
+# Configure Linea Besu deployment: .env, public IP, Maru P2P address, file permissions.
 #
-# Usage: ./init.sh
+# Usage: ./configure.sh
 
 set -euo pipefail
 
@@ -14,22 +14,7 @@ ENV_TEMPLATE="${SCRIPT_DIR}/env.template"
 MARU_CONFIG="${SCRIPT_DIR}/maru/maru-config.toml"
 
 sed_inplace() {
-  local expr="$1"
-  local file="$2"
-  if [[ "$(uname -s)" == Darwin ]]; then
-    sed -i '' -e "${expr}" "${file}"
-  else
-    sed -i -e "${expr}" "${file}"
-  fi
-}
-
-file_mode() {
-  local file="$1"
-  if stat -c '%a' "${file}" >/dev/null 2>&1; then
-    stat -c '%a' "${file}"
-  else
-    stat -f '%OLp' "${file}"
-  fi
+  sed -i -e "$1" "$2"
 }
 
 if [[ ! -f "${ENV_FILE}" ]]; then
@@ -55,10 +40,5 @@ if [[ "${CURRENT_MARU_IP}" != "${PUBLIC_IP}" ]]; then
   echo "set ip-address=${PUBLIC_IP} in maru/maru-config.toml"
 fi
 
-while IFS= read -r -d '' file; do
-  mode="$(file_mode "${file}")"
-  if (( (10#${mode} % 10) & 4 == 0 )); then
-    chmod o+r "${file}"
-    echo "chmod o+r ${file#${SCRIPT_DIR}/}"
-  fi
-done < <(find besu maru -type f -print0)
+find besu maru -type f -exec chmod o+r {} +
+echo "chmod o+r besu maru"

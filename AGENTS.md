@@ -2,6 +2,8 @@
 
 Generic knowledge for adding or maintaining Layer 2 rollup nodes in this repo (e.g. `mode/`, `bob/`). These chains typically run **op-reth** (execution client) + **op-node** (rollup consensus client).
 
+Nodes in this repo are meant to run on **Linux hosts**. Do not target macOS for deployment scripts.
+
 ## Architecture
 
 ```
@@ -12,7 +14,9 @@ L1 (Ethereum) ──► op-node ──► Engine API (JWT) ──► op-reth ─
 
 - **op-reth**: stores chain data, serves HTTP/WS RPC, exposes authenticated Engine API (port 8551 or 9551).
 - **op-node**: derives L2 from L1, drives op-reth via Engine API, syncs unsafe blocks from P2P peers.
-- Both must share the **same JWT** for Engine API auth.
+- Both must share the **same JWT** for Engine API auth
+
+
 
 ## Standard layout per chain directory
 
@@ -30,16 +34,22 @@ chain/
 - Store **chain data** under `$HOME` (e.g. `$HOME/op-reth-data`, `$HOME/op-node-data`), not inside the repo.
 - Mount `./config:/config` for JWT (and optional chain config files).
 
+
+
 ## Environment variables
+
+
 
 ### op-node L1 (required)
 
-op-node does **not** read generic names. Use the `OP_NODE_*` prefix:
+op-node does **not** read generic names. Use the `OP_NODE_`* prefix:
 
-| Wrong (ignored) | Correct |
-|---|---|
-| `L1_RPC` | `OP_NODE_L1_ETH_RPC` |
-| `L1_BEACON` | `OP_NODE_L1_BEACON` |
+
+| Wrong (ignored) | Correct              |
+| --------------- | -------------------- |
+| `L1_RPC`        | `OP_NODE_L1_ETH_RPC` |
+| `L1_BEACON`     | `OP_NODE_L1_BEACON`  |
+
 
 If L1 vars are missing, op-node fails at startup with: `flag l1 is required`.
 
@@ -60,14 +70,17 @@ Bootnodes and static peers still come from env (see Conduit API below).
 
 Two valid approaches — **do not mix on an existing datadir**:
 
-| Approach | op-reth flag | When to use |
-|---|---|---|
-| Built-in preset | `--chain=mode` / `--chain=bob` | Fresh sync; image embeds current chain spec |
-| Genesis file | `--chain=/data/genesis.json` | Existing datadir already synced with that genesis |
+
+| Approach        | op-reth flag                   | When to use                                       |
+| --------------- | ------------------------------ | ------------------------------------------------- |
+| Built-in preset | `--chain=mode` / `--chain=bob` | Fresh sync; image embeds current chain spec       |
+| Genesis file    | `--chain=/data/genesis.json`   | Existing datadir already synced with that genesis |
+
 
 **Critical:** Switching from `--chain=/data/genesis.json` to `--chain=bob` (or vice versa) on a populated datadir causes sync to stall. op-node keeps pushing blocks; op-reth returns `updated forkchoice, but node is syncing` and the head stops moving.
 
 If the chain spec must change, either:
+
 - revert to the original genesis path/spec, or
 - wipe datadir and resync from scratch.
 
@@ -89,6 +102,8 @@ Both services mount the same file:
 Do not use a custom entrypoint to write JWT at runtime unless necessary. Regenerating JWT requires restarting **both** containers.
 
 ## P2P and public IP
+
+
 
 ### op-node peers (Conduit API)
 
@@ -152,7 +167,7 @@ Mount `$HOME/op-node-data:/data` so op-node retains safe-head state across resta
 
 **Does not apply to:** BOB and other Conduit chains without `karst_time` in their fork schedule.
 
-Conduit confirmed `keep_karst_upgrade_gas` must be **`false`** for Mode, Metal, and Zora, even though the superchain registry may set it to `true`. Wrong value can cause finalized head to stall.
+Conduit confirmed `keep_karst_upgrade_gas` must be `false` for Mode, Metal, and Zora, even though the superchain registry may set it to `true`. Wrong value can cause finalized head to stall.
 
 For affected chains on op-node v1.19.x:
 
@@ -163,6 +178,8 @@ For affected chains on op-node v1.19.x:
 BOB sync errors (`failed to insert unsafe payload`, `node is syncing`) are usually **not** Karst-related. See sync troubleshooting below.
 
 ## Sync troubleshooting
+
+
 
 ### Normal catch-up (temporary)
 
@@ -200,6 +217,8 @@ curl -s http://127.0.0.1:<op-node-rpc> -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","method":"optimism_rollupConfig","params":[],"id":1}' | jq
 ```
 
+
+
 ## Version pins
 
 Pin images in `env.template`:
@@ -222,4 +241,5 @@ Karst activation requires op-reth (not op-geth) and compatible op-node/op-reth p
 7. Store datadirs under `$HOME`.
 8. Add `**/jwt.hex` to `.gitignore` (already in repo root).
 9. Check whether Karst `keep_karst_upgrade_gas` override is needed (Mode/Metal/Zora only).
-10. **Update `README.md`** — review the "Supported Chains" table and update the chain's status, type, and execution client. Also check `.gitignore` and remove the chain from the "Planned" section if it was listed there.
+10. **Update** `README.md` — review the "Supported Chains" table and update the chain's status, type, and execution client. Also check `.gitignore` and remove the chain from the "Planned" section if it was listed there.
+
