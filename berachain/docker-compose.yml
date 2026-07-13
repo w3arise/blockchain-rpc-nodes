@@ -23,6 +23,7 @@ services:
       - --beacon-kit.engine.jwt-secret-path=/config/jwt.hex
       - --beacon-kit.kzg.trusted-setup-path=/config/kzg-trusted-setup.json
       - --p2p.seeds=${BEACON_P2P_SEEDS}
+      - --p2p.persistent_peers=${BEACON_P2P_PERSISTENT_PEERS}
     networks:
       - berachain-network
 
