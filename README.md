@@ -26,7 +26,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | --- | --- | --- | --- | --- |
 | Arbitrum | `arbitrum/` | L2 (Nitro) | nitro | [README](arbitrum/README.md) |
 | Berachain | `berachain/` | L1 | bera-reth + beacon-kit | [README](berachain/README.md) |
-| Bitlayer | `bitlayer/` | L2 (Bitcoin) | bitlayer-l2 geth | [README](bitlayer/README.md) |
 | Bob | `bob/` | L2 (OP Stack) | op-reth + op-node | [README](bob/README.md) |
 | BSC | `bsc/` | L1 | bsc-geth | [README](bsc/README.md) |
 | Gnosis Chain (xDai) | `gnosis/` | L1 | reth_gnosis + lighthouse | [README](gnosis/README.md) |
@@ -39,6 +38,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | XLayer | `xlayer/` | L2 (OP Stack) | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md) |
 | XLayer (op-reth) | `xlayer-reth/` | L2 (OP Stack) | xlayer-reth + op-node | [README](xlayer-reth/README.md) |
 | Abstract | `abstract/` | L2 (ZK Stack) | external-node + postgres | [README](abstract/README.md) |
+| Morph | `morph/` | L2 (Optimistic + ZK) | morph-geth + morph-node | [README](morph/README.md) |
 
 ## Planned
 
@@ -48,6 +48,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Apechain | L2 (Arbitrum Orbit) | — |
 | Astar (L1) | L1 | — |
 | B² Network | L2 (Bitcoin) | — |
+| Bitlayer | L2 (Bitcoin) | — |
 | Bittensor | L1 | — |
 | Core | L1 | — |
 | Cronos | L1 | — |
@@ -65,7 +66,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | MegaETH | L2 | — |
 | Mode | L2 (OP Stack) | op-reth |
 | Monad | L1 | — |
-| Morph | L2 | — |
 | Nexon Henesys | L2 | — |
 | opBNB | L2 (OP Stack) | — |
 | Pharos | L1 | — |
@@ -90,7 +90,7 @@ Repo-wide reminders:
 
 - Chain datadirs live under `$HOME` on the host.
 - `.env` files are gitignored — never commit secrets or private keys.
-- OP Stack chains need a shared JWT and L1 RPC/beacon URLs.
+- OP Stack and Morph chains need a shared JWT and L1 RPC URLs (Morph: execution RPC only).
 
 ## Notes
 

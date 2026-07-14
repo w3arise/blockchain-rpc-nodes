@@ -1,0 +1,60 @@
+services:
+  morph-geth:
+    image: ${GETH_IMAGE}
+    container_name: morph-geth
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - MORPH_FLAG=${MORPH_FLAG}
+      - EXT_IP=${EXT_IP}
+      - GETH_P2P_PORT=${GETH_P2P_PORT}
+    volumes:
+      - ${GETH_DATADIR:-$HOME/morph-geth-data}:/db
+      - ./config/jwt.hex:/config/jwt.hex:ro
+      - ./entrypoint-geth.sh:/entrypoint.sh:ro
+    ports:
+      - 127.0.0.1:${HTTP_HOST_PORT}:8545
+      - 127.0.0.1:${WS_HOST_PORT}:8546
+      - 127.0.0.1:${GETH_METRICS_HOST_PORT}:6060
+      - ${GETH_P2P_PORT}:${GETH_P2P_PORT}
+      - ${GETH_P2P_PORT}:${GETH_P2P_PORT}/udp
+    entrypoint:
+      - /bin/sh
+      - /entrypoint.sh
+    networks:
+      - morph-network
+
+  morph-node:
+    image: ${NODE_IMAGE}
+    container_name: morph-node
+    restart: unless-stopped
+    depends_on:
+      morph-geth:
+        condition: service_started
+    env_file: .env
+    environment:
+      - MORPH_NODE_L2_ETH_RPC=http://morph-geth:8545
+      - MORPH_NODE_L2_ENGINE_RPC=http://morph-geth:8551
+      - MORPH_NODE_L2_ENGINE_AUTH=/config/jwt.hex
+      - MORPH_NODE_L1_ETH_RPC=${L1_ETH_RPC}
+      - MORPH_NODE_L1_CHAIN_ID=${L1_CHAIN_ID}
+      - MORPH_NODE_ROLLUP_ADDRESS=${ROLLUP_CONTRACT}
+      - MORPH_NODE_SYNC_START_HEIGHT=${L1_MSG_START_HEIGHT}
+      - NODE_EXTRA_FLAGS=${NODE_EXTRA_FLAGS}
+    volumes:
+      - ${NODE_DATADIR:-$HOME/morph-node-data}:/db
+      - ./config/jwt.hex:/config/jwt.hex:ro
+      - ./entrypoint-node.sh:/entrypoint-node.sh:ro
+    ports:
+      - 127.0.0.1:${NODE_RPC_HOST_PORT}:26657
+      - ${NODE_P2P_PORT}:26656
+      - 127.0.0.1:${NODE_METRICS_HOST_PORT}:26660
+    entrypoint:
+      - /bin/sh
+      - /entrypoint-node.sh
+    networks:
+      - morph-network
+
+networks:
+  morph-network:
+    driver: bridge

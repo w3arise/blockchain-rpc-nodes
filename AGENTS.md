@@ -26,7 +26,7 @@ Include:
 - One-line description (client, network role)
 - Host datadir path(s)
 - **Start** — numbered shell commands from a fresh setup (configure, build, init, compose up)
-- **Snapshot** — restore path and which init steps to skip (if snapshots are supported)
+- **Snapshot** — restore path and which init steps to skip. When adding a chain, **prefer finding an official or community snapshot source** (chain docs, client repo, explorer/provider pages). Document the source URL and restore steps in the README; if none exists, state that explicitly and sync from genesis/P2P.
 - **Testnet** — only if the setup supports it
 - Link to official run docs
 
@@ -260,10 +260,11 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 1. Create `<chain>/` with `docker-compose.yml`, `env.template`, and any needed setup scripts.
 2. Pin client versions in `env.template` (image tags, release versions, etc.).
 3. Store datadirs under `$HOME`.
-4. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above).
-5. **Update** root `README.md` — Supported Chains table (status, type, execution client); remove from Planned if applicable.
-6. **Update** `CHAIN_LINKS.md` — official explorer (if any), docs, network specs, and client repo/release links.
-7. Check `.gitignore` for secrets and generated files (`.env`, JWT, downloaded binaries).
+4. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists.
+5. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above).
+6. **Update** root `README.md` — Supported Chains table (status, type, execution client); remove from Planned if applicable.
+7. **Update** `CHAIN_LINKS.md` — official explorer (if any), docs, network specs, and client repo/release links.
+8. Check `.gitignore` for secrets and generated files (`.env`, JWT, downloaded binaries).
 
 ### OP Stack (op-node + execution client)
 
