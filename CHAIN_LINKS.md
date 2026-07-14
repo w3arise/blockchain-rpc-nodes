@@ -5,6 +5,7 @@ Official repositories, documentation, and guides for chains in this repo.
 | Chain | Explorer | Links |
 | --- | --- | --- |
 | Abstract | [abscan.org](https://abscan.org/) | [Running a node](https://docs.abs.xyz/infrastructure/nodes/running-a-node) · [Abstract-Foundation/abstract-node](https://github.com/Abstract-Foundation/abstract-node) |
+| ApeChain | [apescan.io](https://apescan.io/) | [Run a replica node](https://docs.apechain.com/run-node) · [ConstellationCrypto/replica-guide-apechain-mainnet](https://github.com/ConstellationCrypto/replica-guide-apechain-mainnet) |
 | Arbitrum | [arbiscan.io](https://arbiscan.io/) | [Run a full node](https://docs.arbitrum.io/run-arbitrum-node/run-full-node) · [OffchainLabs/nitro](https://github.com/OffchainLabs/nitro) |
 | Berachain | [berascan.com](https://berascan.com/) | [Node quickstart](https://docs.berachain.com/validators/operations/quickstart) · [berachain/beacon-kit](https://github.com/berachain/beacon-kit) · [berachain/bera-reth](https://github.com/berachain/bera-reth) |
 | Bitlayer | [btrscan.com](https://www.btrscan.com/) | [Compile, Run and Deploy](https://docs.bitlayer.org/docs/Build/GettingStarted/CompileAndRun/) · [Quick Start](https://docs.bitlayer.org/docs/Build/GettingStarted/QuickStart/) · [bitlayer-org/bitlayer-l2](https://github.com/bitlayer-org/bitlayer-l2) |
