@@ -1,0 +1,57 @@
+services:
+  worldchain-op-reth:
+    image: ${OP_RETH_IMAGE}
+    container_name: worldchain-op-reth
+    command:
+      - node
+      - --chain=worldchain
+      - --storage.v2
+      - --datadir=/data
+      - --rollup.sequencer-http=https://worldchain-mainnet-sequencer.g.alchemy.com
+      - --rollup.historicalrpc=https://worldchain-mainnet.g.alchemy.com/public
+      - --rollup.disable-tx-pool-gossip
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=web3,debug,eth,txpool,net
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=web3,debug,eth,txpool,net
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=9551
+      - --authrpc.jwtsecret=/config/jwt.hex
+      - --nat=extip:${EXT_IP}
+      - --port=${RETH_PORT}
+      - --metrics=127.0.0.1:9001
+    volumes:
+      - $HOME/worldchain-op-reth-data:/data
+      - ./config:/config
+    ports:
+      - 127.0.0.1:8341:8545
+      - 127.0.0.1:8342:8546
+      - ${RETH_PORT}:${RETH_PORT}
+      - ${RETH_PORT}:${RETH_PORT}/udp
+    restart: unless-stopped
+    networks:
+      - worldchain-network
+
+  worldchain-op-node:
+    image: ${OP_NODE_IMAGE}
+    container_name: worldchain-op-node
+    command:
+      - op-node
+    env_file: .env
+    volumes:
+      - $HOME/worldchain-op-node-data:/data
+      - ./config:/config
+    restart: unless-stopped
+    depends_on:
+      worldchain-op-reth:
+        condition: service_started
+    networks:
+      - worldchain-network
+
+networks:
+  worldchain-network:
+    driver: bridge

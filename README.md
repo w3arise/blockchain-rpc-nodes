@@ -34,6 +34,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Optimism | `optimism/` | L2 (OP Stack) | op-reth + op-node | [README](optimism/README.md) |
 | Ronin | `ronin/` | L2 (OP Stack / EigenDA) | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md) |
 | Soneium | `soneium/` | L2 (OP Stack) | op-reth + op-node | [README](soneium/README.md) |
+| Worldchain | `worldchain/` | L2 (OP Stack) | op-reth + op-node | [README](worldchain/README.md) |
 | XLayer | `xlayer/` | L2 (OP Stack) | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md) |
 | XLayer (op-reth) | `xlayer-reth/` | L2 (OP Stack) | xlayer-reth + op-node | [README](xlayer-reth/README.md) |
 
@@ -75,7 +76,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Superseed | L2 (OP Stack) | — |
 | Tac | L2 | — |
 | Tempo | L1 | — |
-| Worldchain | L2 (OP Stack) | — |
 | XDC | L1 | — |
 | Zircuit | L2 (ZK) | — |
 
