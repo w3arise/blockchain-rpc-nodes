@@ -31,7 +31,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | BSC | `bsc/` | L1 | bsc-geth | [README](bsc/README.md) |
 | Gnosis Chain (xDai) | `gnosis/` | L1 | reth_gnosis + lighthouse | [README](gnosis/README.md) |
 | Linea | `linea/` | L2 (ZK) | Besu / Nethermind + Maru | [README](linea/README.md) |
-| MegaETH | `megaeth/` | L2 (MegaEVM) | stateless-validator | [README](megaeth/README.md) |
 | Neo X | `neox/` | L1 (EVM-compatible) | bane-labs geth | [README](neox/README.md) |
 | Optimism | `optimism/` | L2 (OP Stack) | op-reth + op-node | [README](optimism/README.md) |
 | Ronin | `ronin/` | L2 (OP Stack / EigenDA) | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md) |
@@ -63,6 +62,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Lens | L2 (ZK Stack) | — |
 | Lisk | L2 (OP Stack) | — |
 | Mantle | L2 (OP Stack) | mantle-node |
+| MegaETH | L2 | — |
 | Mode | L2 (OP Stack) | op-reth |
 | Monad | L1 | — |
 | Morph | L2 | — |
