@@ -26,10 +26,12 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | --- | --- | --- | --- | --- |
 | Arbitrum | `arbitrum/` | L2 (Nitro) | nitro | [README](arbitrum/README.md) |
 | Berachain | `berachain/` | L1 | bera-reth + beacon-kit | [README](berachain/README.md) |
+| Bitlayer | `bitlayer/` | L2 (Bitcoin) | bitlayer-l2 geth | [README](bitlayer/README.md) |
 | Bob | `bob/` | L2 (OP Stack) | op-reth + op-node | [README](bob/README.md) |
 | BSC | `bsc/` | L1 | bsc-geth | [README](bsc/README.md) |
 | Gnosis Chain (xDai) | `gnosis/` | L1 | reth_gnosis + lighthouse | [README](gnosis/README.md) |
 | Linea | `linea/` | L2 (ZK) | Besu / Nethermind + Maru | [README](linea/README.md) |
+| MegaETH | `megaeth/` | L2 (MegaEVM) | stateless-validator | [README](megaeth/README.md) |
 | Neo X | `neox/` | L1 (EVM-compatible) | bane-labs geth | [README](neox/README.md) |
 | Optimism | `optimism/` | L2 (OP Stack) | op-reth + op-node | [README](optimism/README.md) |
 | Ronin | `ronin/` | L2 (OP Stack / EigenDA) | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md) |
@@ -37,17 +39,16 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Worldchain | `worldchain/` | L2 (OP Stack) | op-reth + op-node | [README](worldchain/README.md) |
 | XLayer | `xlayer/` | L2 (OP Stack) | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md) |
 | XLayer (op-reth) | `xlayer-reth/` | L2 (OP Stack) | xlayer-reth + op-node | [README](xlayer-reth/README.md) |
+| Abstract | `abstract/` | L2 (ZK Stack) | external-node + postgres | [README](abstract/README.md) |
 
 ## Planned
 
 | Chain | Type | Execution Client |
 | --- | --- | --- |
 | 0G | L1 | 0g-node |
-| Abstract | L2 (ZK Stack) | — |
 | Apechain | L2 (Arbitrum Orbit) | — |
 | Astar (L1) | L1 | — |
 | B² Network | L2 (Bitcoin) | — |
-| Bitlayer | L2 (Bitcoin) | — |
 | Bittensor | L1 | — |
 | Core | L1 | — |
 | Cronos | L1 | — |
@@ -62,7 +63,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Lens | L2 (ZK Stack) | — |
 | Lisk | L2 (OP Stack) | — |
 | Mantle | L2 (OP Stack) | mantle-node |
-| MegaETH | L2 | — |
 | Mode | L2 (OP Stack) | op-reth |
 | Monad | L1 | — |
 | Morph | L2 | — |

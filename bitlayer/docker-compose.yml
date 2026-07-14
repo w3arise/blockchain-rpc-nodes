@@ -1,0 +1,34 @@
+services:
+  bitlayer-node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GETH_VERSION: ${GETH_VERSION}
+    image: bitlayer-geth:${GETH_VERSION}
+    container_name: bitlayer-node
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NETWORK=${NETWORK}
+      - SYNC_MODE=${SYNC_MODE}
+      - GCMODE=${GCMODE}
+      - EXT_IP=${EXT_IP}
+      - AUTHRPC_PORT=${AUTHRPC_PORT}
+      - TRACEACTION=${TRACEACTION}
+      - VERBOSITY=${VERBOSITY}
+      - BOOTNODES=${BOOTNODES}
+    volumes:
+      - ${HOST_DATADIR:-$HOME/bitlayer-data}:/data
+      - ./config/config-${NETWORK}.toml:/config/config.toml:ro
+    ports:
+      - "${P2P_PORT}:${P2P_PORT}/tcp"
+      - "${P2P_PORT}:${P2P_PORT}/udp"
+      - "127.0.0.1:${HTTP_PORT}:${HTTP_PORT}"
+      - "127.0.0.1:${WS_PORT}:${WS_PORT}"
+      - "127.0.0.1:${AUTHRPC_PORT}:${AUTHRPC_PORT}"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

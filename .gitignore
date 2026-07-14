@@ -9,6 +9,9 @@
 **/jwt.hex
 **/jwt.txt
 
+# ZK Stack external node generated secrets
+**/consensus_secrets.yaml
+
 # Data directories and logs
 .sonic/
 logs/
@@ -21,6 +24,8 @@ hyperliquid/
 mantle/
 mode/
 sonic/
+henesys/
+megaeth/
 
 # Hyperliquid
 override_gossip_config.json

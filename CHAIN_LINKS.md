@@ -4,13 +4,16 @@ Official repositories, documentation, and guides for chains in this repo.
 
 | Chain | Explorer | Links |
 | --- | --- | --- |
+| Abstract | [abscan.org](https://abscan.org/) | [Running a node](https://docs.abs.xyz/infrastructure/nodes/running-a-node) · [Abstract-Foundation/abstract-node](https://github.com/Abstract-Foundation/abstract-node) |
 | Arbitrum | [arbiscan.io](https://arbiscan.io/) | [Run a full node](https://docs.arbitrum.io/run-arbitrum-node/run-full-node) · [OffchainLabs/nitro](https://github.com/OffchainLabs/nitro) |
 | Berachain | [berascan.com](https://berascan.com/) | [Node quickstart](https://docs.berachain.com/validators/operations/quickstart) · [berachain/beacon-kit](https://github.com/berachain/beacon-kit) · [berachain/bera-reth](https://github.com/berachain/bera-reth) |
+| Bitlayer | [btrscan.com](https://www.btrscan.com/) | [Compile, Run and Deploy](https://docs.bitlayer.org/docs/Build/GettingStarted/CompileAndRun/) · [Quick Start](https://docs.bitlayer.org/docs/Build/GettingStarted/QuickStart/) · [bitlayer-org/bitlayer-l2](https://github.com/bitlayer-org/bitlayer-l2) |
 | Bob | [explorer.gobob.xyz](https://explorer.gobob.xyz/) | [BOB docs](https://docs.gobob.xyz/) · [Optimism node operators](https://docs.optimism.io/operators/node-operators/configuration) |
 | BSC | [bscscan.com](https://bscscan.com/) | [Full node](https://docs.bnbchain.org/bnb-smart-chain/developers/node_operators/full_node/) · [bnb-chain/bsc](https://github.com/bnb-chain/bsc) |
 | Gnosis Chain | [gnosisscan.io](https://gnosisscan.io/) | [Node manual](https://docs.gnosischain.com/node/manual) · [gnosischain/reth_gnosis](https://github.com/gnosischain/reth_gnosis) |
 | Hedera | [hashscan.io](https://hashscan.io/) | [hiero-json-rpc-relay](https://github.com/hiero-ledger/hiero-json-rpc-relay) |
 | Linea | [lineascan.build](https://lineascan.build/) | [Run a node](https://docs.linea.build/get-started/how-to/run-a-node) · [Consensys/linea-monorepo](https://github.com/Consensys/linea-monorepo) |
+| MegaETH | [megaeth.blockscout.com](https://megaeth.blockscout.com/) | [Stateless validation](https://docs.megaeth.com/node-operation/stateless-validation) · [Connect to MegaETH](https://docs.megaeth.com/user-guide/connect) · [megaeth-labs/stateless-validator](https://github.com/megaeth-labs/stateless-validator) |
 | Neo X | [xexplorer.neo.org](https://xexplorer.neo.org/) | [Run a Neo X Node](https://xdocs.ngd.network/development/run-a-neo-x-node) · [Networks](https://xdocs.ngd.network/development/networks) · [bane-labs/go-ethereum](https://github.com/bane-labs/go-ethereum) |
 | Optimism | [optimistic.etherscan.io](https://optimistic.etherscan.io/) | [Node operators](https://docs.optimism.io/operators/node-operators/configuration) · [ethereum-optimism/optimism](https://github.com/ethereum-optimism/optimism) |
 | Ronin | [app.roninchain.com](https://app.roninchain.com/) | [Conduit Ronin docs](https://docs.conduit.xyz/chains/ronin) · [Ronin docs](https://www.roninchain.com/) · [EigenDA proxy](https://github.com/Layr-Labs/eigenda-proxy) |
