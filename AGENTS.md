@@ -63,6 +63,21 @@ chain/
 - Store **chain data** under `$HOME`, not inside the repo.
 - Add setup scripts only when the chain needs them (not every chain uses JWT, Docker build, or genesis init).
 
+## Geth forks (Docker build)
+
+For geth-fork clients (e.g. BSC, Neo X, Bitlayer) built with:
+
+```bash
+go run build/ci.go install -static ./cmd/geth
+```
+
+prefer a **glibc** image pair:
+
+- **Builder**: `golang:*-bookworm`
+- **Runtime**: `ubuntu` or `debian`
+
+Alpine (`golang:*-alpine` + musl) static builds often fail linking the bundled `libgmp`, with linker errors such as `undefined reference to __fprintf_chk`. Before using Alpine, check the upstream repo for `Dockerfile.debian` or another glibc-based Dockerfile.
+
 
 
 ## Environment variables
