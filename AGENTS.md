@@ -6,7 +6,16 @@ Nodes in this repo are meant to run on **Linux hosts**. Do not target macOS for 
 
 ## Chain links (`CHAIN_LINKS.md`)
 
-When adding or updating a chain setup, add its **official** documentation and repositories to [`CHAIN_LINKS.md`](CHAIN_LINKS.md). Include links you rely on during setup (node run guides, network specs, client repos/releases). Use the existing table format — one row per chain, multiple links separated by ` · `.
+When adding or updating a chain setup, add its **official** documentation and repositories to [`CHAIN_LINKS.md`](CHAIN_LINKS.md). Include links you rely on during setup (node run guides, network specs, client repos/releases).
+
+Use this table format — one row per chain:
+
+| Chain | Explorer | Links |
+| --- | --- | --- |
+| … | … | … |
+
+- **Explorer** — official block explorer URL when the chain has one (e.g. [soneium.blockscout.com](https://soneium.blockscout.com/)). Use `—` if none. Verify the URL responds before adding (e.g. `curl -L -o /dev/null -w "%{http_code}"`).
+- **Links** — docs, repos, network specs, and other setup references. Multiple links in one cell, separated by ` · `.
 
 ## Chain README (`<chain>/README.md`)
 
@@ -238,7 +247,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 3. Store datadirs under `$HOME`.
 4. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above).
 5. **Update** root `README.md` — Supported Chains table (status, type, execution client); remove from Planned if applicable.
-6. **Update** `CHAIN_LINKS.md` — official docs, network specs, and client repo/release links.
+6. **Update** `CHAIN_LINKS.md` — official explorer (if any), docs, network specs, and client repo/release links.
 7. Check `.gitignore` for secrets and generated files (`.env`, JWT, downloaded binaries).
 
 ### OP Stack (op-node + execution client)

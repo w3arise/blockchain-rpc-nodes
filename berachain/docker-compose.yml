@@ -44,6 +44,7 @@ services:
       - 127.0.0.1:${HTTP_PORT}:8545
       - ${P2P_PORT}:${P2P_PORT}/tcp
       - ${P2P_PORT}:${P2P_PORT}/udp
+      - ${DISCOVERY_V5_PORT}:${DISCOVERY_V5_PORT}/udp
     command:
       - node
       - --chain=mainnet
@@ -51,6 +52,8 @@ services:
       - --metrics=0.0.0.0:9001
       - --port=${P2P_PORT}
       - --discovery.port=${P2P_PORT}
+      - --discovery.v5.addr=${DISCOVERY_V5_ADDR}
+      - --discovery.v5.port=${DISCOVERY_V5_PORT}
       - --nat=extip:${EXT_IP}
       - --authrpc.addr=0.0.0.0
       - --authrpc.port=8551
