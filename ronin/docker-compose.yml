@@ -1,0 +1,107 @@
+version: '2.2'
+
+networks:
+  ronin-network:
+    driver: bridge
+
+services:
+######## EigenDA proxy (alt-DA for op-node) ########
+  eigenda-proxy:
+    image: ${EIGENDA_PROXY_IMAGE}
+    platform: linux/amd64
+    container_name: ronin-eigenda-proxy
+    restart: unless-stopped
+    environment:
+      EIGENDA_PROXY_EIGENDA_V2_NETWORK: ${EIGENDA_V2_NETWORK}
+      EIGENDA_PROXY_EIGENDA_V2_CERT_VERIFIER_ROUTER_OR_IMMUTABLE_VERIFIER_ADDR: ${EIGENDA_V2_CERT_VERIFIER_ROUTER_OR_IMMUTABLE_VERIFIER_ADDR}
+      EIGENDA_PROXY_STORAGE_BACKENDS_TO_ENABLE: V2
+      EIGENDA_PROXY_STORAGE_DISPERSAL_BACKEND: V2
+      EIGENDA_PROXY_EIGENDA_V2_DISPERSER_RPC: ${EIGENDA_V2_DISPERSER_RPC}
+      EIGENDA_PROXY_EIGENDA_V2_ETH_RPC: ${L1_RPC}
+      EIGENDA_PROXY_APIS_TO_ENABLE: op-generic,metrics
+    ports:
+      - 127.0.0.1:${EIGENDA_PROXY_PORT}:3100
+    command:
+      - --addr=0.0.0.0
+      - --port=3100
+    networks:
+      - ronin-network
+
+######## Ronin execution (Conduit op-reth) ########
+  reth:
+    image: ${RONIN_RETH_IMAGE}
+    container_name: ronin-reth
+    restart: unless-stopped
+    volumes:
+      - ${RONIN_RETH_DATADIR}:/data
+    ports:
+      - 127.0.0.1:${RONIN_RETH_HTTP_PORT}:8545
+      - 127.0.0.1:${RONIN_RETH_WS_PORT}:8546
+      - 127.0.0.1:${RONIN_RETH_AUTHRPC_PORT}:9551
+    entrypoint:
+      - op-reth
+    command:
+      - node
+      - --datadir=/data
+      - --chain=/data/genesis.json
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=${RONIN_RETH_HTTP_API}
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=${RONIN_RETH_WS_API}
+      - --ws.origins=*
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=9551
+      - --authrpc.jwtsecret=/data/jwt.hex
+      - --rollup.sequencer=${RONIN_ROLLUP_SEQUENCER}
+    networks:
+      - ronin-network
+
+######## Ronin rollup node ########
+  op-node:
+    image: ${OP_NODE_IMAGE}
+    container_name: ronin-op-node
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 360s
+    depends_on:
+      - reth
+      - eigenda-proxy
+    volumes:
+      - ${RONIN_OP_NODE_DATADIR}:/data
+      - ${RONIN_RETH_DATADIR}/jwt.hex:/data/jwt.hex:ro
+    ports:
+      - 127.0.0.1:${OP_NODE_RPC_PORT}:7545
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+      - 127.0.0.1:${OP_NODE_METRICS_PORT}:7300
+    environment:
+      OP_NODE_P2P_SYNC_ONLYREQTOSTATIC: ${OP_NODE_P2P_SYNC_ONLYREQTOSTATIC}
+    entrypoint:
+      - op-node
+    command:
+      - --rollup.config=/data/rollup.json
+      - --l1=${L1_RPC}
+      - --l1.beacon=${L1_BEACON}
+      - --l2=http://reth:9551
+      - --l2.jwt-secret=/data/jwt.hex
+      - --rpc.addr=0.0.0.0
+      - --rpc.port=7545
+      - --rpc.enable-admin
+      - --metrics.enabled
+      - --metrics.addr=0.0.0.0
+      - --metrics.port=7300
+      - --p2p.listen.ip=0.0.0.0
+      - --p2p.listen.tcp=${OP_NODE_P2P_PORT}
+      - --p2p.listen.udp=${OP_NODE_P2P_PORT}
+      - --p2p.advertise.ip=${EXT_IP}
+      - --p2p.static=${OP_NODE_P2P_STATIC}
+      - --sequencer.enabled=false
+      - --verifier.l1-confs=${OP_NODE_L1_CONFS}
+      - --altda.enabled=true
+      - --altda.da-server=${OP_NODE_ALTDA_DA_SERVER}
+    networks:
+      - ronin-network

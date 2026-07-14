@@ -32,6 +32,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Linea | `linea/` | L2 (ZK) | Besu / Nethermind + Maru | [README](linea/README.md) |
 | Neo X | `neox/` | L1 (EVM-compatible) | bane-labs geth | [README](neox/README.md) |
 | Optimism | `optimism/` | L2 (OP Stack) | op-reth + op-node | [README](optimism/README.md) |
+| Ronin | `ronin/` | L2 (OP Stack / EigenDA) | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md) |
 | Soneium | `soneium/` | L2 (OP Stack) | op-reth + op-node | [README](soneium/README.md) |
 | XLayer | `xlayer/` | L2 (OP Stack) | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md) |
 | XLayer (op-reth) | `xlayer-reth/` | L2 (OP Stack) | xlayer-reth + op-node | [README](xlayer-reth/README.md) |
@@ -68,7 +69,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | opBNB | L2 (OP Stack) | — |
 | Pharos | L1 | — |
 | Robinhood Chain | L2 | — |
-| Ronin | L1 (Gaming) | ronin-geth |
 | Scroll | L2 (ZK) | — |
 | Sei | L1 | — |
 | Sonic | L1 | sonic-node |
