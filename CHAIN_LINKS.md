@@ -13,4 +13,5 @@ Official repositories, documentation, and guides for chains in this repo.
 | Linea | [Run a node](https://docs.linea.build/get-started/how-to/run-a-node) · [Consensys/linea-monorepo](https://github.com/Consensys/linea-monorepo) |
 | Neo X | [Run a Neo X Node](https://xdocs.ngd.network/development/run-a-neo-x-node) · [Networks](https://xdocs.ngd.network/development/networks) · [bane-labs/go-ethereum](https://github.com/bane-labs/go-ethereum) |
 | Optimism | [Node operators](https://docs.optimism.io/operators/node-operators/configuration) · [ethereum-optimism/optimism](https://github.com/ethereum-optimism/optimism) |
+| Soneium | [Soneium docs](https://docs.soneium.org/) · [Network info](https://docs.soneium.org/docs/builders/overview) · [Superchain registry](https://github.com/ethereum-optimism/superchain-registry/blob/main/superchain/configs/mainnet/soneium.toml) · [Optimism node operators](https://docs.optimism.io/node-operators/tutorials/node-from-docker) |
 | XLayer | [X Layer docs](https://www.okx.com/xlayer/docs) · [okx/xlayer-reth](https://github.com/okx/xlayer-reth) · [okx/xlayer-erigon](https://github.com/okx/xlayer-erigon) |
