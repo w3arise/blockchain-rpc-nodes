@@ -23,6 +23,7 @@ services:
       - --authrpc.jwtsecret=/config/jwt.hex
       - --nat=extip:${EXT_IP}
       - --port=${RETH_PORT}
+      - --discovery.v5.port=${DISCOVERY_V5_PORT}
       - --metrics=127.0.0.1:9001
       - --trusted-peers=enode://71a0b3093d57e66e9d2c8c2f5c28ec2d7d2e31853b1bb21a81430e1ede5bdcc64c7ff6e3c4709c3a9dc01a546b1689a7f3ec6957e3dfa7b23aaed3222552344b@217.22.153.182:30300
     volumes:
@@ -33,6 +34,7 @@ services:
       - 127.0.0.1:8142:8546
       - ${RETH_PORT}:${RETH_PORT}
       - ${RETH_PORT}:${RETH_PORT}/udp
+      - ${DISCOVERY_V5_PORT}:${DISCOVERY_V5_PORT}/udp
     restart: unless-stopped
     networks:
       - bob-network
