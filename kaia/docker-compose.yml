@@ -1,0 +1,22 @@
+services:
+  kaia-en:
+    image: ${KAIA_IMAGE}
+    container_name: kaia-en
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file: .env
+    ports:
+      - "127.0.0.1:${HTTP_PORT}:8551"
+      - "127.0.0.1:${WS_PORT}:8552"
+      - "${P2P_PORT}:32323"
+      - "${P2P_SUBPORT}:32324"
+      - "127.0.0.1:${METRICS_PORT}:61001"
+    volumes:
+      - "${HOST_DATADIR:-$HOME/kaia-data}:/var/kend/data"
+      - "./config:/config:ro"
+      - "./entrypoint.sh:/entrypoint.sh:ro"
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

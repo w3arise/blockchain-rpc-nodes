@@ -32,6 +32,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Bob | `bob/` | L2 (OP Stack) | op-reth + op-node | [README](bob/README.md) |
 | BSC | `bsc/` | L1 | bsc-geth | [README](bsc/README.md) |
 | Gnosis Chain (xDai) | `gnosis/` | L1 | reth_gnosis + lighthouse | [README](gnosis/README.md) |
+| Kaia | `kaia/` | L1 | ken (Endpoint Node) | [README](kaia/README.md) |
 | Linea | `linea/` | L2 (ZK) | Besu / Nethermind + Maru | [README](linea/README.md) |
 | Neo X | `neox/` | L1 (EVM-compatible) | bane-labs geth | [README](neox/README.md) |
 | Optimism | `optimism/` | L2 (OP Stack) | op-reth + op-node | [README](optimism/README.md) |
@@ -62,7 +63,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Hedera | L1 | — |
 | Hemi | L2 (Bitcoin/Ethereum) | — |
 | Hyperliquid | L1 | hl-node |
-| Kaia | L1 | — |
 | Katana (Polygon) | L2 (Polygon CDK) | — |
 | Lisk | L2 (OP Stack) | — |
 | Mantle | L2 (OP Stack) | mantle-node |
