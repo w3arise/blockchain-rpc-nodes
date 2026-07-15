@@ -1,6 +1,6 @@
 # Agent guide
 
-Conventions for adding and maintaining chain nodes in this repo (L1, L2, OP Stack, and others). OP Stack / Conduit-specific notes are in their own sections below.
+Conventions for adding and maintaining chain nodes in this repo (L1, L2, OP Stack, ZK Stack, and others). OP Stack / Conduit-specific notes are in their own sections below.
 
 Nodes in this repo are meant to run on **Linux hosts**. Do not target macOS for deployment scripts.
 
@@ -57,6 +57,29 @@ For chains that ship Grafana/Prometheus in compose:
 
 - Document datadir paths and the `chown` commands in `<chain>/README.md` **Start** steps (first start only).
 - Pin the image tag in `docker-compose.yml` or `env.template`. If the tag changes, re-check the user: `docker run --rm --entrypoint id <image>`.
+
+## ZK Stack / ZKsync external nodes
+
+Chains built on the ZK Stack (e.g. Abstract, ZKsync Era, Lens) typically run a **`matterlabs/external-node`** container. In upstream compose files the service is usually named **`external-node`**.
+
+These nodes use **RocksDB** for state (`state_keeper`, `lightweight` trees). During snapshot recovery or catch-up, RocksDB opens many `.sst` files at once. Docker’s default `nofile` limit (~1024) is too low and causes:
+
+```
+Too many open files ... While open a file for random read: ./db/ext-node/state_keeper/....sst
+```
+
+Set **`ulimits.nofile`** on the external-node service (and recreate the container after adding):
+
+```yaml
+external-node:
+  image: matterlabs/external-node:${EN_VERSION}
+  ulimits:
+    nofile:
+      soft: 1048576
+      hard: 1048576
+```
+
+See `abstract/docker-compose.yml` for a working example. If the limit still appears low inside the container (`docker compose exec external-node sh -c 'ulimit -n'`), raise the host hard limit (`ulimit -Hn`, `/etc/security/limits.conf`).
 
 ## Architecture (OP Stack)
 
@@ -308,4 +331,8 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 
 15. Fetch bootnodes/static peers from Conduit API for the correct network slug.
 16. Fetch genesis/rollup from Conduit API; verify before committing.
+
+### ZK Stack (external node, when applicable)
+
+17. Follow [ZK Stack / ZKsync external nodes](#zk-stack--zksync-external-nodes) — `matterlabs/external-node`, PostgreSQL, `EN_*` env vars, snapshot bucket, and `ulimits.nofile`.
 
