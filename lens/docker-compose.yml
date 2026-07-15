@@ -86,6 +86,8 @@ services:
       EN_DA_API_NODE_URL: wss://mainnet.avail-rpc.com
       EN_DA_APP_ID: "26"
       EN_DA_SECRETS_SEED_PHRASE: ${EN_DA_SECRETS_SEED_PHRASE}
+    networks:
+      - lens-network
 
 networks:
   lens-network:
