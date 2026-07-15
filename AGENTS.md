@@ -32,6 +32,32 @@ Include:
 
 Do not duplicate `env.template` comments or long troubleshooting guides.
 
+If the compose setup includes **Prometheus and/or Grafana**, add a **first-start ownership** step in **Start** (see [Prometheus and Grafana](#prometheus-and-grafana-optional-monitoring) below).
+
+## Prometheus and Grafana (optional monitoring)
+
+Some chain setups include Prometheus and Grafana (e.g. `abstract/`). These use the **official** images; the internal users are fixed by the image tag, not the chain.
+
+| Image | Internal user | UID | GID |
+| --- | --- | --- | --- |
+| `prom/prometheus` (e.g. `v2.35.0`) | `nobody` | 65534 | 65534 |
+| `grafana/grafana` (e.g. `9.3.6`) | `grafana` | 472 | 0 |
+
+When compose bind-mounts host datadirs for these services, the operator must **`chown` the directories on the host after creating them and before first start**. Docker creates empty mount paths as root; the containers cannot write TSDB or Grafana state without correct ownership.
+
+Example (adjust paths to the chain):
+
+```bash
+mkdir -p "$HOME/<chain>-prometheus-data" "$HOME/<chain>-grafana-data"
+sudo chown -R 65534:65534 "$HOME/<chain>-prometheus-data"
+sudo chown -R 472:0 "$HOME/<chain>-grafana-data"
+```
+
+For chains that ship Grafana/Prometheus in compose:
+
+- Document datadir paths and the `chown` commands in `<chain>/README.md` **Start** steps (first start only).
+- Pin the image tag in `docker-compose.yml` or `env.template`. If the tag changes, re-check the user: `docker run --rm --entrypoint id <image>`.
+
 ## Architecture (OP Stack)
 
 ```
@@ -266,16 +292,20 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 7. **Update** `CHAIN_LINKS.md` — official explorer (if any), docs, network specs, and client repo/release links.
 8. Check `.gitignore` for secrets and generated files (`.env`, JWT, downloaded binaries).
 
+### Prometheus / Grafana (when included in compose)
+
+9. Document host datadir paths and first-start `chown` for Prometheus (`65534:65534`) and Grafana (`472:0`) in `<chain>/README.md` (see [Prometheus and Grafana](#prometheus-and-grafana-optional-monitoring)).
+
 ### OP Stack (op-node + execution client)
 
-8. `create-jwt.sh` and mount shared JWT for Engine API auth.
-9. Use `OP_NODE_L1_*` env vars in a single `.env`.
-10. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
-11. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
-12. Set `--nat=extip:${EXT_IP}` (or equivalent) for public P2P where needed.
+10. `create-jwt.sh` and mount shared JWT for Engine API auth.
+11. Use `OP_NODE_L1_*` env vars in a single `.env`.
+12. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
+13. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
+14. Set `--nat=extip:${EXT_IP}` (or equivalent) for public P2P where needed.
 
 ### Conduit OP Stack (additional)
 
-13. Fetch bootnodes/static peers from Conduit API for the correct network slug.
-14. Fetch genesis/rollup from Conduit API; verify before committing.
+15. Fetch bootnodes/static peers from Conduit API for the correct network slug.
+16. Fetch genesis/rollup from Conduit API; verify before committing.
 
