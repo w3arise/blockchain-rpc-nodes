@@ -20,6 +20,8 @@ chain/
 
 Not every chain uses every file. Chain data is stored under `$HOME` on the host, not inside the repo.
 
+- [CHAIN_LINKS.md](CHAIN_LINKS.md) — official documentation and client repositories
+
 ## Ready
 
 | Chain | Directory | Type | Execution Client | Setup |
@@ -33,6 +35,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Linea | `linea/` | L2 (ZK) | Besu / Nethermind + Maru | [README](linea/README.md) |
 | Neo X | `neox/` | L1 (EVM-compatible) | bane-labs geth | [README](neox/README.md) |
 | Optimism | `optimism/` | L2 (OP Stack) | op-reth + op-node | [README](optimism/README.md) |
+| Robinhood Chain | `robinhood/` | L2 (Arbitrum Nitro) | nitro | [README](robinhood/README.md) |
 | Ronin | `ronin/` | L2 (OP Stack / EigenDA) | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md) |
 | Soneium | `soneium/` | L2 (OP Stack) | op-reth + op-node | [README](soneium/README.md) |
 | Worldchain | `worldchain/` | L2 (OP Stack) | op-reth + op-node | [README](worldchain/README.md) |
@@ -69,7 +72,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Nexon Henesys | L2 | — |
 | opBNB | L2 (OP Stack) | — |
 | Pharos | L1 | — |
-| Robinhood Chain | L2 | — |
 | Scroll | L2 (ZK) | — |
 | Sei | L1 | — |
 | Sonic | L1 | sonic-node |
@@ -100,5 +102,4 @@ Repo-wide reminders:
 
 ## Related docs
 
-- [CHAIN_LINKS.md](CHAIN_LINKS.md) — official documentation and client repositories
 - [AGENTS.md](AGENTS.md) — conventions for adding and maintaining chains
