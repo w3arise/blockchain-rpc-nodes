@@ -42,6 +42,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | XLayer | `xlayer/` | L2 (OP Stack) | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md) |
 | XLayer (op-reth) | `xlayer-reth/` | L2 (OP Stack) | xlayer-reth + op-node | [README](xlayer-reth/README.md) |
 | Abstract | `abstract/` | L2 (ZK Stack) | external-node + postgres | [README](abstract/README.md) |
+| Lens | `lens/` | L2 (ZK Stack) | external-node + postgres | [README](lens/README.md) |
 | Morph | `morph/` | L2 (Optimistic + ZK) | morph-geth + morph-node | [README](morph/README.md) |
 
 ## Planned
@@ -63,7 +64,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Hyperliquid | L1 | hl-node |
 | Kaia | L1 | — |
 | Katana (Polygon) | L2 (Polygon CDK) | — |
-| Lens | L2 (ZK Stack) | — |
 | Lisk | L2 (OP Stack) | — |
 | Mantle | L2 (OP Stack) | mantle-node |
 | MegaETH | L2 | — |
