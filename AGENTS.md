@@ -81,6 +81,42 @@ external-node:
 
 See `abstract/docker-compose.yml` for a working example. If the limit still appears low inside the container (`docker compose exec external-node sh -c 'ulimit -n'`), raise the host hard limit (`ulimit -Hn`, `/etc/security/limits.conf`).
 
+## Arbitrum Nitro (PathDB / PBSS)
+
+All Nitro setups in this repo prefer **PathDB** (`--execution.caching.state-scheme=path`, or `"state-scheme": "path"` in a config file).
+
+### Archive vs pruned (state history)
+
+Two flags control retention on PathDB nodes:
+
+| Flag | Default | Meaning |
+| --- | --- | --- |
+| `--execution.caching.state-history` | `345600` (~24h at 250ms blocks) | Recent blocks of state history to retain. **`0` = unlimited** (archive). PathDB only. |
+| `--execution.caching.archive` | off | Required for archival nodes; retains past block state. |
+
+**Archive mode** — both together with `state-history=0`:
+
+```
+--execution.caching.state-scheme=path
+--execution.caching.state-history=0
+--execution.caching.archive
+```
+
+**Pruned full node** — set `state-history` to a non-zero value (e.g. `345600` for ~24h) and omit `--execution.caching.archive` (or `"archive": false` in a config file).
+
+**Repo default for archive setups:** `STATE_HISTORY=0` plus `--execution.caching.archive` in compose.
+
+### Critical: do not change `state-history` casually
+
+Tested behavior on existing datadirs:
+
+- **Archive → pruned:** changing `state-history` from `0` to any non-zero value **immediately prunes** retained history.
+- **Snapshot restore:** starting with `state-history != 0` against a restored archive snapshot **prunes the DB on first start**. Keep `state-history=0` when restoring archive snapshots unless you intentionally want a pruned node.
+
+For pruned full-node behavior after a safe archive restore, change `STATE_HISTORY` only once you confirm the node is synced and you accept the pruning.
+
+Flag this in every Nitro chain README under a **State retention** section (see `arbitrum/README.md`).
+
 ## Architecture (OP Stack)
 
 ```
@@ -335,4 +371,9 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 ### ZK Stack (external node, when applicable)
 
 17. Follow [ZK Stack / ZKsync external nodes](#zk-stack--zksync-external-nodes) — `matterlabs/external-node`, PostgreSQL, `EN_*` env vars, snapshot bucket, and `ulimits.nofile`.
+
+### Nitro (PathDB / PBSS)
+
+18. Use `STATE_SCHEME=path`, `STATE_HISTORY=0`, and `--execution.caching.archive` for archive defaults (see [Arbitrum Nitro (PathDB / PBSS)](#arbitrum-nitro-pathdb--pbss)).
+19. Add a **State retention** section to the chain README — warn that non-zero `state-history` prunes on change or snapshot restore.
 

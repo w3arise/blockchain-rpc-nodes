@@ -2,7 +2,10 @@
 
 Mainnet node (Besu execution + Maru consensus). Chain data: `$HOME/besu-db`, `$HOME/linea-maru-db`.
 
-Default compose file: `besu-compose.yml` (set `COMPOSE_FILE` in `.env` for Nethermind: `nether-compose.yml`).
+Two compose files — pick one execution client:
+
+- **Besu** (default): `besu-compose.yml` — `docker compose up -d`
+- **Nethermind**: set `COMPOSE_FILE=nether-compose.yml` in `.env`
 
 ## Start
 

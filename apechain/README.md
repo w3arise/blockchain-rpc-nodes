@@ -6,26 +6,13 @@ Requires a synced **Arbitrum One** RPC (`arbitrum/` or private endpoint).
 
 The Caldera image runs as **`user` (UID 1000, GID 1000)**. Datadir inside the container: `/home/user/.arbitrum`.
 
-## Node mode & disk
+## State retention
 
-| | This setup |
-| --- | --- |
-| **Type** | Full **replica** (not light, not sequencer) |
-| **State retention** | **Pruned** — `execution.caching.archive: false` in `nodeConfig.json` |
-| **Historical state** | Recent only (PathDB auto-prunes older state; not an archive node) |
-| **RPC use** | Current blocks, recent `eth_call`, standard queries — not full historical archive queries |
+PathDB pruned replica: `"archive": false` in `config/nodeConfig.json`.
 
-This is **not** an archive node. For `eth_call` at very old blocks or deep historical traces, use a public archive RPC or run with `"archive": true` (much larger disk).
+For archive mode, set `"archive": true` and `"state-history": 0` in `config/nodeConfig.json` (much larger disk).
 
-**Disk (pruned, rough estimate):**
-
-| Stage | Size |
-| --- | --- |
-| Syncing from genesis (no snapshot) | Grows during catch-up; fast feed sync is normal |
-| Steady state today | ~**100–300 GB** (chain is young vs Arbitrum One) |
-| Plan headroom | **500 GB–1 TB** NVMe free |
-
-Arbitrum One pruned nodes are ~1.4 TB; ApeChain is a smaller L3 — expect far less, but monitor `$HOME/apechain-data` as the chain grows. Snapshot restore needs ~2× the archive size temporarily during extraction.
+**Do not set `state-history` to a non-zero value** on an existing archive datadir or after restoring an archive snapshot — Nitro prunes history immediately. See [AGENTS.md](../AGENTS.md#arbitrum-nitro-pathdb--pbss).
 
 ## Datadir permissions
 

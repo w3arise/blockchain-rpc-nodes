@@ -94,12 +94,6 @@ Repo-wide reminders:
 - `.env` files are gitignored — never commit secrets or private keys.
 - OP Stack and Morph chains need a shared JWT and L1 RPC URLs (Morph: execution RPC only).
 
-## Notes
-
-- Ready — Docker setup available. Planned — on the roadmap, not yet added.
-- Linea: Besu (`besu-compose.yml`) or Nethermind (`nether-compose.yml`).
-- XLayer: `xlayer/` (op-geth + archival cdk-erigon) or `xlayer-reth/` (op-reth). Run one or both — ports don't clash.
-
 ## Related docs
 
 - [AGENTS.md](AGENTS.md) — conventions for adding and maintaining chains

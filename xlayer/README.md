@@ -2,6 +2,8 @@
 
 Mainnet OP Stack node with archival cdk-erigon backend. Chain data: `$HOME/xlayer-op-geth-data`, `$HOME/xlayer-op-node-data`, `$HOME/xlayer-cdk-erigon-data`.
 
+Alternative: [`xlayer-reth/`](../xlayer-reth/) (op-reth + op-node). Run one or both — ports don't clash.
+
 ## Start
 
 ```bash
