@@ -67,7 +67,7 @@ services:
      - --rpc.port=9545
      - --l2.jwt-secret=/data/jwt-secret
      - --p2p.advertise.ip=${EXT_IP}
-       # - --syncmode=execution-layer 
+     - --syncmode=execution-layer 
      - --l1.trustrpc
     networks:
       - op-network 
