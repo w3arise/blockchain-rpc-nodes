@@ -6,7 +6,7 @@ Mainnet external node (matterlabs/external-node + PostgreSQL). Lightweight mode:
 
 ```bash
 ./configure.sh
-# edit .env — set EN_ETH_CLIENT_URL, DB_PASSWORD, EN_DA_SECRETS_SEED_PHRASE
+# edit .env — set EN_ETH_CLIENT_URL and DB_PASSWORD (DA seed phrase is auto-generated if empty)
 docker compose up -d
 ```
 

@@ -24,17 +24,46 @@ else
   echo ".env already exists — not overwriting"
 fi
 
-if grep -q 'EN_DA_SECRETS_SEED_PHRASE=<GENERATE_OR_SET>' "${ENV_FILE}"; then
-  EN_VERSION="$(grep '^EN_VERSION=' "${ENV_FILE}" | cut -d= -f2-)"
-  echo ""
-  echo "Set EN_DA_SECRETS_SEED_PHRASE in .env (any fresh BIP39 12-word phrase)."
-  echo "Example generator:"
-  echo "  docker run --rm --entrypoint /usr/bin/zksync_external_node matterlabs/external-node:${EN_VERSION} generate-secrets"
+needs_da_seed() {
+  local value
+  value="$(grep '^EN_DA_SECRETS_SEED_PHRASE=' "${ENV_FILE}" | cut -d= -f2- || true)"
+  value="${value%\"}"
+  value="${value#\"}"
+  [[ -z "${value}" || "${value}" == "<GENERATE_OR_SET>" ]]
+}
+
+if needs_da_seed; then
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "ERROR: python3 is required to generate EN_DA_SECRETS_SEED_PHRASE" >&2
+    exit 1
+  fi
+  SEED_PHRASE="$("${SCRIPT_DIR}/generate-da-secrets.sh")"
+  python3 - "${ENV_FILE}" "${SEED_PHRASE}" <<'PY'
+import pathlib
+import sys
+
+env_path = pathlib.Path(sys.argv[1])
+phrase = sys.argv[2]
+lines = []
+updated = False
+for line in env_path.read_text().splitlines(keepends=True):
+    if line.startswith("EN_DA_SECRETS_SEED_PHRASE="):
+        lines.append(f'EN_DA_SECRETS_SEED_PHRASE="{phrase}"\n')
+        updated = True
+    else:
+        lines.append(line)
+if not updated:
+    if lines and not lines[-1].endswith("\n"):
+        lines[-1] += "\n"
+    lines.append(f'EN_DA_SECRETS_SEED_PHRASE="{phrase}"\n')
+env_path.write_text("".join(lines))
+PY
+  echo "generated EN_DA_SECRETS_SEED_PHRASE in .env"
 fi
 
 echo ""
 echo "Next:"
-echo "  edit .env — set EN_ETH_CLIENT_URL, DB_PASSWORD, and EN_DA_SECRETS_SEED_PHRASE"
+echo "  edit .env — set EN_ETH_CLIENT_URL and DB_PASSWORD"
 echo "  docker compose up -d"
 echo ""
 echo "RPC: http://127.0.0.1:\${EN_HTTP_PORT:-3060}  WS: ws://127.0.0.1:\${EN_WS_PORT:-3061}"
