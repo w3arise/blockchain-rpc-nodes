@@ -10,9 +10,11 @@ Mainnet external node (matterlabs/external-node + PostgreSQL). Lightweight mode:
 docker compose up -d
 ```
 
-First run downloads a snapshot from GCS (`raas-lens-mainnet-external-node-snapshots`) and prunes old L1 batches (~7 days retention). RPC is unavailable until recovery completes — check `curl http://127.0.0.1:3081/health`.
+First run downloads a snapshot from GCS (`raas-lens-mainnet-external-node-snapshots`) and prunes old L1 batches (~7 days retention). RPC is unavailable until recovery completes — check `curl http://127.0.0.1:3181/health`.
 
 If the external node fails with `Too many open files` during RocksDB catch-up, recreate it so compose `ulimits` apply: `docker compose up -d --force-recreate external-node`.
+
+If startup fails with `settlement_layer_en` / `dns error` / `No address associated with hostname`, `EN_ETH_CLIENT_URL` is missing or unreachable from inside the container. Use a public HTTPS endpoint (e.g. `https://ethereum-rpc.publicnode.com`) or `http://host.docker.internal:<port>` for an L1 node on the host — not `127.0.0.1`.
 
 ## Snapshot
 

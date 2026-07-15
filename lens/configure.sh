@@ -61,9 +61,30 @@ PY
   echo "generated EN_DA_SECRETS_SEED_PHRASE in .env"
 fi
 
+validate_l1_rpc() {
+  local value
+  value="$(grep '^EN_ETH_CLIENT_URL=' "${ENV_FILE}" | cut -d= -f2- || true)"
+  value="${value%\"}"
+  value="${value#\"}"
+
+  if [[ -z "${value}" || "${value}" == "<YOUR_L1_ETH_RPC>" ]]; then
+    echo "ERROR: set EN_ETH_CLIENT_URL in .env to a reachable Ethereum mainnet JSON-RPC URL" >&2
+    echo "       Example: https://ethereum-rpc.publicnode.com" >&2
+    echo "       If your L1 node runs on the host, use host.docker.internal (not 127.0.0.1)." >&2
+    exit 1
+  fi
+
+  if [[ ! "${value}" =~ ^https?:// ]]; then
+    echo "ERROR: EN_ETH_CLIENT_URL must start with http:// or https://" >&2
+    exit 1
+  fi
+}
+
+validate_l1_rpc
+
 echo ""
 echo "Next:"
 echo "  edit .env — set EN_ETH_CLIENT_URL and DB_PASSWORD"
 echo "  docker compose up -d"
 echo ""
-echo "RPC: http://127.0.0.1:\${EN_HTTP_PORT:-3060}  WS: ws://127.0.0.1:\${EN_WS_PORT:-3061}"
+echo "RPC: http://127.0.0.1:\${EN_HTTP_PORT:-3160}  WS: ws://127.0.0.1:\${EN_WS_PORT:-3161}"
