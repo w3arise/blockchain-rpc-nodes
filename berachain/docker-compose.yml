@@ -71,8 +71,6 @@ services:
       - --rpc.max-logs-per-response=1100000
       - --rpc.gascap=600000000
       - --rpc-max-connections=1024
-      - --bootnodes=${BOOTNODES}
-      - --trusted-peers=${TRUSTED_PEERS}
       - --engine.persistence-threshold=0
       - --engine.memory-block-buffer-target=0
       - --max-inbound-peers=30
