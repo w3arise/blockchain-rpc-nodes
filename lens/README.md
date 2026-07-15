@@ -14,7 +14,9 @@ First run downloads a snapshot from GCS (`raas-lens-mainnet-external-node-snapsh
 
 If the external node fails with `Too many open files` during RocksDB catch-up, recreate it so compose `ulimits` apply: `docker compose up -d --force-recreate external-node`.
 
-If startup fails with `settlement_layer_en` / `dns error` / `No address associated with hostname`, `EN_ETH_CLIENT_URL` is missing or unreachable from inside the container. Use a public HTTPS endpoint (e.g. `https://ethereum-rpc.publicnode.com`) or `http://host.docker.internal:<port>` for an L1 node on the host — not `127.0.0.1`.
+Pinned to `EN_VERSION=v29.20.0-alpha` — v29.1.2 auto-dials dead Gateway DNS (`rpc.era-gateway-mainnet.zksync.dev`) for Lens Bridgehub.
+
+If startup fails with `settlement_layer_en` / `dns error` on your L1 URL, `EN_ETH_CLIENT_URL` is missing or unreachable from inside the container. Use a public HTTPS endpoint (e.g. `https://ethereum-rpc.publicnode.com`) or `http://host.docker.internal:<port>` for an L1 node on the host — not `127.0.0.1`.
 
 ## Snapshot
 
