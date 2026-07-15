@@ -1,0 +1,42 @@
+services:
+  robinhood:
+    image: ${NITRO_IMAGE}
+    container_name: robinhood
+    restart: unless-stopped
+    user: "1000:1000"
+    ports:
+      - "127.0.0.1:${HTTP_PORT}:8547"
+      - "127.0.0.1:${WS_PORT}:8548"
+    volumes:
+      - "${HOME}/robinhood-data:/home/user/.arbitrum"
+      - "./config/robinhood-chain-info.json:/config/robinhood-chain-info.json:ro"
+      - "./config/robinhood-genesis.json:/config/robinhood-genesis.json:ro"
+    command:
+      - --parent-chain.connection.url=${L1_ETH_URL}
+      - --parent-chain.blob-client.beacon-url=${L1_ETH_BEACON_URL}
+      - --node.feed.input.url=${FEED_URL}
+      - --init.genesis-json-file=/config/robinhood-genesis.json
+      - --chain.info-files=/config/robinhood-chain-info.json
+      - --chain.id=${CHAIN_ID}
+      - --http.addr=0.0.0.0
+      - --http.port=8547
+      - --http.vhosts=*
+      - --http.api=${HTTP_API}
+      - --ws.addr=0.0.0.0
+      - --ws.port=8548
+      - --ws.api=${WS_API}
+      - --ws.origins=*
+      - --node.staker.enable=false
+      - --execution.forwarding-target=null
+      - --execution.tx-indexer.tx-lookup-limit=0
+      - --execution.caching.state-scheme=${STATE_SCHEME}
+      - --execution.caching.state-history=${STATE_HISTORY}
+      - --execution.caching.archive
+      - --execution.rpc.tx-fee-cap=${TX_FEE_CAP}
+      - --execution.rpc.gas-cap=${GAS_CAP}
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    init: true
+    stop_grace_period: 120s
