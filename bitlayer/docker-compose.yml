@@ -10,18 +10,22 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-    environment:
-      - NETWORK=${NETWORK}
-      - SYNC_MODE=${SYNC_MODE}
-      - GCMODE=${GCMODE}
-      - EXT_IP=${EXT_IP}
-      - AUTHRPC_PORT=${AUTHRPC_PORT}
-      - TRACEACTION=${TRACEACTION}
-      - VERBOSITY=${VERBOSITY}
-      - BOOTNODES=${BOOTNODES}
+    entrypoint: [geth]
+    command:
+      - --mainnet
+      - --config=/config/config.toml
+      - --datadir=/data
+      - --syncmode=${SYNC_MODE}
+      - --gcmode=${GCMODE}
+      - --history.transactions=${HISTORY_TRANSACTIONS}
+      - --nat=extip:${EXT_IP}
+      - --authrpc.port=${AUTHRPC_PORT}
+      - --traceaction=${TRACEACTION}
+      - --verbosity=${VERBOSITY}
+      - --bootnodes=${BOOTNODES}
     volumes:
       - ${HOST_DATADIR:-$HOME/bitlayer-data}:/data
-      - ./config/config-${NETWORK}.toml:/config/config.toml:ro
+      - ./config/config.toml:/config/config.toml:ro
     ports:
       - "${P2P_PORT}:${P2P_PORT}/tcp"
       - "${P2P_PORT}:${P2P_PORT}/udp"

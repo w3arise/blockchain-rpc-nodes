@@ -24,15 +24,6 @@ SYNC_MODE=full
 GCMODE=archive
 ```
 
-Also set `SyncMode = "full"` in `config/config-mainnet.toml`.
-
-## Testnet
-
-Set `NETWORK=testnet` and swap `BOOTNODES` to the testnet values in `env.template`, then:
-
-```bash
-./init-database.sh testnet
-docker compose up -d
-```
+Also set `SyncMode = "full"` in `config/config.toml`.
 
 Docs: [Compile, Run and Deploy](https://docs.bitlayer.org/docs/Build/GettingStarted/CompileAndRun/) · [bitlayer-org/bitlayer-l2](https://github.com/bitlayer-org/bitlayer-l2)

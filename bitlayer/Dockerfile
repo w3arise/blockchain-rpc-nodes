@@ -16,10 +16,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /src/build/bin/geth /usr/local/bin/geth
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
 
 ARG GETH_VERSION=v1.1.10
 LABEL version="${GETH_VERSION}"
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["geth"]
