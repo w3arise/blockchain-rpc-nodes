@@ -11,6 +11,8 @@ if [ ! -f "${JWT_PATH}" ]; then
 fi
 
 MORPH_FLAG=${MORPH_FLAG:-morph}
+GETH_TX_LOOKUP_LIMIT=${GETH_TX_LOOKUP_LIMIT:-0}
+GETH_GCMODE=${GETH_GCMODE:-archive}
 
 set -- "${GETH_BIN}" \
   "--${MORPH_FLAG}" \
@@ -32,10 +34,11 @@ set -- "${GETH_BIN}" \
   --authrpc.port=8551 \
   --authrpc.vhosts="*" \
   "--authrpc.jwtsecret=${JWT_PATH}" \
-  --gcmode=archive \
+  "--gcmode=${GETH_GCMODE}" \
   "--log.filename=${GETH_DATADIR}/geth.log" \
   --metrics \
-  --metrics.addr=0.0.0.0
+  --metrics.addr=0.0.0.0 \
+  "--txlookuplimit=${GETH_TX_LOOKUP_LIMIT}"
 
 if [ -n "${GETH_P2P_PORT:-}" ]; then
   set -- "$@" --port="${GETH_P2P_PORT}"

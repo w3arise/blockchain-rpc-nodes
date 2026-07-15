@@ -8,6 +8,8 @@ services:
       - MORPH_FLAG=${MORPH_FLAG}
       - EXT_IP=${EXT_IP}
       - GETH_P2P_PORT=${GETH_P2P_PORT}
+      - GETH_TX_LOOKUP_LIMIT=${GETH_TX_LOOKUP_LIMIT:-0}
+      - GETH_GCMODE=${GETH_GCMODE:-archive}
     volumes:
       - ${GETH_DATADIR:-$HOME/morph-geth-data}:/db
       - ./config/jwt.hex:/config/jwt.hex:ro
