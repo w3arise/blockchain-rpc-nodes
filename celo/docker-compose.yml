@@ -1,0 +1,61 @@
+services:
+  eigenda-proxy:
+    image: ${EIGENDA_PROXY_IMAGE}
+    platform: linux/amd64
+    container_name: celo-eigenda-proxy
+    restart: unless-stopped
+    stop_grace_period: 5m
+    entrypoint: /scripts/start-eigenda-proxy.sh
+    env_file: .env
+    volumes:
+      - ${HOME}/celo-eigenda-data:/data
+      - ./scripts/:/scripts/
+    networks:
+      - celo-network
+
+  celo-op-reth:
+    image: ${OP_RETH_IMAGE}
+    platform: linux/amd64
+    container_name: celo-op-reth
+    restart: unless-stopped
+    stop_grace_period: 5m
+    entrypoint: /scripts/start-op-reth.sh
+    env_file: .env
+    volumes:
+      - ${HOME}/celo-op-reth-data:/data
+      - ./config:/config
+      - ./scripts/:/scripts/
+    ports:
+      - 127.0.0.1:8441:8545
+      - 127.0.0.1:8442:8546
+      - ${RETH_PORT}:${RETH_PORT}
+      - ${RETH_PORT}:${RETH_PORT}/udp
+    networks:
+      - celo-network
+
+  celo-op-node:
+    image: ${OP_NODE_IMAGE}
+    platform: linux/amd64
+    container_name: celo-op-node
+    restart: unless-stopped
+    stop_grace_period: 5m
+    command:
+      - op-node
+    env_file: .env
+    volumes:
+      - ${HOME}/celo-op-node-data:/data
+      - ./config:/config
+    ports:
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+    depends_on:
+      celo-op-reth:
+        condition: service_started
+      eigenda-proxy:
+        condition: service_started
+    networks:
+      - celo-network
+
+networks:
+  celo-network:
+    driver: bridge

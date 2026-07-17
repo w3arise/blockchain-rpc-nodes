@@ -31,6 +31,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Berachain | `berachain/` | L1 | bera-reth + beacon-kit | [README](berachain/README.md) |
 | Bob | `bob/` | L2 (OP Stack) | op-reth + op-node | [README](bob/README.md) |
 | BSC | `bsc/` | L1 | bsc-geth | [README](bsc/README.md) |
+| Celo | `celo/` | L2 (OP Stack / EigenDA) | celo-op-reth + op-node + eigenda-proxy | [README](celo/README.md) |
 | Gnosis Chain (xDai) | `gnosis/` | L1 | reth_gnosis + lighthouse | [README](gnosis/README.md) |
 | Kaia | `kaia/` | L1 | ken (Endpoint Node) | [README](kaia/README.md) |
 | Linea | `linea/` | L2 (ZK) | Besu / Nethermind + Maru | [README](linea/README.md) |
