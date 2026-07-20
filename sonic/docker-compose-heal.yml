@@ -6,11 +6,13 @@ services:
         SONIC_VERSION: ${SONIC_VERSION}
     image: sonic-node:${SONIC_VERSION}
     container_name: sonic-heal
-    mem_limit: 32g
+    mem_limit: ${MEM_LIMIT}
+    env_file:
+      - .env
     entrypoint: ["/app/sonictool"]
-    command: ["--datadir=${DATADIR}", "--cache=${CACHE_MB}", "heal"]
+    command: ["--datadir=/data", "--cache=${CACHE_MB}", "heal"]
     environment:
       - GOMEMLIMIT=${GOMEMLIMIT}
     volumes:
-      - "${HOME}/.sonic:${DATADIR}"
+      - ${HOST_DATADIR:-$HOME/sonic-data}:/data
     network_mode: host

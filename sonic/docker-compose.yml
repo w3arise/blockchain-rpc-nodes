@@ -3,32 +3,38 @@ services:
     build:
       context: .
       args:
-        SONIC_VERSION: ${SONIC_VERSION}   # <--- bump here when you need a new version - used for BUILD
-    image: sonic-node:${SONIC_VERSION}      # <--- change the image tag here - used for RUN
+        SONIC_VERSION: ${SONIC_VERSION}
+    image: sonic-node:${SONIC_VERSION}
     container_name: sonic
     restart: unless-stopped
     mem_limit: ${MEM_LIMIT}
     stop_grace_period: 120s
+    env_file:
+      - .env
     environment:
       - GOMEMLIMIT=${GOMEMLIMIT}
     command:
-      - "--datadir=${DATADIR}"
-      - "--http"
-      - "--http.addr=${HTTP_ADDR}"
-      - "--http.corsdomain=*"
-      - "--http.vhosts=*"
-      - "--http.api=${HTTP_API}"
-      - "--http.port=${HTTP_PORT}"
-      - "--ws"
-      - "--ws.addr=${WS_ADDR}"
-      - "--ws.origins=*"
-      - "--ws.api=${WS_API}"
-      - "--ws.port=${WS_PORT}"
-      - "--cache=${CACHE_MB}"
-      - "--nat=extip:${EXT_IP}"
-      - "--maxpeers=${MAX_PEERS}"
-      - "--rpc.gascap=${GAS_CAP}"
-      - "--rpc.txfeecap=${TX_FEE_CAP}"
+      - --datadir=/data
+      - --http
+      - --http.addr=${HTTP_ADDR}
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --http.api=${HTTP_API}
+      - --http.port=${HTTP_PORT}
+      - --ws
+      - --ws.addr=${WS_ADDR}
+      - --ws.origins=*
+      - --ws.api=${WS_API}
+      - --ws.port=${WS_PORT}
+      - --cache=${CACHE_MB}
+      - --nat=extip:${EXT_IP}
+      - --maxpeers=${MAX_PEERS}
+      - --rpc.gascap=${GAS_CAP}
+      - --rpc.txfeecap=${TX_FEE_CAP}
     volumes:
-      - "${HOME}/.sonic:${DATADIR}"
+      - ${HOST_DATADIR:-$HOME/sonic-data}:/data
     network_mode: host
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

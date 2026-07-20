@@ -47,6 +47,7 @@ fi
 
 echo ""
 echo "Next:"
+echo "  mkdir -p \"\$HOME/sonic-data\""
 echo "  curl -JLO https://genesis.soniclabs.com/latest-sonic-pruned.g"
 echo "  mv latest-sonic-pruned.g \"\$HOME/sonic.g\""
 echo "  docker compose build"
