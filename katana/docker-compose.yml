@@ -47,6 +47,8 @@ services:
     command:
       - op-node
     env_file: .env
+    ports:
+      - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
     volumes:
       - ${HOST_OP_NODE_DATADIR:-$HOME/katana-op-node-data}:/data
       - ./config:/config
