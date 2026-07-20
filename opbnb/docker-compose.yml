@@ -1,0 +1,103 @@
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+
+services:
+  op-geth:
+    image: ghcr.io/bnb-chain/op-geth:${OP_GETH_IMAGE_TAG}
+    platform: linux/amd64
+    restart: unless-stopped
+    stop_grace_period: 5m
+    mem_limit: "64G"
+    command:
+      - --opBNBMainnet
+      - --datadir=/geth
+      - --syncmode=full
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --authrpc.vhosts=*
+      - --authrpc.jwtsecret=/jwt.txt
+      - --rpc.gascap=${GAS_CAP}
+      - --rpc.txfeecap=0
+      - --txlookuplimit=0
+      - --http
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=eth,net,web3,debug
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.origins=*
+      - --ws.api=eth,net,web3,debug
+      - --rollup.sequencerhttp=${L2_RPC}
+      - --bootnodes=${OP_GETH_BOOTNODES}
+      - --port=${OP_GETH_P2P_PORT}
+      - --nat=extip:${EXT_IP}
+      - --state.scheme=path
+      - --db.engine=pebble
+      - --cache=20000
+    env_file: .env
+    ports:
+      - 127.0.0.1:9525:8545
+      - 127.0.0.1:9526:8546
+      - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}
+      - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}/udp
+    volumes:
+      - ./jwt.txt:/jwt.txt
+      - $HOME/opbnb-geth:/geth
+    <<: *logging
+
+  op-node:
+    image: ghcr.io/bnb-chain/op-node:${OP_NODE_IMAGE_TAG}
+    platform: linux/amd64
+    depends_on:
+      - op-geth
+    restart: unless-stopped
+    stop_grace_period: 5m
+    command:
+      - op-node
+      - --network=opBNBMainnet
+      - --sequencer.l1-confs=15
+      - --verifier.l1-confs=15
+      - --l1.http-poll-interval=3s
+      - --l1.epoch-poll-interval=3s
+      - --l1.rpc-max-batch-size=20
+      - --rpc.addr=0.0.0.0
+      - --rpc.port=8546
+      - --p2p.sync.req-resp
+      - --p2p.listen.ip=0.0.0.0
+      - --p2p.listen.tcp=9003
+      - --p2p.listen.udp=9003
+      - --p2p.advertise.ip=${EXT_IP}
+      - --p2p.advertise.tcp=9003
+      - --p2p.advertise.udp=9003
+      - --p2p.priv.path=/op_node/opnode_p2p_priv.txt
+      - --p2p.peerstore.path=/op_node/opnode_peerstore_db
+      - --p2p.discovery.path=/op_node/opnode_discovery_db
+      - --snapshotlog.file=/op_node/snapshot.log
+      - --safedb.path=/op_node
+      - --p2p.bootnodes=${P2P_BOOTNODES}
+      - --metrics.enabled
+      - --metrics.addr=0.0.0.0
+      - --metrics.port=7300
+      - --pprof.enabled
+      - --rpc.enable-admin
+      - --l1=${OP_NODE__RPC_ENDPOINT}
+      - --l1.trustrpc
+      - --l2=http://op-geth:8551
+      - --l2.jwt-secret=/jwt.txt
+      - --syncmode=execution-layer
+      - --l1.max-concurrency=20
+    env_file: .env
+    ports:
+      - ${PORT__OP_NODE_P2P}:9003
+      - ${PORT__OP_NODE_P2P}:9003/udp
+    volumes:
+      - ./jwt.txt:/jwt.txt
+      - $HOME/opbnb-node:/op_node
+    <<: *logging
