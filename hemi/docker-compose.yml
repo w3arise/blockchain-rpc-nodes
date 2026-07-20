@@ -3,84 +3,32 @@
 # Official source: https://github.com/hemilabs/hemi-node
 
 services:
-  op-geth-l2-init-genesis:
-    image: ${OP_GETH_IMAGE}
-    platform: linux/amd64
-    user: "0"
-    volumes:
-      - ./config/genesis.json:/src/genesis.json:ro
-      - ${HEMI_GETH_DATA:-$HOME/hemi-op-geth-data}:/datadir
-    entrypoint: ["sh", "-c"]
-    command:
-      - |
-        set -e
-        if [ -d /datadir/geth ]; then
-          echo "geth data dir exists, skipping genesis."
-        else
-          geth init --state.scheme hash --datadir /datadir/geth /src/genesis.json
-        fi
-    restart: "no"
-
-  op-geth-l2-init-config:
-    image: alpine:3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1
-    user: "0"
-    volumes:
-      - ./config/l2-config.toml:/src/l2-config.toml:ro
-      - ./jwt.hex:/src/jwt.hex:ro
-      - ${HEMI_GETH_DATA:-$HOME/hemi-op-geth-data}:/datadir
-    entrypoint: ["sh", "-c"]
-    command:
-      - |
-        set -e
-        mkdir -p /datadir/config/jwt
-        cp /src/l2-config.toml /datadir/config/l2-config.toml
-        cp /src/jwt.hex /datadir/config/jwt/jwt.hex
-        chown -R 65532:65532 /datadir
-    restart: "no"
-
-  op-geth-l2-init-tbc:
-    image: alpine:3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1
-    user: "0"
-    volumes:
-      - ${HEMI_TBC_DATA:-$HOME/hemi-tbc-data}:/tbcdata
-    command:
-      - chown
-      - -R
-      - "65532:65532"
-      - /tbcdata
-    restart: "no"
-
   op-geth-l2:
     image: ${OP_GETH_IMAGE}
     platform: linux/amd64
     container_name: hemi-op-geth
-    depends_on:
-      op-geth-l2-init-genesis:
-        condition: service_completed_successfully
-      op-geth-l2-init-config:
-        condition: service_completed_successfully
-      op-geth-l2-init-tbc:
-        condition: service_completed_successfully
     volumes:
-      - ${HEMI_GETH_DATA:-$HOME/hemi-op-geth-data}:/tmp/datadir
+      - ./config/l2-config.toml:/config/l2-config.toml:ro
+      - ./jwt.hex:/config/jwt.hex:ro
+      - ${HEMI_GETH_DATA:-$HOME/hemi-op-geth-data}:/data
       - ${HEMI_TBC_DATA:-$HOME/hemi-tbc-data}:/tbcdata
     ports:
-      - 127.0.0.1:${OP_GETH_HTTP_PORT:-18546}:18546
-      - 127.0.0.1:${OP_GETH_WS_PORT:-28546}:28546
-      - ${OP_GETH_P2P_PORT:-30303}:${OP_GETH_P2P_PORT:-30303}
-      - ${OP_GETH_P2P_PORT:-30303}:${OP_GETH_P2P_PORT:-30303}/udp
+      - ${RPC_BIND_ADDR}:${OP_GETH_HTTP_PORT}:${OP_GETH_HTTP_PORT}
+      - ${RPC_BIND_ADDR}:${OP_GETH_WS_PORT}:${OP_GETH_WS_PORT}
+      - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}
+      - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}/udp
     command:
-      - --config=/tmp/datadir/config/l2-config.toml
+      - --config=/config/l2-config.toml
       - --http
       - --http.corsdomain=*
       - --http.vhosts=*
       - --http.addr=0.0.0.0
       - --http.api=web3,eth,txpool,net
-      - --http.port=18546
+      - --http.port=${OP_GETH_HTTP_PORT}
       - --ws
       - --ws.rpcprefix=/
       - --ws.addr=0.0.0.0
-      - --ws.port=28546
+      - --ws.port=${OP_GETH_WS_PORT}
       - --ws.origins=*
       - --ws.api=eth,txpool,net
       - --syncmode=snap
@@ -90,10 +38,10 @@ services:
       - --authrpc.vhosts=*
       - --authrpc.addr=0.0.0.0
       - --authrpc.port=8551
-      - --authrpc.jwtsecret=/tmp/datadir/config/jwt/jwt.hex
+      - --authrpc.jwtsecret=/config/jwt.hex
       - --rollup.disabletxpoolgossip=false
-      - --datadir=/tmp/datadir/geth
-      - --rpc.gascap=${GAS_CAP:-600000000}
+      - --datadir=/data/geth
+      - --rpc.gascap=${GAS_CAP}
       - --override.ecotone=1725868497
       - --override.canyon=1725868497
       - --override.hvm0=1739286001
@@ -108,7 +56,7 @@ services:
       - --hvm.genesisheight=883092
       - --hvm.genesisheader=0000003efaaa2ba65de684c512bb67ef115298d1d16bcb49b16c02000000000000000000ed31a56788c4488afc4ee69e0791ad6aeeb9ea05f069e0fdde6159068765ad3f4128a96726770217e7f41c86
       - --bootnodes=enode://e7970a29d89f8b158371a8d4aca909ee8c1c759e711547b797a6a6f01513c1e7c85121dd2600397ca20cebf3cea21025001be7c0f577b496caf32ea0433a1cfd@34.90.21.246:30303,enode://70877d3aa6c4ccc09d960c269846215d5dcc8bf47013ac532c1ccc3d9cfe61434c96b9d6cad88a96c3f91187fb00214d903a6be6d8e93140ac4a3c099684ce34@34.13.162.152:30303,enode://27f75e68a8c14cae2f4e12f060477c150767e98149e16a448baddc25d800c008edf8b1fefd13b206c27e5473ac9234ba1958a8267fe5272e9de3819ac080bf22@34.13.171.139:30303,enode://588ffb65f841aede8d8f69a3175f9cfed1b79d20d40a7feb8a70e574b5610fb4049bf02f3170f1ae25bff806b2c823653b28af711e1962ea3f45d99d58608191@34.91.216.121:30303,enode://ba86a76186268948bc34b7fa1c2f08c24ed60cda61346cf1a1cca278b0ef1de49e567039952e06e4887a0252974401a6d6729bfc12945c6d8c65eacbf3b11ca7@34.141.148.19:30303
-      - --port=${OP_GETH_P2P_PORT:-30303}
+      - --port=${OP_GETH_P2P_PORT}
       - --nat=extip:${EXT_IP}
     ulimits:
       memlock: -1
@@ -116,7 +64,7 @@ services:
         soft: 1048576
         hard: 1048576
     healthcheck:
-      test: ["CMD", "nc", "-vz", "0.0.0.0", "18546"]
+      test: ["CMD", "nc", "-vz", "0.0.0.0", "${OP_GETH_HTTP_PORT}"]
       interval: 5s
       timeout: 5s
       retries: 999999
@@ -124,34 +72,15 @@ services:
     networks:
       - hemi-network
 
-  op-node-init-config:
-    image: alpine:3.22.1@sha256:4bcff63911fcb4448bd4fdacec207030997caf25e9bea4045fa6c8c44de311d1
-    user: "0"
-    volumes:
-      - ./jwt.hex:/src/jwt.hex:ro
-      - ./op-node-priv-key.txt:/src/op-node-priv-key.txt:ro
-      - ./config/rollup.json:/src/rollup.json:ro
-      - ${HEMI_OP_NODE_DATA:-$HOME/hemi-op-node-data}:/datadir
-    entrypoint: ["sh", "-c"]
-    command:
-      - |
-        set -e
-        mkdir -p /datadir/config
-        cp /src/jwt.hex /datadir/config/jwt.hex
-        cp /src/op-node-priv-key.txt /datadir/config/op-node-priv-key.txt
-        cp /src/rollup.json /datadir/config/rollup.json
-        chmod -R a+rX /datadir/config
-    restart: "no"
-
   bssd:
     image: ${BSSD_IMAGE}
     container_name: hemi-bssd
     environment:
       BSS_BFG_URL: ${BSS_BFG_URL:-ws://bfgd:8080/v1/ws/private}
       BSS_LOG_LEVEL: INFO
-      BSS_ADDRESS: ":8081"
+      BSS_ADDRESS: ":${BSS_RPC_PORT}"
     ports:
-      - 127.0.0.1:${BSS_RPC_PORT:-8081}:8081
+      - ${RPC_BIND_ADDR}:${BSS_RPC_PORT}:${BSS_RPC_PORT}
     restart: unless-stopped
     networks:
       - hemi-network
@@ -161,47 +90,48 @@ services:
     platform: linux/amd64
     container_name: hemi-op-node
     depends_on:
-      op-node-init-config:
-        condition: service_completed_successfully
       op-geth-l2:
         condition: service_healthy
     env_file: .env
     environment:
-      OP_NODE_BSS_WS: http://bssd:8081/v1/ws
+      OP_NODE_BSS_WS: http://bssd:${BSS_RPC_PORT}/v1/ws
     volumes:
+      - ./jwt.hex:/config/jwt.hex:ro
+      - ./op-node-priv-key.txt:/config/op-node-priv-key.txt:ro
+      - ./config/rollup.json:/config/rollup.json:ro
       - ${HEMI_OP_NODE_DATA:-$HOME/hemi-op-node-data}:/data
     ports:
-      - 127.0.0.1:${OP_NODE_RPC_PORT:-8547}:8547
-      - ${OP_NODE_P2P_PORT:-9003}:${OP_NODE_P2P_PORT:-9003}
-      - ${OP_NODE_P2P_PORT:-9003}:${OP_NODE_P2P_PORT:-9003}/udp
+      - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
     command:
       - op-node
       - --l1=${GETHL1ENDPOINT}
       - --l1.rpckind=any
       - --l1.beacon=${PRYSMENDPOINT}
       - --l2=ws://op-geth-l2:8551
-      - --l2.jwt-secret=/data/config/jwt.hex
+      - --l2.jwt-secret=/config/jwt.hex
       - --sequencer.enabled=false
-      - --rollup.config=/data/config/rollup.json
+      - --rollup.config=/config/rollup.json
       - --override.ecotone=1725868497
       - --override.canyon=1725868497
       - --override.delta=1725868497
       - --rpc.addr=0.0.0.0
-      - --rpc.port=8547
+      - --rpc.port=${OP_NODE_RPC_PORT}
       - --p2p.listen.ip=0.0.0.0
-      - --p2p.listen.tcp=${OP_NODE_P2P_PORT:-9003}
-      - --p2p.listen.udp=${OP_NODE_P2P_PORT:-9003}
+      - --p2p.listen.tcp=${OP_NODE_P2P_PORT}
+      - --p2p.listen.udp=${OP_NODE_P2P_PORT}
       - --p2p.advertise.ip=${EXT_IP}
-      - --p2p.advertise.tcp=${OP_NODE_P2P_PORT:-9003}
-      - --p2p.advertise.udp=${OP_NODE_P2P_PORT:-9003}
-      - --p2p.priv.path=/data/config/op-node-priv-key.txt
+      - --p2p.advertise.tcp=${OP_NODE_P2P_PORT}
+      - --p2p.advertise.udp=${OP_NODE_P2P_PORT}
+      - --p2p.priv.path=/config/op-node-priv-key.txt
       - --p2p.bootnodes=enr:-J64QACnJ0giPmPXowNCHP-FDleMMbDqYg5nuLABYfJeYbP9OA6_fZtvCsTbAwvlPD8_C6ZSXEk1-XPabDBwD8UTyNCGAZMxdy4tgmlkgnY0gmlwhCINopiHb3BzdGFja4Tn0AIAiXNlY3AyNTZrMaED22EOmUryrNnFOwq6Ve1Hpw5CMFz_TnhIkVS4Sq8JhkmDdGNwgiMrg3VkcIKjLg,enr:-J64QA20VNMfLMtbSuHYmQH2I-xaqT4-9g7lqO-VHr0fFvtSB7QybJ_7W5fuEjLAa6kh82fGLjRUdZE0hW0pfVBcxP6GAZMxdwfngmlkgnY0gmlwhCJaFfaHb3BzdGFja4Tn0AIAiXNlY3AyNTZrMaEDjt3C-gv87B5rWa5M52WUFGy16mjQvFsC7OgPkqu-rn-DdGNwgiMrg3VkcIKRXQ,enr:-J64QLQyh3lXjQLzfCbfNw0DUb4A0OEcTLmVGexMbK-2jjCtHOIlRnDqLuedQ0orNHt7zmsILELYi4ozg-0bQzc34F-GAZMxdxNogmlkgnY0gmlwhCINq4uHb3BzdGFja4Tn0AIAiXNlY3AyNTZrMaED1NV9w0EmnMXBNRnDWj6kdqzE6_4HigHopeu3ewQTwouDdGNwgiMrg3VkcIK1Iw,enr:-J64QNPfOEViWkN7U_ul5Zhw_mc5_Hta92eUufrgu6oTqSMzRsqCje-P0vPrOQ9XjVIk4VP7mmFVP6qoTrtkIwvwUV2GAZMxdv4zgmlkgnY0gmlwhCJb2HmHb3BzdGFja4Tn0AIAiXNlY3AyNTZrMaEDYAidV8rzABKrKAL9jwP1aoi3wj-GtuML4FKtUDOgzCGDdGNwgiMrg3VkcILijg,enr:-J64QFalFr9Y4r9v8Svh7XFwerJeLTRnfTixfCy_NZw3OTMVZL_dSAvcZ6JIeK0JAZf6-PU3YknV9m9Jd5V5WlnqHKWGAZMxdxT4gmlkgnY0gmlwhCKNlBOHb3BzdGFja4Tn0AIAiXNlY3AyNTZrMaECI1jqAzkQ0JRkwL-UBP2TBUfUdLyTaqAXtey82CTysdCDdGNwgiMrg3VkcILOyg
       - --p2p.static=/ip4/34.90.21.246/tcp/9003/p2p/16Uiu2HAmNGgNTgiFBAqH58aCT3iXWMnetYMtQgH21Ydjq2R7QRbt,/ip4/34.13.162.152/tcp/9003/p2p/16Uiu2HAm33YRmCya94zRXddxaWj25QAXW5MhuJkaEvfMLXkB4GCK,/ip4/34.13.171.139/tcp/9003/p2p/16Uiu2HAm5d71wTbQPkBA3VW9suge2afCKtrGdk7UapRHR4va8jTY,/ip4/34.91.216.121/tcp/9003/p2p/16Uiu2HAmK7s7F1ALmtXKH3LxeEENstqw8jiDzUtifasS4LkUKGVE,/ip4/34.141.148.19/tcp/9003/p2p/16Uiu2HAkwoetK83q3WNRQ4t4eV8B3DosnwcFqd9VHxz24ZZzzEgo
       - --p2p.ban.peers=false
       - --p2p.ban.duration=1s
       - --p2p.ban.threshold=-10000000000
       - --log.level=info
-      - --syncmode=${OPSYNCMODE:-execution-layer}
+      - --syncmode=${OPSYNCMODE}
       - --override.pectrablobschedule=1751554801
       - --override.isthmus=1751554801
       - --override.holocene=1751554801

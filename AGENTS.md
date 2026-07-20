@@ -153,6 +153,12 @@ chain/
 - Store **chain data** under `$HOME`, not inside the repo.
 - Add setup scripts only when the chain needs them (not every chain uses JWT, Docker build, or genesis init).
 
+## First-start permissions
+
+Do not fight container UID/permission issues with compose **init containers** (one-shot `chown`, config copy, genesis init). Prefer **`configure.sh` + `init-database.sh` + one `sudo chown`** — document the UID/GID and exact command in `<chain>/README.md` **Start**. This matches `opbnb/`, `neox/`, and `hemi/`. Keep `docker-compose.yml` to runtime services only.
+
+When the client runs as a fixed non-root UID, bind-mounted repo files must be world-readable and datadirs must be owned by that UID before first start (`configure.sh` can `mkdir` datadirs and print the `chown` step).
+
 ## Geth forks (Docker build)
 
 For geth-fork clients (e.g. BSC, Neo X, Bitlayer) built with:

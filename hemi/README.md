@@ -8,15 +8,16 @@ Requires external Ethereum execution + beacon RPCs. Host `ulimit -n` should be â
 
 ```bash
 ./configure.sh          # creates .env, EXT_IP, datadirs
-sudo chown -R 65532:65532 $HOME/hemi-op-geth-data $HOME/hemi-tbc-data
 # set GETHL1ENDPOINT and PRYSMENDPOINT in .env
 ./create-jwt.sh
+./init-database.sh
+sudo chown -R 65532:65532 $HOME/hemi-op-geth-data $HOME/hemi-tbc-data
 docker compose up -d
 ```
 
-Init containers copy `jwt.hex`, `l2-config.toml`, and `rollup.json` into the datadirs so op-geth (UID 65532) does not read repo bind mounts directly.
+op-geth runs as UID 65532 and needs read access to bind-mounted config/JWT (world-readable after `create-jwt.sh`) and write access to the datadirs (via `chown` above).
 
-RPC (localhost): set `OP_GETH_HTTP_PORT` / `OP_GETH_WS_PORT` / `OP_NODE_RPC_PORT` in `.env` (defaults `18546` / `28546` / `8547`).
+RPC bind address and ports: set `RPC_BIND_ADDR`, `OP_GETH_HTTP_PORT`, `OP_GETH_WS_PORT`, `OP_NODE_RPC_PORT` in `.env` (defaults `127.0.0.1` / `18546` / `28546` / `8547`).
 
 Snap sync with external L1s is typically ~2 business days.
 
