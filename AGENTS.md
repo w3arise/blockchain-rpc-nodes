@@ -14,12 +14,13 @@ When adding or updating a chain setup, add its **official** documentation and re
 
 Use this table format — one row per chain:
 
-| Chain | Explorer | Links |
-| --- | --- | --- |
-| … | … | … |
+| Chain | Explorer | Links | Snapshot |
+| --- | --- | --- | --- |
+| … | … | … | … |
 
 - **Explorer** — official block explorer URL when the chain has one (e.g. [soneium.blockscout.com](https://soneium.blockscout.com/)). Use `—` if none. Verify the URL responds before adding (e.g. `curl -L -o /dev/null -w "%{http_code}"`).
 - **Links** — docs, repos, network specs, and other setup references. Multiple links in one cell, separated by ` · `.
+- **Snapshot** — official or documented snapshot download / recovery pages. Use `—` if none.
 
 ## Chain README (`<chain>/README.md`)
 
