@@ -177,6 +177,17 @@ ports:
 
 Inside the container, op-reth listens on fixed `8545` / `8546` (`--http.port=8545`, `--ws.port=8546`). Engine API stays on the Docker network only (e.g. `9551`) — do not publish it to the host.
 
+**op-reth P2P flags** — set `--port`, `--discovery.port`, and `--discovery.v5.port` to the **same** `${P2P_PORT}` (plus `--discovery.addr=0.0.0.0` and `--nat=extip:${EXT_IP}`):
+
+```yaml
+- --port=${P2P_PORT}
+- --discovery.addr=0.0.0.0
+- --discovery.port=${P2P_PORT}
+- --discovery.v5.port=${P2P_PORT}
+```
+
+Do not put discovery v5 on a separate port unless chain docs explicitly require it. See [`katana/docker-compose.yml`](katana/docker-compose.yml).
+
 **Compose mappings (op-node):**
 
 ```yaml
