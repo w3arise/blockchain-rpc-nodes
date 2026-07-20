@@ -27,7 +27,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 
 | Chain               | Directory      | Type                                | Execution Client                          | Setup                           |
 | ------------------- | -------------- | ----------------------------------- | ----------------------------------------- | ------------------------------- |
-| 0G                  | `0g/`          | L1                                  | 0g-node + 0g-geth                         | —                               |
 | ApeChain            | `apechain/`    | L3 (Arbitrum Orbit)                 | Caldera nitro                             | [README](apechain/README.md)    |
 | Arbitrum            | `arbitrum/`    | L2 (Nitro)                          | nitro                                     | [README](arbitrum/README.md)    |
 | Berachain           | `berachain/`   | L1                                  | bera-reth + beacon-kit                    | [README](berachain/README.md)   |
@@ -61,6 +60,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 
 | Chain             | Type                  | Execution Client |
 | ----------------- | --------------------- | ---------------- |
+| 0G                | L1                    | 0g-node + 0g-geth |
 | Astar (L1)        | L1                    | —                |
 | B² Network        | L2 (Bitcoin)          | —                |
 | Bittensor         | L1                    | —                |
