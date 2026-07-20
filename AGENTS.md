@@ -34,6 +34,7 @@ Include:
 - **Snapshot** — restore path and which init steps to skip. When adding a chain, **prefer finding an official or community snapshot source** (chain docs, client repo, explorer/provider pages). Document the source URL and restore steps in the README; if none exists, state that explicitly and sync from genesis/P2P. Note whether recovery uses a tarball, genesis prime file, or both.
 - **Pruning Mode** or **State retention** — when the client has archive/pruning flags or init-time choices; see [Archive and state retention (general)](#archive-and-state-retention-general).
 - **Testnet** — only if the setup supports it
+- **Host ports** — when running a public replica, document inbound P2P ports; see [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2)
 - Link to official run docs
 
 Do not duplicate `env.template` comments or long troubleshooting guides.
@@ -131,11 +132,109 @@ L1 (Ethereum) ──► op-node ──► Engine API (JWT) ──► op-reth ─
                       └── P2P (bootnodes / static peers)
 ```
 
-- **op-reth**: stores chain data, serves HTTP/WS RPC, exposes authenticated Engine API (port 8551 or 9551).
+- **op-reth**: stores chain data, serves HTTP/WS RPC, exposes Engine API to op-node (Docker-internal only — see [Ports](#ports-connectivity-and-p2p-l2)).
 - **op-node**: derives L2 from L1, drives op-reth via Engine API, syncs unsafe blocks from P2P peers.
-- Both must share the **same JWT** for Engine API auth
+- Both must share the **same JWT** for Engine API auth — see [JWT (Engine API)](#jwt-engine-api).
 
+## Ports, connectivity, and P2P (L2)
 
+All **L2** setups (OP Stack, Nitro, ZK Stack external nodes, etc.) must follow the same port and connectivity rules. Reference implementation: [`katana/`](katana/).
+
+### General rules
+
+1. **Define ports in `env.template`** under a `### Ports ###` group — do not hardcode host ports in `docker-compose.yml`.
+2. **RPC / WebSocket / op-node admin RPC** bind to **`RPC_BIND_ADDR`** on the host (default **`127.0.0.1`**). Change to `0.0.0.0` only when LAN access is intentional.
+3. **P2P ports** bind on **all interfaces** (no `127.0.0.1` prefix) — peers must reach them from the internet when the node advertises P2P.
+4. **Host vs container for execution-client RPC:** host port is **configurable**; in-container listen port is **fixed** at the client default (e.g. op-reth `8545` / `8546`). Do not make both sides the same env var unless the client requires it.
+5. **P2P needs TCP and UDP** on the same host port — two compose mappings are required, not redundant:
+   ```yaml
+   - ${P2P_PORT}:${P2P_PORT}
+   - ${P2P_PORT}:${P2P_PORT}/udp
+   ```
+
+### OP Stack (op-reth + op-node)
+
+Typical `env.template` ports block:
+
+| Variable | Default (example) | Role |
+| --- | --- | --- |
+| `RPC_BIND_ADDR` | `127.0.0.1` | Host bind for HTTP / WS / op-node admin RPC |
+| `HTTP_PORT` | chain-specific | Host → op-reth container `8545` |
+| `WS_PORT` | chain-specific | Host → op-reth container `8546` |
+| `OP_NODE_RPC_PORT` | chain-specific | op-node admin RPC (e.g. `optimism_syncStatus`) |
+| `OP_NODE_P2P_PORT` | `9222` (Conduit default) | op-node rollup P2P (TCP + UDP, public) |
+| `P2P_PORT` | chain-specific | op-reth execution P2P (TCP + UDP, public) |
+
+**Compose mappings (op-reth):**
+
+```yaml
+ports:
+  - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+  - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+  - ${P2P_PORT}:${P2P_PORT}
+  - ${P2P_PORT}:${P2P_PORT}/udp
+```
+
+Inside the container, op-reth listens on fixed `8545` / `8546` (`--http.port=8545`, `--ws.port=8546`). Engine API stays on the Docker network only (e.g. `9551`) — do not publish it to the host.
+
+**Compose mappings (op-node):**
+
+```yaml
+ports:
+  - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
+  - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
+  - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+```
+
+Set in `env.template` for op-node listen/advertise:
+
+```
+OP_NODE_RPC_ADDR=0.0.0.0
+OP_NODE_P2P_LISTEN_IP=0.0.0.0
+OP_NODE_P2P_LISTEN_TCP=<same as OP_NODE_P2P_PORT>
+OP_NODE_P2P_LISTEN_UDP=<same as OP_NODE_P2P_PORT>
+OP_NODE_P2P_ADVERTISE_IP=          # filled by configure.sh
+```
+
+op-node runtime config (sync mode, rollup, P2P bootnodes, fork overrides) belongs in **`env.template`** as `OP_NODE_*` vars loaded via `env_file: .env` — not duplicated as CLI flags in compose unless a flag cannot be set via env.
+
+### Public IP and `configure.sh`
+
+When the chain exposes P2P, **`configure.sh`** must fetch the host public IP (e.g. via `ip.me`) and set:
+
+| Variable | Used by |
+| --- | --- |
+| `EXT_IP` | Execution client NAT (e.g. op-reth `--nat=extip`) |
+| `OP_NODE_P2P_ADVERTISE_IP` | op-node P2P advertise (OP Stack only) |
+
+Leave both empty in `env.template`; operators run `./configure.sh` before first start. Re-run after a public IP change.
+
+Document inbound P2P ports (`P2P_PORT`, `OP_NODE_P2P_PORT` — TCP + UDP) in `<chain>/README.md` when the node is a public replica. RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+
+### Conduit bootnodes (OP Stack)
+
+Fetch current lists — do not copy from another chain (Mode ≠ BOB):
+
+```
+https://api.conduit.xyz/public/network/bootnodes/<network-slug>
+https://api.conduit.xyz/public/network/staticPeers/<network-slug>
+```
+
+Example slugs: `mode-mainnet-0`, `bob-mainnet-0`, `katana`.
+
+Set in `env.template`:
+
+```
+OP_NODE_P2P_BOOTNODES=enode://...
+OP_NODE_P2P_STATIC=/ip4/.../tcp/9222/p2p/...
+OP_NODE_P2P_SYNC_ONLYREQTOSTATIC=true
+```
+
+Some Conduit bootnodes (e.g. `bootnode.conduit.xyz`) are shared across chains; the first enode and static peer are chain-specific.
+
+### Other L2 stacks
+
+Apply the same split: **localhost + configurable host port** for JSON-RPC/admin APIs; **public + configurable host port** for P2P (TCP + UDP). Nitro uses `HTTP_PORT` / `WS_PORT` with fixed in-container ports; ZK Stack external nodes use `EN_HTTP_PORT` / `EN_WS_PORT` with `RPC_BIND_ADDR`. Name vars per chain, keep the pattern.
 
 ## Standard layout per chain directory
 
@@ -144,7 +243,7 @@ chain/
 ├── docker-compose.yml
 ├── env.template          # copy to .env; never commit .env
 ├── README.md             # minimal start steps
-├── configure.sh          # optional: create .env, set EXT_IP
+├── configure.sh          # optional: create .env, set public IP (see Ports section)
 ├── init-database.sh      # optional: genesis / datadir init
 ├── Dockerfile            # optional: local image build
 ├── create-jwt.sh         # OP Stack only: writes config/jwt.hex
@@ -158,9 +257,9 @@ chain/
 
 ### env.template and configure.sh
 
-- **`env.template`** — setup steps in header comments; group vars (`### Network ###`, `### RPC ###`, etc.); pin client versions; set `EXT_IP=` and `GAS_CAP=600000000` unless the chain requires otherwise.
-- **`configure.sh`** — create `.env` from `env.template` if missing; fetch public IP and set `EXT_IP` (e.g. via `ip.me`); print the next commands. Do not embed secrets.
-- **`docker-compose.yml`** — load `.env` with `env_file: .env` where vars are needed; keep runtime services only (no init-container chown hacks).
+- **`env.template`** — setup steps in header comments; group vars (`### Network ###`, `### Ports ###`, `### RPC ###`, etc.); pin client versions; set `GAS_CAP=600000000` unless the chain requires otherwise. Port layout and public IP vars: [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2).
+- **`configure.sh`** — optional; creates `.env` from `env.template` and sets public IP. See [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2). Do not embed secrets.
+- **`docker-compose.yml`** — load `.env` with `env_file: .env` on services that need runtime vars (typically op-node); keep runtime services only (no init-container chown hacks).
 
 ## Archive and state retention (general)
 
@@ -212,8 +311,6 @@ op-node does **not** read generic names. Use the `OP_NODE_`* prefix:
 
 If L1 vars are missing, op-node fails at startup with: `flag l1 is required`.
 
-Use a single `.env` loaded via `env_file: .env` on op-node. Do not split into `op-node.env` unless compose explicitly references it.
-
 ### op-node network preset
 
 Prefer built-in network names when available:
@@ -223,7 +320,7 @@ OP_NODE_NETWORK=mode-mainnet   # or bob-mainnet
 OP_NODE_ROLLUP_CONFIG=         # empty = use built-in preset
 ```
 
-Bootnodes and static peers still come from env (see Conduit API below).
+Bootnodes and static peers: [Conduit bootnodes (OP Stack)](#conduit-bootnodes-op-stack) when not using a built-in preset.
 
 ### op-reth chain configuration
 
@@ -253,52 +350,7 @@ Generate once per deployment:
 ./create-jwt.sh   # writes config/jwt.hex
 ```
 
-Both services mount the same file:
-
-- op-reth: `--authrpc.jwtsecret=/config/jwt.hex`
-- op-node: `OP_NODE_L2_ENGINE_AUTH=/config/jwt.hex`
-
-Do not use a custom entrypoint to write JWT at runtime unless necessary. Regenerating JWT requires restarting **both** containers.
-
-## P2P and public IP
-
-
-
-### op-node peers (Conduit API)
-
-Fetch current lists — do not copy from another chain (Mode ≠ BOB):
-
-```
-https://api.conduit.xyz/public/network/bootnodes/<network-slug>
-https://api.conduit.xyz/public/network/staticPeers/<network-slug>
-```
-
-Example slugs: `mode-mainnet-0`, `bob-mainnet-0`.
-
-Set in env:
-
-```
-OP_NODE_P2P_BOOTNODES=enode://...
-OP_NODE_P2P_STATIC=/ip4/.../tcp/9222/p2p/...
-```
-
-Some Conduit bootnodes (e.g. `bootnode.conduit.xyz`) are shared across chains; the first enode and static peer are chain-specific.
-
-### op-reth P2P NAT
-
-For public P2P advertisement on op-reth:
-
-```yaml
-# docker-compose.yml
-- --nat=extip:${EXT_IP}
-```
-
-```
-# env.template
-EXT_IP=<YOUR_PUBLIC_IP>
-```
-
-This is separate from op-node P2P settings (`OP_NODE_P2P_ADVERTISE_IP`).
+Both services mount the same `config/jwt.hex` (op-reth: `--authrpc.jwtsecret`; op-node: `OP_NODE_L2_ENGINE_AUTH`). Regenerating JWT requires restarting **both** containers. Do not use a custom entrypoint to write JWT at runtime unless necessary.
 
 ## Conduit config files
 
@@ -392,11 +444,11 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 12. Use `OP_NODE_L1_*` env vars in a single `.env`.
 13. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
 14. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
-15. Set `--nat=extip:${EXT_IP}` (or equivalent) for public P2P where needed.
+15. Follow [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2): `RPC_BIND_ADDR`, configurable host RPC ports, public P2P (TCP + UDP), op-node admin RPC on localhost, `configure.sh` for `EXT_IP` / `OP_NODE_P2P_ADVERTISE_IP`.
 
 ### Conduit OP Stack (additional)
 
-16. Fetch bootnodes/static peers from Conduit API for the correct network slug.
+16. Fetch bootnodes/static peers — [Conduit bootnodes (OP Stack)](#conduit-bootnodes-op-stack).
 17. Fetch genesis/rollup from Conduit API; verify before committing.
 
 ### ZK Stack (external node, when applicable)
