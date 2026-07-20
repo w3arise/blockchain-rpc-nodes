@@ -61,8 +61,8 @@ services:
       - ./config:/config:ro
     ports:
       - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
-      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
-      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+      - ${HOST_OP_NODE_P2P_PORT}:${OP_NODE_P2P_LISTEN_TCP}
+      - ${HOST_OP_NODE_P2P_PORT}:${OP_NODE_P2P_LISTEN_UDP}/udp
     restart: unless-stopped
     networks:
       - hashkey-network

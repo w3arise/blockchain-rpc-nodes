@@ -18,7 +18,9 @@ If `./init-database.sh` failed partway, remove the partial datadir (`rm -rf <HOS
 
 ## Host ports
 
-Public P2P (TCP + UDP): op-geth `${P2P_PORT}` (default 10415), op-node `${OP_NODE_P2P_PORT}` (default 10429). Set by `./configure.sh` on `EXT_IP` / `OP_NODE_P2P_ADVERTISE_IP`.
+Public P2P (TCP + UDP): op-geth `${P2P_PORT}` (default 10415), op-node `${HOST_OP_NODE_P2P_PORT}` (default 10429). Set by `./configure.sh` on `EXT_IP` / `OP_NODE_P2P_ADVERTISE_IP`.
+
+Committed `config/rollup.json` uses op-node snake_case fork fields (`holocene_time`, etc.). Official S3 publishes camelCase; normalize if you refresh from upstream.
 
 ## Snapshot
 
