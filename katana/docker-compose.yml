@@ -12,16 +12,16 @@ services:
       - --rollup.disable-tx-pool-gossip
       - --http
       - --http.addr=0.0.0.0
-      - --http.port=${HTTP_PORT}
+      - --http.port=8545
       - --http.api=web3,debug,eth,txpool,net
       - --http.corsdomain=*
       - --ws
       - --ws.addr=0.0.0.0
-      - --ws.port=${WS_PORT}
+      - --ws.port=8546
       - --ws.api=web3,debug,eth,txpool,net
       - --ws.origins=*
       - --authrpc.addr=0.0.0.0
-      - --authrpc.port=${AUTHRPC_PORT}
+      - --authrpc.port=9551
       - --authrpc.jwtsecret=/config/jwt.hex
       - --rpc.gascap=${GAS_CAP}
       - --nat=extip:${EXT_IP}
@@ -33,8 +33,8 @@ services:
       - ${HOST_DATADIR:-$HOME/katana-op-reth-data}:/data
       - ./config:/config
     ports:
-      - 127.0.0.1:${HTTP_PORT}:${HTTP_PORT}
-      - 127.0.0.1:${WS_PORT}:${WS_PORT}
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp
     restart: unless-stopped
@@ -47,8 +47,6 @@ services:
     command:
       - op-node
     env_file: .env
-    environment:
-      OP_NODE_L2_ENGINE_RPC: http://katana-op-reth:${AUTHRPC_PORT}
     volumes:
       - ${HOST_OP_NODE_DATADIR:-$HOME/katana-op-node-data}:/data
       - ./config:/config
