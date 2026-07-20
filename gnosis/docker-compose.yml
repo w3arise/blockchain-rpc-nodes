@@ -36,6 +36,7 @@ services:
       - --authrpc.addr=0.0.0.0
       - --authrpc.port=8661
       - --authrpc.jwtsecret=/config/jwt.hex
+      - --rpc.gascap=${GAS_CAP}
       - --rpc.max-connections=2000
       - --rpc.max-logs-per-response=20000
       - --rpc.max-blocks-per-filter=100000
