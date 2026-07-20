@@ -68,5 +68,6 @@ exec celo-reth node \
   --max-peers=100 \
   --nat="extip:${EXT_IP}" \
   --txpool.nolocals \
-  --rpc.txfeecap=0 \
+  --rpc.txfeecap="${TX_FEE_CAP:-0}" \
+  --rpc.gascap="${GAS_CAP:-600000000}" \
   $EXTENDED_ARG
