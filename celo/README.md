@@ -11,11 +11,15 @@ Mainnet L2 full node. Chain data: `$HOME/celo-op-reth-data`, `$HOME/celo-op-node
 docker compose up -d
 ```
 
-RPC: `http://127.0.0.1:8441` (HTTP), `ws://127.0.0.1:8442` (WS).
+RPC: `http://127.0.0.1:7545` (HTTP), `ws://127.0.0.1:7546` (WS).
 
 ## Snapshot
 
 With `OP_RETH_SNAPSHOT=true` (default), an empty `$HOME/celo-op-reth-data` is bootstrapped from [snapshots.celo.org](https://snapshots.celo.org/) via `celo-reth download` on first start (`NODE_TYPE` selects minimal / full / archive). Skipped once `db/` exists. Mainnet full ≈ 215 GB download / ≈ 355 GB on disk. op-geth datadirs cannot be reused.
+
+## Pre-L2 history
+
+`NODE_TYPE=archive` keeps post-L2 history only. Pre-migration Celo L1 state is not in the op-reth datadir (migrated op-geth data cannot be reused). Set `OP_RETH_HISTORICAL_RPC` in `.env` to a legacy Celo L1 archive; op-reth proxies pre-L2 requests there.
 
 ## Testnet
 

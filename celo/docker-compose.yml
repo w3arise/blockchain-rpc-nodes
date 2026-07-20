@@ -26,8 +26,8 @@ services:
       - ./config:/config
       - ./scripts/:/scripts/
     ports:
-      - 127.0.0.1:8441:8545
-      - 127.0.0.1:8442:8546
+      - 127.0.0.1:7545:8545
+      - 127.0.0.1:7546:8546
       - ${RETH_PORT}:${RETH_PORT}
       - ${RETH_PORT}:${RETH_PORT}/udp
     networks:
