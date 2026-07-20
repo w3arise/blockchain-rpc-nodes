@@ -7,7 +7,8 @@ Requires external Ethereum execution + beacon RPCs. Host `ulimit -n` should be â
 ## Start
 
 ```bash
-./configure.sh          # creates .env, sets EXT_IP from ip.me
+./configure.sh          # creates .env, EXT_IP, datadirs
+# run the sudo chown printed by configure.sh (first start only)
 # set GETHL1ENDPOINT and PRYSMENDPOINT in .env
 ./create-jwt.sh
 docker compose up -d
