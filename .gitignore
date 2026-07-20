@@ -8,6 +8,7 @@
 # Engine API JWT secrets
 **/jwt.hex
 **/jwt.txt
+**/op-node-priv-key.txt
 
 # ZK Stack external node generated secrets
 **/consensus_secrets.yaml

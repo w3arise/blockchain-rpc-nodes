@@ -14,6 +14,7 @@ if ! command -v openssl >/dev/null 2>&1; then
 fi
 
 openssl rand -hex 32 > "${JWT_FILE}"
-chmod 600 "${JWT_FILE}"
+# Container processes often run as non-root and need to read the bind-mounted JWT.
+chmod 644 "${JWT_FILE}"
 
 echo "Wrote Engine API JWT to ${JWT_FILE}"

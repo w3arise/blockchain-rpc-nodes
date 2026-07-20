@@ -35,6 +35,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Celo                | `celo/`        | L2 (OP Stack / EigenDA)             | celo-op-reth + op-node + eigenda-proxy    | [README](celo/README.md)        |
 | Celo (op-geth)      | `celo-geth/`   | L2 (OP Stack / EigenDA, deprecated) | op-geth + op-node + eigenda-proxy         | [README](celo-geth/README.md)   |
 | Gnosis Chain (xDai) | `gnosis/`      | L1                                  | reth_gnosis + lighthouse                  | [README](gnosis/README.md)      |
+| Hemi                | `hemi/`        | L2 (OP Stack / Bitcoin)             | hemi op-geth + op-node + bssd             | [README](hemi/README.md)        |
 | Kaia                | `kaia/`        | L1                                  | ken (Endpoint Node)                       | [README](kaia/README.md)        |
 | Linea               | `linea/`       | L2 (ZK)                             | Besu / Nethermind + Maru                  | [README](linea/README.md)       |
 | Neo X               | `neox/`        | L1 (EVM-compatible)                 | bane-labs geth                            | [README](neox/README.md)        |
@@ -67,7 +68,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Fantom (FTM)      | L1                    | go-opera         |
 | Hashkey Chain     | L2 (OP Stack)         | —                |
 | Hedera            | L1                    | —                |
-| Hemi              | L2 (Bitcoin/Ethereum) | —                |
 | Hyperliquid       | L1                    | hl-node          |
 | Katana (Polygon)  | L2 (Polygon CDK)      | —                |
 | Lisk              | L2 (OP Stack)         | —                |
