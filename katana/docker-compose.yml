@@ -1,0 +1,64 @@
+services:
+  katana-op-reth:
+    image: ${OP_RETH_IMAGE}
+    container_name: katana-op-reth
+    platform: linux/amd64
+    entrypoint: ["op-reth"]
+    command:
+      - node
+      - --chain=/config/genesis.json
+      - --datadir=/data
+      - --rollup.sequencer=https://rpc.katana.network
+      - --rollup.disable-tx-pool-gossip
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=${HTTP_PORT}
+      - --http.api=web3,debug,eth,txpool,net
+      - --http.corsdomain=*
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=${WS_PORT}
+      - --ws.api=web3,debug,eth,txpool,net
+      - --ws.origins=*
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=${AUTHRPC_PORT}
+      - --authrpc.jwtsecret=/config/jwt.hex
+      - --rpc.gascap=${GAS_CAP}
+      - --nat=extip:${EXT_IP}
+      - --port=${P2P_PORT}
+      - --discovery.addr=0.0.0.0
+      - --discovery.port=${P2P_PORT}
+      - --metrics=127.0.0.1:9001
+    volumes:
+      - ${HOST_DATADIR:-$HOME/katana-op-reth-data}:/data
+      - ./config:/config
+    ports:
+      - 127.0.0.1:${HTTP_PORT}:${HTTP_PORT}
+      - 127.0.0.1:${WS_PORT}:${WS_PORT}
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    restart: unless-stopped
+    networks:
+      - katana-network
+
+  katana-op-node:
+    image: ${OP_NODE_IMAGE}
+    container_name: katana-op-node
+    command:
+      - op-node
+    env_file: .env
+    environment:
+      OP_NODE_L2_ENGINE_RPC: http://katana-op-reth:${AUTHRPC_PORT}
+    volumes:
+      - ${HOST_OP_NODE_DATADIR:-$HOME/katana-op-node-data}:/data
+      - ./config:/config
+    restart: unless-stopped
+    depends_on:
+      katana-op-reth:
+        condition: service_started
+    networks:
+      - katana-network
+
+networks:
+  katana-network:
+    driver: bridge

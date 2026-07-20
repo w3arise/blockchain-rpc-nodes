@@ -32,6 +32,19 @@ docker compose up -d
 
 Use `latest-sonic-archive.g` for an archive node (larger download and datadir).
 
+## Pruning Mode
+
+Sonic pruning is controlled by `--mode`, not a separate prune flag.
+
+| Mode | Used for | Pruning |
+| --- | --- | --- |
+| `rpc` (default) | RPC / archive nodes | No live pruning; keeps history |
+| `validator` | Validators only | Live pruning; most RPC calls disabled |
+
+This compose setup does **not** pass `--mode`, so `sonicd` runs in **`rpc` mode**. Do not add `--mode validator` for an archive node.
+
+When priming with `./sonic-init.sh`, use an **archive** genesis (`latest-sonic-archive.g`) for full history. A **pruned** genesis limits history to the epoch in that file even in `rpc` mode. Do not re-run `sonic-init.sh` with a pruned genesis against an existing archive datadir.
+
 ## Testnet
 
 Download a testnet genesis from [genesis.soniclabs.com](https://genesis.soniclabs.com/) (e.g. `latest-testnet-pruned.g`), point `./sonic-init.sh` at that file, and set a separate `HOST_DATADIR` in `.env` if running both networks.

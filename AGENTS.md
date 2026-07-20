@@ -31,7 +31,8 @@ Include:
 - One-line description (client, network role)
 - Host datadir path(s)
 - **Start** — numbered shell commands from a fresh setup (configure, build, init, compose up)
-- **Snapshot** — restore path and which init steps to skip. When adding a chain, **prefer finding an official or community snapshot source** (chain docs, client repo, explorer/provider pages). Document the source URL and restore steps in the README; if none exists, state that explicitly and sync from genesis/P2P.
+- **Snapshot** — restore path and which init steps to skip. When adding a chain, **prefer finding an official or community snapshot source** (chain docs, client repo, explorer/provider pages). Document the source URL and restore steps in the README; if none exists, state that explicitly and sync from genesis/P2P. Note whether recovery uses a tarball, genesis prime file, or both.
+- **Pruning Mode** or **State retention** — when the client has archive/pruning flags or init-time choices; see [Archive and state retention (general)](#archive-and-state-retention-general).
 - **Testnet** — only if the setup supports it
 - Link to official run docs
 
@@ -151,7 +152,25 @@ chain/
 ```
 
 - Store **chain data** under `$HOME`, not inside the repo.
+- Prefer **`$HOME/<chain>-data`** (e.g. `$HOME/neox-data`, `$HOME/sonic-data`) over hidden paths like `$HOME/.chain`.
+- Expose the host path as **`HOST_DATADIR`** in `env.template` and mount it in compose, e.g. `${HOST_DATADIR:-$HOME/<chain>-data}:/data`. Use **`/data`** as the in-container datadir when the client allows it.
 - Add setup scripts only when the chain needs them (not every chain uses JWT, Docker build, or genesis init).
+
+### env.template and configure.sh
+
+- **`env.template`** — setup steps in header comments; group vars (`### Network ###`, `### RPC ###`, etc.); pin client versions; set `EXT_IP=` and `GAS_CAP=600000000` unless the chain requires otherwise.
+- **`configure.sh`** — create `.env` from `env.template` if missing; fetch public IP and set `EXT_IP` (e.g. via `ip.me`); print the next commands. Do not embed secrets.
+- **`docker-compose.yml`** — load `.env` with `env_file: .env` where vars are needed; keep runtime services only (no init-container chown hacks).
+
+## Archive and state retention (general)
+
+Some clients prune history at **startup flags**, **init/priming time**, or **both**. Nitro uses `state-history` / `archive` — see [Arbitrum Nitro (PathDB / PBSS)](#arbitrum-nitro-pathdb--pbss). Others (e.g. Sonic/Fantom `sonicd`) use **`--mode validator`** for live pruning vs default **`rpc`** mode for RPC/archive nodes, and may offer **pruned vs archive genesis files** when priming the DB.
+
+For any chain with non-obvious retention behavior:
+
+- Add a **Pruning Mode** or **State retention** section to `<chain>/README.md` — which flags/modes are safe for archive RPC, and what triggers pruning.
+- **Do not re-run init/priming** (genesis import, snapshot restore script, etc.) against an existing **archive** datadir using a **pruned** source unless you intend to discard history.
+- When documenting snapshots, distinguish **chaindata tarballs** from **genesis/state prime files** (`.g`, vendor-specific exports) if the chain uses the latter.
 
 ## First-start permissions
 
@@ -358,7 +377,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 3. Store datadirs under `$HOME`.
 4. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap).
 5. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists.
-6. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above).
+6. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above); include **Pruning Mode** / **State retention** when applicable.
 7. **Update** root `README.md` — Supported Chains table (status, type, execution client); remove from Planned if applicable.
 8. **Update** `CHAIN_LINKS.md` — official explorer (if any), docs, network specs, and client repo/release links.
 9. Check `.gitignore` for secrets and generated files (`.env`, JWT, downloaded binaries).
