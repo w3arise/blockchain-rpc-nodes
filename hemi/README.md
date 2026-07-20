@@ -13,7 +13,7 @@ Requires external Ethereum execution + beacon RPCs. Host `ulimit -n` should be â
 docker compose up -d
 ```
 
-RPC (localhost): op-geth `18546` / WS `28546` Â· op-node `8547`.
+RPC (localhost): set `OP_GETH_HTTP_PORT` / `OP_GETH_WS_PORT` / `OP_NODE_RPC_PORT` in `.env` (defaults `18546` / `28546` / `8547`).
 
 Snap sync with external L1s is typically ~2 business days.
 

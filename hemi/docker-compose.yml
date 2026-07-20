@@ -48,8 +48,8 @@ services:
       - ${HEMI_GETH_DATA:-$HOME/hemi-op-geth-data}:/tmp/datadir
       - ${HEMI_TBC_DATA:-$HOME/hemi-tbc-data}:/tbcdata
     ports:
-      - 127.0.0.1:18546:18546
-      - 127.0.0.1:28546:28546
+      - 127.0.0.1:${OP_GETH_HTTP_PORT:-18546}:18546
+      - 127.0.0.1:${OP_GETH_WS_PORT:-28546}:28546
       - ${OP_GETH_P2P_PORT:-30303}:${OP_GETH_P2P_PORT:-30303}
       - ${OP_GETH_P2P_PORT:-30303}:${OP_GETH_P2P_PORT:-30303}/udp
     entrypoint: ["sh", "/tmp/entrypoint.sh"]
@@ -76,7 +76,7 @@ services:
       BSS_LOG_LEVEL: INFO
       BSS_ADDRESS: ":8081"
     ports:
-      - 127.0.0.1:8081:8081
+      - 127.0.0.1:${BSS_RPC_PORT:-8081}:8081
     restart: unless-stopped
     networks:
       - hemi-network
@@ -97,7 +97,7 @@ services:
       - ./config/rollup.json:/tmp/rollup.json:ro
       - ${HEMI_OP_NODE_DATA:-$HOME/hemi-op-node-data}:/data
     ports:
-      - 127.0.0.1:8547:8547
+      - 127.0.0.1:${OP_NODE_RPC_PORT:-8547}:8547
       - ${OP_NODE_P2P_PORT:-9003}:${OP_NODE_P2P_PORT:-9003}
       - ${OP_NODE_P2P_PORT:-9003}:${OP_NODE_P2P_PORT:-9003}/udp
     command:
