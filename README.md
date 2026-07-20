@@ -24,63 +24,68 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 
 ## Ready
 
-| Chain | Directory | Type | Execution Client | Setup |
-| --- | --- | --- | --- | --- |
-| ApeChain | `apechain/` | L3 (Arbitrum Orbit) | Caldera nitro | [README](apechain/README.md) |
-| Arbitrum | `arbitrum/` | L2 (Nitro) | nitro | [README](arbitrum/README.md) |
-| Berachain | `berachain/` | L1 | bera-reth + beacon-kit | [README](berachain/README.md) |
-| Bob | `bob/` | L2 (OP Stack) | op-reth + op-node | [README](bob/README.md) |
-| BSC | `bsc/` | L1 | bsc-geth | [README](bsc/README.md) |
-| Celo | `celo/` | L2 (OP Stack / EigenDA) | celo-op-reth + op-node + eigenda-proxy | [README](celo/README.md) |
-| Gnosis Chain (xDai) | `gnosis/` | L1 | reth_gnosis + lighthouse | [README](gnosis/README.md) |
-| Kaia | `kaia/` | L1 | ken (Endpoint Node) | [README](kaia/README.md) |
-| Linea | `linea/` | L2 (ZK) | Besu / Nethermind + Maru | [README](linea/README.md) |
-| Neo X | `neox/` | L1 (EVM-compatible) | bane-labs geth | [README](neox/README.md) |
-| Optimism | `optimism/` | L2 (OP Stack) | op-reth + op-node | [README](optimism/README.md) |
-| Robinhood Chain | `robinhood/` | L2 (Arbitrum Nitro) | nitro | [README](robinhood/README.md) |
-| Ronin | `ronin/` | L2 (OP Stack / EigenDA) | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md) |
-| Soneium | `soneium/` | L2 (OP Stack) | op-reth + op-node | [README](soneium/README.md) |
-| Worldchain | `worldchain/` | L2 (OP Stack) | op-reth + op-node | [README](worldchain/README.md) |
-| XLayer | `xlayer/` | L2 (OP Stack) | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md) |
-| XLayer (op-reth) | `xlayer-reth/` | L2 (OP Stack) | xlayer-reth + op-node | [README](xlayer-reth/README.md) |
-| Abstract | `abstract/` | L2 (ZK Stack) | external-node + postgres | [README](abstract/README.md) |
-| Lens | `lens/` | L2 (ZK Stack) | external-node + postgres | [README](lens/README.md) |
-| Morph | `morph/` | L2 (Optimistic + ZK) | morph-geth + morph-node | [README](morph/README.md) |
+
+| Chain               | Directory      | Type                                | Execution Client                          | Setup                           |
+| ------------------- | -------------- | ----------------------------------- | ----------------------------------------- | ------------------------------- |
+| ApeChain            | `apechain/`    | L3 (Arbitrum Orbit)                 | Caldera nitro                             | [README](apechain/README.md)    |
+| Arbitrum            | `arbitrum/`    | L2 (Nitro)                          | nitro                                     | [README](arbitrum/README.md)    |
+| Berachain           | `berachain/`   | L1                                  | bera-reth + beacon-kit                    | [README](berachain/README.md)   |
+| Bob                 | `bob/`         | L2 (OP Stack)                       | op-reth + op-node                         | [README](bob/README.md)         |
+| BSC                 | `bsc/`         | L1                                  | bsc-geth                                  | [README](bsc/README.md)         |
+| Celo                | `celo/`        | L2 (OP Stack / EigenDA)             | celo-op-reth + op-node + eigenda-proxy    | [README](celo/README.md)        |
+| Celo (op-geth)      | `celo-geth/`   | L2 (OP Stack / EigenDA, deprecated) | op-geth + op-node + eigenda-proxy         | [README](celo-geth/README.md)   |
+| Gnosis Chain (xDai) | `gnosis/`      | L1                                  | reth_gnosis + lighthouse                  | [README](gnosis/README.md)      |
+| Kaia                | `kaia/`        | L1                                  | ken (Endpoint Node)                       | [README](kaia/README.md)        |
+| Linea               | `linea/`       | L2 (ZK)                             | Besu / Nethermind + Maru                  | [README](linea/README.md)       |
+| Neo X               | `neox/`        | L1 (EVM-compatible)                 | bane-labs geth                            | [README](neox/README.md)        |
+| Optimism            | `optimism/`    | L2 (OP Stack)                       | op-reth + op-node                         | [README](optimism/README.md)    |
+| Robinhood Chain     | `robinhood/`   | L2 (Arbitrum Nitro)                 | nitro                                     | [README](robinhood/README.md)   |
+| Ronin               | `ronin/`       | L2 (OP Stack / EigenDA)             | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md)       |
+| Soneium             | `soneium/`     | L2 (OP Stack)                       | op-reth + op-node                         | [README](soneium/README.md)     |
+| Worldchain          | `worldchain/`  | L2 (OP Stack)                       | op-reth + op-node                         | [README](worldchain/README.md)  |
+| XLayer              | `xlayer/`      | L2 (OP Stack)                       | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md)      |
+| XLayer (op-reth)    | `xlayer-reth/` | L2 (OP Stack)                       | xlayer-reth + op-node                     | [README](xlayer-reth/README.md) |
+| Abstract            | `abstract/`    | L2 (ZK Stack)                       | external-node + postgres                  | [README](abstract/README.md)    |
+| Lens                | `lens/`        | L2 (ZK Stack)                       | external-node + postgres                  | [README](lens/README.md)        |
+| Morph               | `morph/`       | L2 (Optimistic + ZK)                | morph-geth + morph-node                   | [README](morph/README.md)       |
+
 
 ## Planned
 
-| Chain | Type | Execution Client |
-| --- | --- | --- |
-| 0G | L1 | 0g-node |
-| Astar (L1) | L1 | — |
-| B² Network | L2 (Bitcoin) | — |
-| Bitlayer | L2 (Bitcoin) | — |
-| Bittensor | L1 | — |
-| Core | L1 | — |
-| Cronos | L1 | — |
-| Etherlink (Tezos) | L2 | — |
-| Fantom (FTM) | L1 | go-opera |
-| Hashkey Chain | L2 (OP Stack) | — |
-| Hedera | L1 | — |
-| Hemi | L2 (Bitcoin/Ethereum) | — |
-| Hyperliquid | L1 | hl-node |
-| Katana (Polygon) | L2 (Polygon CDK) | — |
-| Lisk | L2 (OP Stack) | — |
-| Mantle | L2 (OP Stack) | mantle-node |
-| MegaETH | L2 | — |
-| Mode | L2 (OP Stack) | op-reth |
-| Monad | L1 | — |
-| Nexon Henesys | L2 | — |
-| opBNB | L2 (OP Stack) | — |
-| Pharos | L1 | — |
-| Scroll | L2 (ZK) | — |
-| Sei | L1 | — |
-| Sonic | L1 | sonic-node |
-| Superseed | L2 (OP Stack) | — |
-| Tac | L2 | — |
-| Tempo | L1 | — |
-| XDC | L1 | — |
-| Zircuit | L2 (ZK) | — |
+
+| Chain             | Type                  | Execution Client |
+| ----------------- | --------------------- | ---------------- |
+| 0G                | L1                    | 0g-node          |
+| Astar (L1)        | L1                    | —                |
+| B² Network        | L2 (Bitcoin)          | —                |
+| Bitlayer          | L2 (Bitcoin)          | —                |
+| Bittensor         | L1                    | —                |
+| Core              | L1                    | —                |
+| Cronos            | L1                    | —                |
+| Etherlink (Tezos) | L2                    | —                |
+| Fantom (FTM)      | L1                    | go-opera         |
+| Hashkey Chain     | L2 (OP Stack)         | —                |
+| Hedera            | L1                    | —                |
+| Hemi              | L2 (Bitcoin/Ethereum) | —                |
+| Hyperliquid       | L1                    | hl-node          |
+| Katana (Polygon)  | L2 (Polygon CDK)      | —                |
+| Lisk              | L2 (OP Stack)         | —                |
+| Mantle            | L2 (OP Stack)         | mantle-node      |
+| MegaETH           | L2                    | —                |
+| Mode              | L2 (OP Stack)         | op-reth          |
+| Monad             | L1                    | —                |
+| Nexon Henesys     | L2                    | —                |
+| opBNB             | L2 (OP Stack)         | —                |
+| Pharos            | L1                    | —                |
+| Scroll            | L2 (ZK)               | —                |
+| Sei               | L1                    | —                |
+| Sonic             | L1                    | sonic-node       |
+| Superseed         | L2 (OP Stack)         | —                |
+| Tac               | L2                    | —                |
+| Tempo             | L1                    | —                |
+| XDC               | L1                    | —                |
+| Zircuit           | L2 (ZK)               | —                |
+
 
 ## Quick Start
 
@@ -98,3 +103,4 @@ Repo-wide reminders:
 ## Related docs
 
 - [AGENTS.md](AGENTS.md) — conventions for adding and maintaining chains
+

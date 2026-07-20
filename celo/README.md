@@ -19,7 +19,7 @@ With `OP_RETH_SNAPSHOT=true` (default), an empty `$HOME/celo-op-reth-data` is bo
 
 ## Pre-L2 history
 
-`NODE_TYPE=archive` keeps post-L2 history only. Pre-migration Celo L1 state is not in the op-reth datadir (migrated op-geth data cannot be reused). Set `OP_RETH_HISTORICAL_RPC` in `.env` to a legacy Celo L1 archive; op-reth proxies pre-L2 requests there.
+`NODE_TYPE=archive` keeps post-L2 history only. Pre-migration Celo L1 state is not in the op-reth datadir (migrated op-geth data cannot be reused). Set `OP_RETH_HISTORICAL_RPC` in `.env` to a legacy Celo L1 archive; op-reth proxies pre-L2 requests there. To reach a node on the Docker host, use `http://host.docker.internal:<port>` (not `127.0.0.1`).
 
 ## Testnet
 

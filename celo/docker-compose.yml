@@ -30,6 +30,8 @@ services:
       - 127.0.0.1:7546:8546
       - ${RETH_PORT}:${RETH_PORT}
       - ${RETH_PORT}:${RETH_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - celo-network
 
