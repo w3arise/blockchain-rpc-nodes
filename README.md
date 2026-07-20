@@ -27,6 +27,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 
 | Chain               | Directory      | Type                                | Execution Client                          | Setup                           |
 | ------------------- | -------------- | ----------------------------------- | ----------------------------------------- | ------------------------------- |
+| AB Core             | `ab/`          | L1 (EVM-compatible)                 | abcore geth                               | [README](ab/README.md)          |
 | ApeChain            | `apechain/`    | L3 (Arbitrum Orbit)                 | Caldera nitro                             | [README](apechain/README.md)    |
 | Arbitrum            | `arbitrum/`    | L2 (Nitro)                          | nitro                                     | [README](arbitrum/README.md)    |
 | Berachain           | `berachain/`   | L1                                  | bera-reth + beacon-kit                    | [README](berachain/README.md)   |

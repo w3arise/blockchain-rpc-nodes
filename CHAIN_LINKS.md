@@ -4,6 +4,7 @@ Official repositories, documentation, and guides for chains in this repo.
 
 | Chain | Explorer | Links | Snapshot |
 | --- | --- | --- | --- |
+| AB Core | [explorer.core.ab.org](https://explorer.core.ab.org/) | [Technical info](https://docs.ab.org/docs/) · [ABFoundationGlobal/abcore](https://github.com/ABFoundationGlobal/abcore) · [ABFoundationGlobal/ab-deploy](https://github.com/ABFoundationGlobal/ab-deploy) | — |
 | Abstract | [abscan.org](https://abscan.org/) | [Running a node](https://docs.abs.xyz/infrastructure/nodes/running-a-node) · [Abstract-Foundation/abstract-node](https://github.com/Abstract-Foundation/abstract-node) | — |
 | ApeChain | [apescan.io](https://apescan.io/) | [Run a replica node](https://docs.apechain.com/run-node) · [ConstellationCrypto/replica-guide-apechain-mainnet](https://github.com/ConstellationCrypto/replica-guide-apechain-mainnet) | — |
 | Arbitrum | [arbiscan.io](https://arbiscan.io/) | [Run a full node](https://docs.arbitrum.io/run-arbitrum-node/run-full-node) · [OffchainLabs/nitro](https://github.com/OffchainLabs/nitro) | — |
