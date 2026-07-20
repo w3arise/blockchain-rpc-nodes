@@ -31,7 +31,7 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   echo "created .env from env.template"
 fi
 
-PUBLIC_IP="$(curl -sf ip.me | tr -d '[:space:]')"
+PUBLIC_IP="$(curl -4 -sf ip.me | tr -d '[:space:]')"
 if [[ -z "${PUBLIC_IP}" ]]; then
   echo "ERROR: failed to fetch public IP from ip.me" >&2
   exit 1
