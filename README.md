@@ -56,6 +56,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Abstract            | `abstract/`    | L2 (ZK Stack)                       | external-node + postgres                  | [README](abstract/README.md)    |
 | Lens                | `lens/`        | L2 (ZK Stack)                       | external-node + postgres                  | [README](lens/README.md)        |
 | opBNB               | `opbnb/`       | L2 (OP Stack)                       | op-geth + op-node                         | [README](opbnb/README.md)       |
+| Pharos              | `pharos/`      | L1 (EVM-compatible)                 | pharos_light                              | [README](pharos/README.md)      |
 
 
 ## Planned
@@ -78,7 +79,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Mode              | L2 (OP Stack)         | op-reth + op-node |
 | Monad             | L1                    | —                |
 | Nexon Henesys     | L2                    | —                |
-| Pharos            | L1                    | —                |
 | Scroll            | L2 (ZK)               | —                |
 | Sei               | L1                    | —                |
 | Superseed         | L2 (OP Stack)         | —                |

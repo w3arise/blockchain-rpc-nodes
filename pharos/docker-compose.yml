@@ -1,0 +1,41 @@
+services:
+  pharos:
+    image: ${PHAROS_IMAGE}
+    container_name: pharos-node
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - CONSENSUS_KEY_PWD=${CONSENSUS_KEY_PWD}
+      - PHAROS_CONF=/data/pharos.conf
+      - GENESIS_CONF=/data/genesis.conf
+      - KEYS_DIR=/data/keys
+    volumes:
+      - ${HOST_DATADIR:-$HOME/pharos-data}:/data
+      - ./config/pharos.conf:/data/pharos.conf:ro
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:18100
+      - ${RPC_BIND_ADDR}:${WS_PORT}:18200
+      - ${RPC_BIND_ADDR}:${INTERNAL_RPC_PORT}:20000
+      - ${RPC_BIND_ADDR}:${P2P_PORT}:19000
+    ulimits:
+      nofile:
+        soft: 10000000
+        hard: 10000000
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-sf",
+          "-X",
+          "POST",
+          "-H",
+          "Content-Type: application/json",
+          "-d",
+          '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}',
+          "http://localhost:18100",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
