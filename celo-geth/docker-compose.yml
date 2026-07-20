@@ -1,0 +1,70 @@
+x-images:
+  eigenda: &eigenda_image ghcr.io/layr-labs/eigenda-proxy:v1.8.2
+  op-geth: &op-geth_image us-west1-docker.pkg.dev/devopsre/celo-blockchain-public/op-geth:celo-v2.1.2
+  op-node: &op-node_image us-west1-docker.pkg.dev/devopsre/celo-blockchain-public/op-node:celo-v2.1.0
+
+services:
+  eigenda-proxy:
+    platform: linux/amd64
+    image: *eigenda_image
+    container_name: celo-${NETWORK_NAME}-eigenDA-proxy
+    restart: unless-stopped
+    stop_grace_period: 5m
+    entrypoint: /scripts/start-eigenda-proxy.sh
+    env_file:
+      - .env
+    volumes:
+      - ../.celo/eigenda-data:/data
+      - ./scripts/:/scripts
+    ports:
+      - ${PORT_EIGENDA_PROXY:-4242}:4242
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      # If USE_LOCAL_EIGENDA_PROXY_IF_UNSET is unset or empty, then we set replicas to 1,
+      # otherwise use the value of USE_LOCAL_EIGENDA_PROXY_IF_UNSET which should be 0.
+      replicas: ${USE_LOCAL_EIGENDA_PROXY_IF_UNSET:-1}
+
+  op-geth:
+    platform: linux/amd64
+    image: *op-geth_image
+    container_name: celo-${NETWORK_NAME}-op-geth
+    restart: on-failure
+    stop_grace_period: 5m
+    entrypoint: /scripts/start-op-geth.sh
+    env_file:
+      - ./envs/${NETWORK_NAME}/op-geth.env
+      - .env
+    volumes:
+      - ./envs/${NETWORK_NAME}/config:/chainconfig
+      - ./scripts/:/scripts
+      - ../.celo/shared:/shared
+      - ../.celo/op-geth:/geth
+    ports:
+      - ${PORT__OP_GETH_HTTP:-9993}:8545
+      - ${PORT__OP_GETH_WS:-9994}:8546
+      - ${PORT__OP_GETH_P2P:-39393}:${PORT__OP_GETH_P2P:-39393}/udp
+      - ${PORT__OP_GETH_P2P:-39393}:${PORT__OP_GETH_P2P:-39393}/tcp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  
+  op-node:
+    platform: linux/amd64
+    image: *op-node_image
+    container_name: celo-${NETWORK_NAME}-op-node
+    restart: on-failure
+    stop_grace_period: 5m
+    entrypoint: /scripts/start-op-node.sh
+    env_file:
+      - ./envs/${NETWORK_NAME}/op-node.env
+      - .env
+    volumes:
+      - ./envs/${NETWORK_NAME}/config:/chainconfig
+      - ./scripts/:/scripts
+      - ../.celo/shared:/shared
+    ports:
+      - ${OP_NODE_P2P_LISTEN_TCP_PORT:-9003}:${OP_NODE_P2P_LISTEN_TCP_PORT:-9003}/udp
+      - ${OP_NODE_P2P_LISTEN_UDP_PORT:-9003}:${OP_NODE_P2P_LISTEN_UDP_PORT:-9003}/tcp
+      - ${PORT__OP_NODE_HTTP:-9545}:9545
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
