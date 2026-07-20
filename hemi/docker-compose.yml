@@ -63,11 +63,6 @@ services:
       nofile:
         soft: 1048576
         hard: 1048576
-    healthcheck:
-      test: ["CMD", "nc", "-vz", "0.0.0.0", "${OP_GETH_HTTP_PORT}"]
-      interval: 5s
-      timeout: 5s
-      retries: 999999
     restart: unless-stopped
     networks:
       - hemi-network
@@ -90,8 +85,7 @@ services:
     platform: linux/amd64
     container_name: hemi-op-node
     depends_on:
-      op-geth-l2:
-        condition: service_healthy
+      - op-geth-l2
     env_file: .env
     environment:
       OP_NODE_BSS_WS: http://bssd:${BSS_RPC_PORT}/v1/ws
