@@ -1,0 +1,63 @@
+services:
+  ftm:
+    build:
+      context: .
+      args:
+        SONIC_VERSION: ${SONIC_VERSION}   # <--- bump here when you need a new version - used for BUILD
+    image: ftm-node:${SONIC_VERSION}      # <--- change the image tag here - used for RUN
+    container_name: ftm
+    restart: unless-stopped
+    mem_limit: ${MEM_LIMIT}
+    stop_grace_period: 120s
+    environment:
+      - GOMEMLIMIT=${GOMEMLIMIT}
+    command:
+      - "--datadir=${DATADIR}"
+      - "--mode=rpc"
+      - "--http"
+      - "--http.addr=${HTTP_ADDR}"
+      - "--http.corsdomain=*"
+      - "--http.vhosts=*"
+      - "--http.api=${HTTP_API}"
+      - "--http.port=${HTTP_PORT}"
+      - "--ws"
+      - "--ws.addr=${WS_ADDR}"
+      - "--ws.origins=*"
+      - "--ws.api=${WS_API}"
+      - "--ws.port=${WS_PORT}"
+      - "--cache=${CACHE_MB}"
+      - "--port=${P2P_PORT}"
+      - "--nat=extip:${EXT_IP}"
+      - "--maxpeers=${MAX_PEERS}"
+      - "--rpc.gascap=${GAS_CAP}"
+      - "--rpc.txfeecap=${TX_FEE_CAP}"
+      - "--bootnodes=${BOOTNODES}"
+
+    volumes:
+      - "${HOME}/.sonic:${DATADIR}"
+    network_mode: host
+
+  ftm-watcher:
+    image: docker:cli
+    container_name: ftm-watcher
+    restart: unless-stopped
+    init: true
+    entrypoint: ["/bin/sh"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/app
+      - "${HOME}/.sonic:${DATADIR}:ro"
+    # These environment variables are needed because ftm-watcher.sh triggers ftm-heal.sh,
+    # which runs docker-compose-heal.yml that requires these vars for proper container configuration
+    environment:
+      - DIRTY_STATE_PATTERN=${DIRTY_STATE_PATTERN:-dirty state}
+      - CHECK_INTERVAL=${CHECK_INTERVAL:-60}
+      - COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME:-ftm}
+      - HOME=${HOME}
+      - SONIC_VERSION=${SONIC_VERSION}
+      - DATADIR=${DATADIR}
+      - MEM_LIMIT=${MEM_LIMIT}
+      - CACHE_MB=${CACHE_MB}
+      - GOMEMLIMIT=${GOMEMLIMIT}
+    command: "/app/ftm-watcher.sh"
+    network_mode: host

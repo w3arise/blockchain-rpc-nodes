@@ -1,0 +1,33 @@
+# Running Sonic in Docker is Experimental - not recommended for production use!
+
+# Example of usage:
+# docker build -t sonic .
+# docker run --name sonic1 --entrypoint sonictool sonic --datadir=/var/sonic genesis fake 1
+# docker run --volumes-from sonic1 -p 5050:5050 -p 5050:5050/udp -p 18545:18545 sonic --fakenet 1/1 --http --http.addr=0.0.0.0
+
+FROM golang:1.22 as builder
+
+ARG SONIC_VERSION=v1.2.1-i # Default version, can be overridden during build
+
+RUN apt-get update && apt-get install -y git musl-dev make
+
+WORKDIR /go/src/github.com/Fantom-foundation
+RUN git clone https://github.com/Fantom-foundation/Sonic.git
+WORKDIR /go/src/github.com/Fantom-foundation/Sonic
+RUN git checkout ${SONIC_VERSION}
+
+ARG GOPROXY
+RUN go mod download
+RUN make all
+
+
+FROM ubuntu:24.04
+
+COPY --from=builder /go/src/github.com/Fantom-foundation/Sonic/build/sonicd /app/
+COPY --from=builder /go/src/github.com/Fantom-foundation/Sonic/build/sonictool /app/
+
+EXPOSE 18545 18546 5050 5050/udp
+
+VOLUME /var/sonic
+
+ENTRYPOINT ["/app/sonicd"]
