@@ -4,6 +4,10 @@ Conventions for adding and maintaining chain nodes in this repo (L1, L2, OP Stac
 
 Nodes in this repo are meant to run on **Linux hosts**. Do not target macOS for deployment scripts.
 
+## RPC gas cap
+
+Unless a chain’s docs or operator requirements say otherwise, set the execution client’s RPC gas cap to **`600000000`** (600M) via env (typically `GAS_CAP`) and wire it to the client flag (e.g. `--rpc.gascap=${GAS_CAP}`). This matches the BSC / DRPC default used elsewhere in the repo. Prefer making it env-configurable rather than hardcoding.
+
 ## Chain links (`CHAIN_LINKS.md`)
 
 When adding or updating a chain setup, add its **official** documentation and repositories to [`CHAIN_LINKS.md`](CHAIN_LINKS.md). Include links you rely on during setup (node run guides, network specs, client repos/releases).
@@ -345,35 +349,36 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 1. Create `<chain>/` with `docker-compose.yml`, `env.template`, and any needed setup scripts.
 2. Pin client versions in `env.template` (image tags, release versions, etc.).
 3. Store datadirs under `$HOME`.
-4. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists.
-5. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above).
-6. **Update** root `README.md` — Supported Chains table (status, type, execution client); remove from Planned if applicable.
-7. **Update** `CHAIN_LINKS.md` — official explorer (if any), docs, network specs, and client repo/release links.
-8. Check `.gitignore` for secrets and generated files (`.env`, JWT, downloaded binaries).
+4. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap).
+5. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists.
+6. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above).
+7. **Update** root `README.md` — Supported Chains table (status, type, execution client); remove from Planned if applicable.
+8. **Update** `CHAIN_LINKS.md` — official explorer (if any), docs, network specs, and client repo/release links.
+9. Check `.gitignore` for secrets and generated files (`.env`, JWT, downloaded binaries).
 
 ### Prometheus / Grafana (when included in compose)
 
-9. Document host datadir paths and first-start `chown` for Prometheus (`65534:65534`) and Grafana (`472:0`) in `<chain>/README.md` (see [Prometheus and Grafana](#prometheus-and-grafana-optional-monitoring)).
+10. Document host datadir paths and first-start `chown` for Prometheus (`65534:65534`) and Grafana (`472:0`) in `<chain>/README.md` (see [Prometheus and Grafana](#prometheus-and-grafana-optional-monitoring)).
 
 ### OP Stack (op-node + execution client)
 
-10. `create-jwt.sh` and mount shared JWT for Engine API auth.
-11. Use `OP_NODE_L1_*` env vars in a single `.env`.
-12. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
-13. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
-14. Set `--nat=extip:${EXT_IP}` (or equivalent) for public P2P where needed.
+11. `create-jwt.sh` and mount shared JWT for Engine API auth.
+12. Use `OP_NODE_L1_*` env vars in a single `.env`.
+13. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
+14. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
+15. Set `--nat=extip:${EXT_IP}` (or equivalent) for public P2P where needed.
 
 ### Conduit OP Stack (additional)
 
-15. Fetch bootnodes/static peers from Conduit API for the correct network slug.
-16. Fetch genesis/rollup from Conduit API; verify before committing.
+16. Fetch bootnodes/static peers from Conduit API for the correct network slug.
+17. Fetch genesis/rollup from Conduit API; verify before committing.
 
 ### ZK Stack (external node, when applicable)
 
-17. Follow [ZK Stack / ZKsync external nodes](#zk-stack--zksync-external-nodes) — `matterlabs/external-node`, PostgreSQL, `EN_*` env vars, snapshot bucket, and `ulimits.nofile`.
+18. Follow [ZK Stack / ZKsync external nodes](#zk-stack--zksync-external-nodes) — `matterlabs/external-node`, PostgreSQL, `EN_*` env vars, snapshot bucket, and `ulimits.nofile`.
 
 ### Nitro (PathDB / PBSS)
 
-18. Use `STATE_SCHEME=path`, `STATE_HISTORY=0`, and `--execution.caching.archive` for archive defaults (see [Arbitrum Nitro (PathDB / PBSS)](#arbitrum-nitro-pathdb--pbss)).
-19. Add a **State retention** section to the chain README — warn that non-zero `state-history` prunes on change or snapshot restore.
+19. Use `STATE_SCHEME=path`, `STATE_HISTORY=0`, and `--execution.caching.archive` for archive defaults (see [Arbitrum Nitro (PathDB / PBSS)](#arbitrum-nitro-pathdb--pbss)).
+20. Add a **State retention** section to the chain README — warn that non-zero `state-history` prunes on change or snapshot restore.
 
