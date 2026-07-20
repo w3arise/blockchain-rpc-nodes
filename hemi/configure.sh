@@ -27,7 +27,6 @@ env_get() {
   if [[ -f "${ENV_FILE}" ]] && grep -qE "^${key}=" "${ENV_FILE}"; then
     local val
     val="$(grep -E "^${key}=" "${ENV_FILE}" | cut -d= -f2-)"
-    # Expand $HOME if present in the value
     val="${val/\$HOME/$HOME}"
     echo "${val}"
     return
@@ -64,13 +63,15 @@ HEMI_TBC_DATA="$(env_get HEMI_TBC_DATA "${HOME}/hemi-tbc-data")"
 HEMI_OP_NODE_DATA="$(env_get HEMI_OP_NODE_DATA "${HOME}/hemi-op-node-data")"
 
 mkdir -p "${HEMI_GETH_DATA}" "${HEMI_TBC_DATA}" "${HEMI_OP_NODE_DATA}"
+chmod -R a+rX "${SCRIPT_DIR}/config"
+
 echo "created datadirs:"
 echo "  ${HEMI_GETH_DATA}"
 echo "  ${HEMI_TBC_DATA}"
 echo "  ${HEMI_OP_NODE_DATA}"
 
 echo ""
-echo "First start only — set ownership for the op-geth user (UID 65532):"
+echo "First start only — op-geth runs as UID 65532; set datadir ownership before compose up:"
 echo "  sudo chown -R 65532:65532 ${HEMI_GETH_DATA} ${HEMI_TBC_DATA}"
 echo ""
 echo "Next:"

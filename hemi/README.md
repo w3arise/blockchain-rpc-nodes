@@ -8,11 +8,13 @@ Requires external Ethereum execution + beacon RPCs. Host `ulimit -n` should be â
 
 ```bash
 ./configure.sh          # creates .env, EXT_IP, datadirs
-# run the sudo chown printed by configure.sh (first start only)
+sudo chown -R 65532:65532 $HOME/hemi-op-geth-data $HOME/hemi-tbc-data
 # set GETHL1ENDPOINT and PRYSMENDPOINT in .env
 ./create-jwt.sh
 docker compose up -d
 ```
+
+Init containers copy `jwt.hex`, `l2-config.toml`, and `rollup.json` into the datadirs so op-geth (UID 65532) does not read repo bind mounts directly.
 
 RPC (localhost): set `OP_GETH_HTTP_PORT` / `OP_GETH_WS_PORT` / `OP_NODE_RPC_PORT` in `.env` (defaults `18546` / `28546` / `8547`).
 
