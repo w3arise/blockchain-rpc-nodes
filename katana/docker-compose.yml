@@ -28,6 +28,7 @@ services:
       - --port=${P2P_PORT}
       - --discovery.addr=0.0.0.0
       - --discovery.port=${P2P_PORT}
+      - --discovery.v5.port=${P2P_PORT}
       - --metrics=127.0.0.1:9001
     volumes:
       - ${HOST_DATADIR:-$HOME/katana-op-reth-data}:/data
