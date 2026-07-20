@@ -21,11 +21,25 @@ DATA_DIR="${HOST_DATADIR:-${HOME}/hashkey-op-geth-data}"
 DATA_DIR="${DATA_DIR/\$HOME/$HOME}"
 GENESIS_FILE="${SCRIPT_DIR}/config/genesis.json"
 OP_GETH_IMAGE="${OP_GETH_IMAGE:?set OP_GETH_IMAGE in .env (run ./configure.sh first)}"
+PATCHED_GENESIS="$(mktemp)"
+
+cleanup() {
+  rm -f "${PATCHED_GENESIS}"
+}
+trap cleanup EXIT
 
 if [[ ! -f "${GENESIS_FILE}" ]]; then
   echo "ERROR: missing ${GENESIS_FILE}" >&2
   exit 1
 fi
+
+if ! command -v jq >/dev/null 2>&1; then
+  echo "ERROR: jq is required to patch genesis (pragueTime must equal isthmusTime)" >&2
+  exit 1
+fi
+
+# Official S3 genesis sets isthmusTime but omits pragueTime; op-geth v1.101605.0 rejects that.
+jq '.config.pragueTime = .config.isthmusTime' "${GENESIS_FILE}" > "${PATCHED_GENESIS}"
 
 mkdir -p "${DATA_DIR}"
 
@@ -38,7 +52,7 @@ echo "initializing ${DATA_DIR} from genesis..."
 docker run --rm \
   --platform linux/amd64 \
   -v "${DATA_DIR}:/data" \
-  -v "${GENESIS_FILE}:/genesis.json:ro" \
+  -v "${PATCHED_GENESIS}:/genesis.json:ro" \
   "${OP_GETH_IMAGE}" \
   init --state.scheme=hash --datadir=/data /genesis.json
 

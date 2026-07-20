@@ -12,7 +12,9 @@ Mainnet archive replica. Chain ID **177**. Custom gas token (HSK). Chain data: `
 docker compose up -d
 ```
 
-RPC: `http://127.0.0.1:8441` (HTTP), `http://127.0.0.1:8442` (WS). op-node admin RPC: `http://127.0.0.1:8443`.
+RPC: `http://127.0.0.1:8111` (HTTP), `http://127.0.0.1:8112` (WS). op-node admin RPC: `http://127.0.0.1:8113`.
+
+If `./init-database.sh` failed partway, remove the partial datadir (`rm -rf <HOST_DATADIR>/geth`) and rerun. The script patches `pragueTime` to match `isthmusTime` in the official genesis (required by op-geth, omitted on S3).
 
 ## Host ports
 

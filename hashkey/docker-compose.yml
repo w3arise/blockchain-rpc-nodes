@@ -26,6 +26,9 @@ services:
       - --syncmode=${GETH_SYNC_MODE}
       - --gcmode=${GC_MODE}
       - --rpc.gascap=${GAS_CAP}
+      - --override.holocene=${OP_GETH_OVERRIDE_HOLOCENE}
+      - --override.isthmus=${OP_GETH_OVERRIDE_ISTHMUS}
+      - --override.jovian=${OP_GETH_OVERRIDE_JOVIAN}
       - --nat=extip:${EXT_IP}
       - --port=${P2P_PORT}
       - --metrics
