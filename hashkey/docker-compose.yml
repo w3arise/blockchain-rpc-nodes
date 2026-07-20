@@ -1,0 +1,69 @@
+services:
+  hashkey-op-geth:
+    image: ${OP_GETH_IMAGE}
+    container_name: hashkey-op-geth
+    platform: linux/amd64
+    command:
+      - --datadir=/data
+      - --config=/config/config.toml
+      - --rollup.sequencerhttp=${SEQUENCER_HTTP}
+      - --rollup.disabletxpoolgossip=true
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --http.api=web3,eth,net,engine,debug,txpool
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.origins=*
+      - --ws.api=web3,eth,net,engine,debug,txpool
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --authrpc.vhosts=*
+      - --authrpc.jwtsecret=/config/jwt.hex
+      - --syncmode=${GETH_SYNC_MODE}
+      - --gcmode=${GC_MODE}
+      - --rpc.gascap=${GAS_CAP}
+      - --nat=extip:${EXT_IP}
+      - --port=${P2P_PORT}
+      - --metrics
+      - --metrics.addr=127.0.0.1
+      - --metrics.port=6060
+    volumes:
+      - ${HOST_DATADIR:-$HOME/hashkey-op-geth-data}:/data
+      - ./config:/config:ro
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    restart: unless-stopped
+    networks:
+      - hashkey-network
+
+  hashkey-op-node:
+    image: ${OP_NODE_IMAGE}
+    container_name: hashkey-op-node
+    platform: linux/amd64
+    command:
+      - op-node
+    env_file: .env
+    depends_on:
+      hashkey-op-geth:
+        condition: service_started
+    volumes:
+      - ${HOST_OP_NODE_DATADIR:-$HOME/hashkey-op-node-data}:/data
+      - ./config:/config:ro
+    ports:
+      - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+    restart: unless-stopped
+    networks:
+      - hashkey-network
+
+networks:
+  hashkey-network:
+    driver: bridge
