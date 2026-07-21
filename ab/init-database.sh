@@ -73,7 +73,6 @@ docker compose build ab-node
 
 echo "==> Initializing AB Core ${NETWORK} into ${DATA_DIR}"
 docker compose run --rm \
-  --platform linux/amd64 \
   --entrypoint geth \
   -v "${DATA_DIR}:/data" \
   -v "${GENESIS_FILE}:/config/genesis.json:ro" \
