@@ -363,6 +363,8 @@ Generate once per deployment:
 
 Both services mount the same `config/jwt.hex` (op-reth: `--authrpc.jwtsecret`; op-node: `OP_NODE_L2_ENGINE_AUTH`). Regenerating JWT requires restarting **both** containers. Do not use a custom entrypoint to write JWT at runtime unless necessary.
 
+`create-jwt.sh` must make the bind-mounted secret readable by container UIDs (often non-root): **`chmod a+rX config`** (traverse) and **`chmod 644 config/jwt.hex`**. Without this, op-reth/op-node fail to open the JWT on first start. See also [First-start permissions](#first-start-permissions).
+
 ## Conduit config files
 
 Download authoritative config from Conduit and verify with checksums before committing:

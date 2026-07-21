@@ -16,6 +16,8 @@ fi
 mkdir -p "$(dirname "${JWT_FILE}")"
 
 openssl rand -hex 32 > "${JWT_FILE}"
-chmod 600 "${JWT_FILE}"
+# Container processes often run as non-root and need to traverse/read bind-mounted config.
+chmod a+rX "$(dirname "${JWT_FILE}")"
+chmod 644 "${JWT_FILE}"
 
 echo "Wrote Engine API JWT to ${JWT_FILE}"
