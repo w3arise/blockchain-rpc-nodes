@@ -3,6 +3,7 @@ services:
     image: ${GETH_IMAGE}
     container_name: morph-geth
     restart: unless-stopped
+    stop_grace_period: 120s
     env_file: .env
     environment:
       - MORPH_FLAG=${MORPH_FLAG}

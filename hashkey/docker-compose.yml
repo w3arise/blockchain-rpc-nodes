@@ -43,6 +43,7 @@ services:
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp
     restart: unless-stopped
+    stop_grace_period: 120s
     networks:
       - hashkey-network
 

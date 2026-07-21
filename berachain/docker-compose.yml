@@ -32,7 +32,7 @@ services:
     container_name: berachain-mainnet-reth
     user: root
     restart: unless-stopped
-    stop_grace_period: 60s
+    stop_grace_period: 120s
     depends_on:
       - berachain-mainnet-beacond
     env_file:

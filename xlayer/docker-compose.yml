@@ -29,14 +29,15 @@ services:
       - --pp-rpc-url=${X_LAYER_PP_RPC_URL}
       - --port=35303
       - --nat=extip:${EXT_IP}
-    networks:
-      - xlayer-network
     healthcheck:
       test: ["CMD", "wget", "--spider", "--quiet", "http://localhost:8545"]
       interval: 3s
       timeout: 3s
       retries: 10
       start_period: 3s
+    stop_grace_period: 120s
+    networks:
+      - xlayer-network
 
   op-node:
     image: "${OP_STACK_IMAGE_TAG}"

@@ -33,6 +33,7 @@ services:
       - ${RETH_PORT}:${RETH_PORT}
       - ${RETH_PORT}:${RETH_PORT}/udp
     restart: unless-stopped
+    stop_grace_period: 120s
     networks:
       - worldchain-network
 

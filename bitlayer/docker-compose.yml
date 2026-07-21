@@ -8,6 +8,7 @@ services:
     image: bitlayer-geth:${GETH_VERSION}
     container_name: bitlayer-node
     restart: unless-stopped
+    stop_grace_period: 120s
     env_file:
       - .env
     entrypoint: [geth]

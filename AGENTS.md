@@ -270,7 +270,7 @@ chain/
 
 - **`env.template`** — setup steps in header comments; group vars (`### Network ###`, `### Ports ###`, `### RPC ###`, etc.); pin client versions; set `GAS_CAP=600000000` unless the chain requires otherwise. Port layout and public IP vars: [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2).
 - **`configure.sh`** — optional; creates `.env` from `env.template` and sets public IP. See [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2). Do not embed secrets.
-- **`docker-compose.yml`** — load `.env` with `env_file: .env` on services that need runtime vars (typically op-node); keep runtime services only (no init-container chown hacks).
+- **`docker-compose.yml`** — load `.env` with `env_file: .env` on services that need runtime vars (typically op-node); keep runtime services only (no init-container chown hacks). Set **`stop_grace_period: 120s`** (minimum) on every **execution client** service — geth, reth, op-geth, op-reth, Nitro, external-node, besu, nethermind, erigon, etc. Longer values (e.g. `5m`) are fine when the client needs more shutdown time. Does **not** apply to op-node, postgres, or monitoring sidecars.
 
 ## Archive and state retention (general)
 

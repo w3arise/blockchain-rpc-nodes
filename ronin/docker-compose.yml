@@ -32,6 +32,7 @@ services:
     image: ${RONIN_RETH_IMAGE}
     container_name: ronin-reth
     restart: unless-stopped
+    stop_grace_period: 120s
     volumes:
       - ${RONIN_RETH_DATADIR}:/data
     ports:

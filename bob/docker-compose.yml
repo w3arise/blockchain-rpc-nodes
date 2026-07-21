@@ -36,6 +36,7 @@ services:
       - ${RETH_PORT}:${RETH_PORT}/udp
       - ${DISCOVERY_V5_PORT}:${DISCOVERY_V5_PORT}/udp
     restart: unless-stopped
+    stop_grace_period: 120s
     networks:
       - bob-network
 

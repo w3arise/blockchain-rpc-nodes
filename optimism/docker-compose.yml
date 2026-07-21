@@ -38,6 +38,7 @@ services:
       - --discovery.v5.port=${P2P_PORT}
       - --metrics=127.0.0.1:9001
     restart: unless-stopped
+    stop_grace_period: 120s
     networks:
       - optimism-network
 

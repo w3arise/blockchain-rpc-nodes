@@ -48,6 +48,7 @@ services:
         soft: 1048576
         hard: 1048576
     restart: unless-stopped
+    stop_grace_period: 120s
     depends_on:
       postgres:
         condition: service_healthy
