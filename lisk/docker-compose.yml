@@ -1,0 +1,67 @@
+services:
+  lisk-op-reth:
+    image: ${OP_RETH_IMAGE}
+    container_name: lisk-op-reth
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    volumes:
+      - ${HOST_DATADIR:-$HOME/lisk-op-reth-data}:/data
+      - ./config:/config
+    entrypoint: ["op-reth"]
+    command:
+      - node
+      - --chain=lisk
+      - --storage.v2
+      - --datadir=/data
+      - --rollup.sequencer-http=https://rpc.api.lisk.com
+      - --rollup.disable-tx-pool-gossip
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=web3,debug,eth,txpool,net,trace
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=web3,debug,eth,txpool,net,trace
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=9551
+      - --authrpc.jwtsecret=/config/jwt.hex
+      - --rpc.gascap=${GAS_CAP}
+      - --nat=extip:${EXT_IP}
+      - --port=${P2P_PORT}
+      - --discovery.addr=0.0.0.0
+      - --discovery.port=${P2P_PORT}
+      - --discovery.v5.port=${P2P_PORT}
+      - --bootnodes=${OP_RETH_BOOTNODES}
+      - --metrics=127.0.0.1:9001
+    restart: unless-stopped
+    stop_grace_period: 120s
+    networks:
+      - lisk-network
+
+  lisk-op-node:
+    image: ${OP_NODE_IMAGE}
+    container_name: lisk-op-node
+    command:
+      - op-node
+    env_file: .env
+    ports:
+      - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+    volumes:
+      - ${HOST_OP_NODE_DATADIR:-$HOME/lisk-op-node-data}:/data
+      - ./config:/config
+    restart: unless-stopped
+    depends_on:
+      lisk-op-reth:
+        condition: service_started
+    networks:
+      - lisk-network
+
+networks:
+  lisk-network:
+    driver: bridge

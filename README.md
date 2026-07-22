@@ -44,6 +44,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Kaia                | `kaia/`        | L1                                  | ken (Endpoint Node)                       | [README](kaia/README.md)        |
 | Katana              | `katana/`      | L2 (OP Stack / Agglayer CDK)        | conduit-op-reth + op-node                 | [README](katana/README.md)      |
 | Linea               | `linea/`       | L2 (ZK)                             | Besu / Nethermind + Maru                  | [README](linea/README.md)       |
+| Lisk                | `lisk/`        | L2 (OP Stack)                       | op-reth + op-node                         | [README](lisk/README.md)        |
 | Morph               | `morph/`       | L2 (Optimistic + ZK)                | morph-geth + morph-node                   | [README](morph/README.md)       |
 | Neo X               | `neox/`        | L1 (EVM-compatible)                 | bane-labs geth                            | [README](neox/README.md)        |
 | Optimism            | `optimism/`    | L2 (OP Stack)                       | op-reth + op-node                         | [README](optimism/README.md)    |
@@ -73,7 +74,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Etherlink (Tezos) | L2                    | —                |
 | Hedera            | L1                    | —                |
 | Hyperliquid       | L1                    | hl-node (visor)  |
-| Lisk              | L2 (OP Stack)         | —                |
 | Mantle            | L2 (OP Stack)         | mantle-op-geth + mantle-op-node |
 | MegaETH           | L2                    | stateless-validator |
 | Mode              | L2 (OP Stack)         | op-reth + op-node |
