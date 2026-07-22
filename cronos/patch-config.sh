@@ -34,6 +34,9 @@ GAS_CAP="${GAS_CAP:-600000000}"
 CONFIG_TOML="${DATA_DIR}/config/config.toml"
 APP_TOML="${DATA_DIR}/config/app.toml"
 
+BACKUP_DIR="$(mktemp -d)"
+trap 'rm -rf "${BACKUP_DIR}"' EXIT
+
 sed_inplace() {
   local expr="$1"
   local file="$2"
@@ -86,12 +89,30 @@ set_toml_section_key() {
   mv "${tmp}" "${file}"
 }
 
+print_diff() {
+  local name="$1"
+  local before="$2"
+  local after="$3"
+
+  if cmp -s "${before}" "${after}"; then
+    echo "    ${name}: unchanged"
+    return 0
+  fi
+
+  echo ""
+  echo "--- ${name} ---"
+  diff -u "${before}" "${after}" || true
+}
+
 for file in "${CONFIG_TOML}" "${APP_TOML}"; do
   if [[ ! -f "${file}" ]]; then
     echo "ERROR: missing ${file} — run ./init-database.sh first" >&2
     exit 1
   fi
 done
+
+cp "${CONFIG_TOML}" "${BACKUP_DIR}/config.toml"
+cp "${APP_TOML}" "${BACKUP_DIR}/app.toml"
 
 echo "==> Patching config.toml"
 set_toml_key "${CONFIG_TOML}" "seeds" "\"${SEEDS}\""
@@ -112,6 +133,11 @@ set_toml_section_key "${APP_TOML}" "json-rpc" "block-range-cap" "${BLOCK_RANGE_C
 set_toml_section_key "${APP_TOML}" "json-rpc" "gas-cap" "${GAS_CAP}"
 set_toml_section_key "${APP_TOML}" "json-rpc" "address" "\"0.0.0.0:8545\""
 set_toml_section_key "${APP_TOML}" "json-rpc" "ws-address" "\"0.0.0.0:8546\""
+
+echo ""
+echo "==> Changes"
+print_diff "config.toml" "${BACKUP_DIR}/config.toml" "${CONFIG_TOML}"
+print_diff "app.toml" "${BACKUP_DIR}/app.toml" "${APP_TOML}"
 
 echo ""
 echo "==> Config patched"
