@@ -1,20 +1,14 @@
 services:
-  op-reth:
+  mode-op-reth:
     image: ${OP_RETH_IMAGE}
     container_name: mode-op-reth
-    restart: unless-stopped
-    volumes:
-      - $HOME/op-reth-datadir/:/data
-      - ./config:/config
-    ports:
-      - 127.0.0.1:8645:8545       # RPC
-      - 127.0.0.1:8646:8546       # websocket
-      - 31303:31303               # P2P TCP (currently unused)
-      - 31303:31303/udp           # P2P UDP (currently unused)
+    entrypoint: ["op-reth"]
     command:
       - node
       - --chain=mode
       - --datadir=/data
+      - --rollup.sequencer=https://rpc-mode-mainnet-0.t.conduit.xyz
+      - --rollup.disable-tx-pool-gossip
       - --http
       - --http.addr=0.0.0.0
       - --http.port=8545
@@ -23,42 +17,51 @@ services:
       - --ws.addr=0.0.0.0
       - --ws.port=8546
       - --ws.api=eth,net,web3,debug,trace,txpool
-      - --metrics=0.0.0.0:6060
       - --authrpc.addr=0.0.0.0
       - --authrpc.port=8551
       - --authrpc.jwtsecret=/config/jwt.hex
-      - --port=31303
+      - --rpc.gascap=${GAS_CAP}
+      - --nat=extip:${EXT_IP}
+      - --port=${P2P_PORT}
+      - --discovery.addr=0.0.0.0
+      - --discovery.port=${P2P_PORT}
+      - --discovery.v5.port=${P2P_PORT}
       - --rpc-cache.max-concurrent-db-requests=2048
       - --rpc-cache.max-blocks=5000
       - --rpc.max-connections=2000
-      - --rpc.gascap=610000000
-      - --rollup.sequencer=https://rpc-mode-mainnet-0.t.conduit.xyz
-      - --rollup.disable-tx-pool-gossip
-    entrypoint: ["op-reth"]
-    env_file:
-      - .env
+    volumes:
+      - ${HOST_DATADIR:-$HOME/mode-op-reth-data}:/data
+      - ./config:/config
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    restart: unless-stopped
+    stop_grace_period: 120s
     networks:
-      - mode-op-network
+      - mode-network
 
-  op-node:
+  mode-op-node:
     image: ${OP_NODE_IMAGE}
     container_name: mode-op-node
+    command:
+      - op-node
+    env_file: .env
+    ports:
+      - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+    volumes:
+      - ${HOST_OP_NODE_DATADIR:-$HOME/mode-op-node-data}:/data
+      - ./config:/config
     restart: unless-stopped
     depends_on:
-      - op-reth
-    ports:
-      - 127.0.0.1:7555:8545     # RPC
-      - 9223:9223               # P2P TCP
-      - 9223:9223/udp           # P2P UDP
-      - 127.0.0.1:7303:7300     # metrics
-      - 127.0.0.1:6161:6060     # pprof
-    env_file:
-      - .env
-    volumes:
-      - ./config:/config
+      mode-op-reth:
+        condition: service_started
     networks:
-      - mode-op-network
+      - mode-network
 
 networks:
-  mode-op-network:
+  mode-network:
     driver: bridge
