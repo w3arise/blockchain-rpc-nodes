@@ -1,0 +1,34 @@
+services:
+  cronosd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CRONOS_VERSION: ${CRONOS_VERSION}
+    image: cronosd:${CRONOS_VERSION}
+    container_name: cronosd
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file: .env
+    environment:
+      - CRONOSD_HOME=/data
+      - EXT_IP=${EXT_IP}
+      - P2P_PORT=${P2P_PORT}
+    volumes:
+      - ${HOST_DATADIR:-$HOME/cronos-data}:/data
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR}:${TM_RPC_PORT}:26657
+      - ${RPC_BIND_ADDR}:${API_PORT}:1317
+      - ${RPC_BIND_ADDR}:${GRPC_PORT}:9090
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

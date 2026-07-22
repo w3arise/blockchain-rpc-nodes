@@ -36,6 +36,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | BSC                 | `bsc/`         | L1                                  | bsc-geth                                  | [README](bsc/README.md)         |
 | Celo                | `celo/`        | L2 (OP Stack / EigenDA)             | celo-op-reth + op-node + eigenda-proxy    | [README](celo/README.md)        |
 | Celo (op-geth)      | `celo-geth/`   | L2 (OP Stack / EigenDA, deprecated) | op-geth + op-node + eigenda-proxy         | [README](celo-geth/README.md)   |
+| Cronos              | `cronos/`      | L1 (Ethermint)                      | cronosd                                   | [README](cronos/README.md)      |
 | Fantom (FTM)        | `ftm/`         | L1                                  | go-opera (Sonic)                          | —                               |
 | Gnosis Chain (xDai) | `gnosis/`      | L1                                  | reth_gnosis + lighthouse                  | [README](gnosis/README.md)      |
 | HashKey Chain       | `hashkey/`     | L2 (OP Stack / CGT)                 | op-geth + op-node                         | [README](hashkey/README.md)     |
@@ -69,7 +70,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | B² Network        | L2 (Bitcoin)          | —                |
 | Bittensor         | L1                    | —                |
 | Core              | L1                    | —                |
-| Cronos            | L1                    | —                |
 | Etherlink (Tezos) | L2                    | —                |
 | Hedera            | L1                    | —                |
 | Hyperliquid       | L1                    | hl-node (visor)  |
