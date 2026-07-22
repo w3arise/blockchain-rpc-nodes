@@ -53,6 +53,19 @@ else
   echo "EXT_IP already set to ${PUBLIC_IP}"
 fi
 
+DOCKER_UID="$(id -u)"
+DOCKER_GID="$(id -g)"
+if grep -qE '^DOCKER_UID=' "${ENV_FILE}"; then
+  sed_inplace "s|^DOCKER_UID=.*|DOCKER_UID=${DOCKER_UID}|" "${ENV_FILE}"
+else
+  printf '\n### Host user (container runs as this UID:GID) ###\nDOCKER_UID=%s\nDOCKER_GID=%s\n' \
+    "${DOCKER_UID}" "${DOCKER_GID}" >> "${ENV_FILE}"
+fi
+if grep -qE '^DOCKER_GID=' "${ENV_FILE}"; then
+  sed_inplace "s|^DOCKER_GID=.*|DOCKER_GID=${DOCKER_GID}|" "${ENV_FILE}"
+fi
+echo "set DOCKER_UID=${DOCKER_UID} DOCKER_GID=${DOCKER_GID} in .env"
+
 echo ""
 echo "datadir: ${DATA_DIR}"
 echo "Next:"

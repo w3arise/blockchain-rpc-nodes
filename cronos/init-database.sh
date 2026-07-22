@@ -33,6 +33,8 @@ MINIMUM_GAS_PRICES="${MINIMUM_GAS_PRICES:-1basecro}"
 LOGS_CAP="${LOGS_CAP:-100000}"
 BLOCK_RANGE_CAP="${BLOCK_RANGE_CAP:-100000}"
 GAS_CAP="${GAS_CAP:-600000000}"
+DOCKER_UID="$(id -u)"
+DOCKER_GID="$(id -g)"
 
 GENESIS_URL="https://raw.githubusercontent.com/crypto-org-chain/cronos-mainnet/master/cronosmainnet_25-1/genesis.json"
 GENESIS_SHA256="58f17545056267f57a2d95f4c9c00ac1d689a580e220c5d4de96570fbbc832e1"
@@ -50,6 +52,28 @@ sed_inplace() {
   mv "${tmp}" "${file}"
 }
 
+# cronosd init runs in Docker; without --user it creates root-owned files and
+# host-side curl/sed cannot write genesis or patch app.toml.
+fix_ownership() {
+  local dir="$1"
+  if [[ -w "${dir}" ]] && { [[ ! -d "${dir}/config" ]] || [[ -w "${dir}/config" ]]; }; then
+    return 0
+  fi
+  echo "==> Fixing ownership on ${dir} -> ${DOCKER_UID}:${DOCKER_GID}"
+  docker run --rm -v "${dir}:/d" alpine \
+    chown -R "${DOCKER_UID}:${DOCKER_GID}" /d
+}
+
+wipe_datadir() {
+  local dir="$1"
+  if rm -rf "${dir}" 2>/dev/null; then
+    return 0
+  fi
+  echo "==> Removing root-owned ${dir} via Docker"
+  docker run --rm -v "$(dirname "${dir}"):/parent" alpine \
+    rm -rf "/parent/$(basename "${dir}")"
+}
+
 for tool in docker curl; do
   command -v "${tool}" >/dev/null 2>&1 || {
     echo "ERROR: '${tool}' is required." >&2
@@ -61,12 +85,13 @@ if [[ -f "${CONFIG_TOML}" ]]; then
   echo "WARNING: ${DATA_DIR} already contains cronosd config."
   read -r -p "Wipe and re-initialize? (y/N): " ans
   case "${ans}" in
-    y|Y) rm -rf "${DATA_DIR}" ;;
+    y|Y) wipe_datadir "${DATA_DIR}" ;;
     *) echo "Aborted."; exit 0 ;;
   esac
 fi
 
 mkdir -p "${DATA_DIR}"
+fix_ownership "${DATA_DIR}"
 
 echo "==> Building cronosd image (if needed)"
 docker compose build cronosd
@@ -74,9 +99,13 @@ docker compose build cronosd
 echo "==> Initializing cronosd (${CHAIN_ID}) into ${DATA_DIR}"
 # Ensure compose mounts the same host path we patch below
 export HOST_DATADIR="${DATA_DIR}"
+export DOCKER_UID DOCKER_GID
 docker compose run --rm --no-deps \
+  --user "${DOCKER_UID}:${DOCKER_GID}" \
   --entrypoint cronosd \
   cronosd init "${MONIKER}" --chain-id "${CHAIN_ID}" --home /data
+
+fix_ownership "${DATA_DIR}"
 
 echo "==> Downloading mainnet genesis"
 curl -fsSL "${GENESIS_URL}" -o "${GENESIS_FILE}"
