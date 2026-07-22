@@ -23,7 +23,8 @@ RUN apk add --no-cache ca-certificates curl tar \
   && cronosd version
 
 RUN addgroup -g "${BUILD_GID}" cronos \
-  && adduser -D -u "${BUILD_UID}" -G cronos cronos
+  && adduser -D -u "${BUILD_UID}" -G cronos cronos \
+  && chmod 1777 /tmp
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && chown cronos:cronos /entrypoint.sh
