@@ -1,0 +1,64 @@
+services:
+  op-reth:
+    image: ${OP_RETH_IMAGE}
+    container_name: mode-op-reth
+    restart: unless-stopped
+    volumes:
+      - $HOME/op-reth-datadir/:/data
+      - ./config:/config
+    ports:
+      - 127.0.0.1:8645:8545       # RPC
+      - 127.0.0.1:8646:8546       # websocket
+      - 31303:31303               # P2P TCP (currently unused)
+      - 31303:31303/udp           # P2P UDP (currently unused)
+    command:
+      - node
+      - --chain=mode
+      - --datadir=/data
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=eth,net,web3,debug,trace,txpool
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=eth,net,web3,debug,trace,txpool
+      - --metrics=0.0.0.0:6060
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --authrpc.jwtsecret=/config/jwt.hex
+      - --port=31303
+      - --rpc-cache.max-concurrent-db-requests=2048
+      - --rpc-cache.max-blocks=5000
+      - --rpc.max-connections=2000
+      - --rpc.gascap=610000000
+      - --rollup.sequencer=https://rpc-mode-mainnet-0.t.conduit.xyz
+      - --rollup.disable-tx-pool-gossip
+    entrypoint: ["op-reth"]
+    env_file:
+      - .env
+    networks:
+      - mode-op-network
+
+  op-node:
+    image: ${OP_NODE_IMAGE}
+    container_name: mode-op-node
+    restart: unless-stopped
+    depends_on:
+      - op-reth
+    ports:
+      - 127.0.0.1:7555:8545     # RPC
+      - 9223:9223               # P2P TCP
+      - 9223:9223/udp           # P2P UDP
+      - 127.0.0.1:7303:7300     # metrics
+      - 127.0.0.1:6161:6060     # pprof
+    env_file:
+      - .env
+    volumes:
+      - ./config:/config
+    networks:
+      - mode-op-network
+
+networks:
+  mode-op-network:
+    driver: bridge
