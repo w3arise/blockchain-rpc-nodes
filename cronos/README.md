@@ -5,15 +5,13 @@ Mainnet full RPC node (`cronosmainnet_25-1`). Chain data: `$HOME/cronos-data`.
 ## Start
 
 ```bash
-./configure.sh            # .env + EXT_IP + DOCKER_UID/GID
-docker compose build
-./init-database.sh        # runs as your host UID (not root)
+./configure.sh            # .env + EXT_IP + BUILD_UID/GID for the image
+docker compose build      # image runs as your host user
+./init-database.sh
 docker compose up -d
 ```
 
 `init-database.sh` sets `app.toml` to `pruning = "default"`, `minimum-gas-prices = "1basecro"`, `logs-cap` / `block-range-cap = 100000`, and `gas-cap = 600000000`. Start uses `--home /data` (host `$HOME/cronos-data`). Peer discovery often takes 1–2 minutes after each restart.
-
-If a previous root-owned init left `$HOME/cronos-data` unwritable: `sudo chown -R "$(id -u):$(id -g)" "$HOME/cronos-data"` (or wipe and re-run `./init-database.sh`).
 
 RPC: `http://127.0.0.1:8545` · WS: `ws://127.0.0.1:8546`
 

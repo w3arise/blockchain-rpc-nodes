@@ -2,6 +2,9 @@ FROM alpine:3.20
 
 ARG CRONOS_VERSION=1.7.8
 ARG TARGETARCH
+# Set by ./configure.sh (your host uid/gid) so bind-mounted datadir stays writable
+ARG BUILD_UID=1000
+ARG BUILD_GID=1000
 
 RUN apk add --no-cache ca-certificates curl tar \
   && case "${TARGETARCH}" in \
@@ -19,7 +22,12 @@ RUN apk add --no-cache ca-certificates curl tar \
   && apk del curl tar \
   && cronosd version
 
+RUN addgroup -g "${BUILD_GID}" cronos \
+  && adduser -D -u "${BUILD_UID}" -G cronos cronos
+
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN chmod +x /entrypoint.sh && chown cronos:cronos /entrypoint.sh
+
+USER cronos
 
 ENTRYPOINT ["/entrypoint.sh"]

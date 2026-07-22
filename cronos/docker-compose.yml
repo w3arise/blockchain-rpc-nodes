@@ -5,10 +5,10 @@ services:
       dockerfile: Dockerfile
       args:
         CRONOS_VERSION: ${CRONOS_VERSION}
+        BUILD_UID: ${BUILD_UID:-1000}
+        BUILD_GID: ${BUILD_GID:-1000}
     image: cronosd:${CRONOS_VERSION}
     container_name: cronosd
-    # Match host UID so bind-mounted $HOME/cronos-data stays writable on the host
-    user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
     restart: unless-stopped
     stop_grace_period: 120s
     env_file: .env

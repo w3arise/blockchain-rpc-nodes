@@ -53,18 +53,17 @@ else
   echo "EXT_IP already set to ${PUBLIC_IP}"
 fi
 
-DOCKER_UID="$(id -u)"
-DOCKER_GID="$(id -g)"
-if grep -qE '^DOCKER_UID=' "${ENV_FILE}"; then
-  sed_inplace "s|^DOCKER_UID=.*|DOCKER_UID=${DOCKER_UID}|" "${ENV_FILE}"
-else
-  printf '\n### Host user (container runs as this UID:GID) ###\nDOCKER_UID=%s\nDOCKER_GID=%s\n' \
-    "${DOCKER_UID}" "${DOCKER_GID}" >> "${ENV_FILE}"
-fi
-if grep -qE '^DOCKER_GID=' "${ENV_FILE}"; then
-  sed_inplace "s|^DOCKER_GID=.*|DOCKER_GID=${DOCKER_GID}|" "${ENV_FILE}"
-fi
-echo "set DOCKER_UID=${DOCKER_UID} DOCKER_GID=${DOCKER_GID} in .env"
+BUILD_UID="$(id -u)"
+BUILD_GID="$(id -g)"
+for var in BUILD_UID BUILD_GID; do
+  val="${!var}"
+  if grep -qE "^${var}=" "${ENV_FILE}"; then
+    sed_inplace "s|^${var}=.*|${var}=${val}|" "${ENV_FILE}"
+  else
+    printf '%s=%s\n' "${var}" "${val}" >> "${ENV_FILE}"
+  fi
+done
+echo "set BUILD_UID=${BUILD_UID} BUILD_GID=${BUILD_GID} in .env (baked into image at build time)"
 
 echo ""
 echo "datadir: ${DATA_DIR}"
