@@ -43,8 +43,8 @@ services:
       - --cache=20000
     env_file: .env
     ports:
-      - 127.0.0.1:9525:8545
-      - 127.0.0.1:9526:8546
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}/udp
     volumes:
@@ -68,7 +68,6 @@ services:
       - --l1.epoch-poll-interval=3s
       - --l1.rpc-max-batch-size=20
       - --rpc.addr=0.0.0.0
-      - --rpc.port=8546
       - --p2p.sync.req-resp
       - --p2p.listen.ip=0.0.0.0
       - --p2p.listen.tcp=9003
@@ -95,6 +94,7 @@ services:
       - --l1.max-concurrency=20
     env_file: .env
     ports:
+      - ${RPC_BIND_ADDR}:${PORT__OP_NODE_RPC}:9545
       - ${PORT__OP_NODE_P2P}:9003
       - ${PORT__OP_NODE_P2P}:9003/udp
     volumes:
