@@ -43,8 +43,8 @@ services:
       - --cache=20000
     env_file: .env
     ports:
-      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
-      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR}:${PORT__OP_GETH_HTTP}:8545
+      - ${RPC_BIND_ADDR}:${PORT__OP_GETH_WS}:8546
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}/udp
     volumes:
