@@ -46,6 +46,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Linea               | `linea/`       | L2 (ZK)                             | Besu / Nethermind + Maru                  | [README](linea/README.md)       |
 | Lisk                | `lisk/`        | L2 (OP Stack)                       | op-reth + op-node                         | [README](lisk/README.md)        |
 | Morph               | `morph/`       | L2 (Optimistic + ZK)                | morph-geth + morph-node                   | [README](morph/README.md)       |
+| Monad               | `monad/`       | L1                                  | monad-bft + monad-execution + monad-rpc   | [README](monad/README.md)       |
 | Neo X               | `neox/`        | L1 (EVM-compatible)                 | bane-labs geth                            | [README](neox/README.md)        |
 | Optimism            | `optimism/`    | L2 (OP Stack)                       | op-reth + op-node                         | [README](optimism/README.md)    |
 | Robinhood Chain     | `robinhood/`   | L2 (Arbitrum Nitro)                 | nitro                                     | [README](robinhood/README.md)   |
@@ -77,7 +78,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Mantle            | L2 (OP Stack)         | mantle-op-geth + mantle-op-node |
 | MegaETH           | L2                    | stateless-validator |
 | Mode              | L2 (OP Stack)         | op-reth + op-node |
-| Monad             | L1                    | —                |
 | Nexon Henesys     | L2                    | —                |
 | Scroll            | L2 (ZK)               | —                |
 | Sei               | L1                    | —                |
