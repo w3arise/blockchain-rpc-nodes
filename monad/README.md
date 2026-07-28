@@ -16,9 +16,18 @@ Cloud VMs are not officially supported. See [hardware requirements](https://docs
 
 ## Start
 
-1. Clone this repo on the host and enter `monad/`.
+1. Raise the root file descriptor limit (the `monad` package's installer warns below 4096; 16384 gives headroom):
 
-2. Configure:
+```bash
+echo "root hard nofile 16384" >> /etc/security/limits.conf
+echo "root soft nofile 16384" >> /etc/security/limits.conf
+```
+
+`/etc/security/limits.conf` is applied by PAM at **login** — there is no sysctl reload for it. Start a fresh root login session (`su - root`, or disconnect and SSH in again), then check `ulimit -n` is at least 4096 before `./install-package.sh`.
+
+2. Clone this repo on the host and enter `monad/`.
+
+3. Configure:
 
 ```bash
 cp env.template .env
@@ -26,13 +35,13 @@ cp env.template .env
 ./configure.sh
 ```
 
-3. Install the pinned APT package (`MONAD_VERSION` in `.env`, currently `0.15.1`):
+4. Install the pinned APT package (`MONAD_VERSION` in `.env`, currently `0.15.1`):
 
 ```bash
 ./install-package.sh
 ```
 
-4. Initialize TrieDB (destructive — erases the target):
+5. Initialize TrieDB (destructive — erases the target):
 
 ```bash
 ./init-triedb.sh              # prompts for the device, defaults to TRIEDB_DRIVE
@@ -41,7 +50,7 @@ cp env.template .env
 
 Accepts a whole device (relabelled GPT with one `triedb` partition) or an existing partition on that device (used as-is, rest of the disk untouched). Either way the result is published as `/dev/triedb` via udev and the choice is saved to `.env`.
 
-5. Create keystores and sign the peer-discovery name record:
+6. Create keystores and sign the peer-discovery name record:
 
 ```bash
 ./generate-keystores.sh
@@ -49,20 +58,22 @@ Accepts a whole device (relabelled GPT with one `triedb` partition) or an existi
 # the keystores cannot be decrypted without it
 ./sign-name-record.sh
 ```
-6. Open firewall for P2P (if using UFW) and drop undersized UDP on the P2P port for spam hardening ([docs](https://docs.monad.xyz/node-ops/full-node-installation#configure-firewall-rules)):
+7. Open firewall for P2P (if using UFW) and drop undersized UDP on the P2P port for spam hardening ([docs](https://docs.monad.xyz/node-ops/full-node-installation#configure-firewall-rules)):
 
 ```bash
 ufw allow ssh
-ufw allow 8000
-ufw allow 8001
+ufw allow 8000 comment 'monad consensus P2P'
+ufw allow 8001 comment 'monad authenticated UDP'
 ufw enable
 
-iptables -I INPUT -p udp --dport 8000 -m length --length 0:1400 -j DROP
+# Drop undersized UDP on consensus P2P (spam hardening; see Monad full-node install docs)
+iptables -I INPUT -p udp --dport 8000 -m length --length 0:1400 \
+  -m comment --comment 'monad drop undersized UDP on P2P' -j DROP
 ```
 
 The iptables rule is lost on reboot — persist it with `iptables-persistent` or your own mechanism.
 
-7. Restore snapshot and start:
+8. Restore snapshot and start:
 
 ```bash
 ./restore-snapshot.sh
@@ -70,7 +81,7 @@ systemctl enable monad-bft monad-execution monad-rpc
 systemctl start monad-bft monad-execution monad-rpc
 ```
 
-8. Verify (RPC is active after statesync completes):
+9. Verify (RPC is active after statesync completes):
 
 ```bash
 curl -s http://127.0.0.1:8080/ -X POST -H 'Content-Type: application/json' \
@@ -113,12 +124,47 @@ Synced full nodes retain limited execution history in TrieDB (not a full archive
 
 For RPC workflows, enable `--trace_calls` on `monad-execution` via `systemctl edit monad-execution` (merge with the package `ExecStart` flags).
 
-## Host ports
+## Host ports and runtime
 
-| Port | Exposure | Role |
-| --- | --- | --- |
-| 8080 | localhost (default) | JSON-RPC |
-| 8000 | public (TCP + UDP) | Consensus P2P |
-| 8001 | public | Authenticated UDP |
+All long-running daemons run as the **`monad`** user via **systemd** on the host (from the `monad` APT package). This repo does not run Docker for the node itself.
 
-Docs: [Full node installation](https://docs.monad.xyz/node-ops/full-node-installation) · [Hard reset](https://docs.monad.xyz/node-ops/node-recovery/hard-reset)
+### Ports
+
+| Port | Protocol | Exposure | Service | Purpose |
+| --- | --- | --- | --- | --- |
+| 8080 | TCP | localhost by default (`127.0.0.1`) | `monad-rpc` | JSON-RPC (and WS where enabled). Bind is package/default; use a firewall or `systemctl edit monad-rpc` if you expose it beyond localhost. |
+| 8000 | TCP + UDP | public (firewall) | `monad-bft` | Consensus P2P — peer discovery, raptorcast, blocksync. Must be reachable from the internet on a public full node. |
+| 8001 | UDP | public (firewall) | `monad-bft` | Authenticated UDP for peer discovery (`authenticated_bind_address_port` in `node.toml`). |
+
+Inbound **SSH** is separate (e.g. `ufw allow ssh`). Engine/internal IPC between `monad-bft`, `monad-execution`, and `monad-rpc` stays on the host and is not listed here.
+
+### systemd services and timers (healthy full node)
+
+After `./install-package.sh`, `./restore-snapshot.sh`, and `systemctl enable/start` in the Start steps, expect:
+
+| Unit | Kind | Steady state | Role |
+| --- | --- | --- | --- |
+| `monad-bft.service` | service | **active (running)** | Consensus client; P2P, statesync/blocksync, coordinates with execution. |
+| `monad-execution.service` | service | **active (running)** | Execution client; state on `/dev/triedb`. |
+| `monad-rpc.service` | service | **active (running)** | RPC front-end (HTTP on 8080 by default). RPC may lag until statesync finishes after a snapshot. |
+| `monad-cruft.timer` | timer | **active (waiting)** | Fires **hourly** (enabled by the `monad` package). |
+| `monad-cruft.service` | oneshot | **inactive (dead)** between runs | Runs `/opt/monad/scripts/clear-old-artifacts.sh`; retention from `/home/monad/.env` (`RETENTION_*` set by `./configure.sh`). |
+
+**Not running continuously** (normal):
+
+| Unit | When it runs |
+| --- | --- |
+| `monad-mpt.service` | One-shot TrieDB format during `./init-triedb.sh`, or manual `monad-mpt --storage /dev/triedb --upgrade` during version upgrades. |
+
+**Optional (upstream docs, not part of this repo’s Start steps):** `otelcol.service` — OpenTelemetry metrics on `:8889/metrics` if you install the collector per [full node installation](https://docs.monad.xyz/node-ops/full-node-installation#configure-otel-collector).
+
+Quick check:
+
+```bash
+systemctl is-active monad-bft monad-execution monad-rpc
+systemctl is-enabled monad-cruft.timer
+systemctl list-timers --all | grep -i cruft
+journalctl -u monad-bft -u monad-execution -u monad-rpc -n 30 --no-pager
+```
+
+Docs: [Full node installation](https://docs.monad.xyz/node-ops/full-node-installation) · [Hard reset](https://docs.monad.xyz/node-ops/node-recovery/hard-reset) · [General operations](https://docs.monad.xyz/node-ops/general-operations)
