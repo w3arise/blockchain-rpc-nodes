@@ -1,0 +1,21 @@
+services:
+  aptos-fullnode:
+    image: ${APTOS_IMAGE}
+    container_name: aptos-fullnode
+    pull_policy: always
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file: .env
+    command: ["aptos-node", "-f", "/opt/aptos/etc/fullnode.yaml"]
+    working_dir: /opt/aptos/etc
+    ports:
+      - "${RPC_BIND_ADDR}:${HTTP_PORT}:8080"
+      - "${RPC_BIND_ADDR}:${METRICS_PORT}:9101"
+      - "${P2P_PORT}:6182"
+    volumes:
+      - ./config:/opt/aptos/etc:ro
+      - "${HOST_DATADIR:-$HOME/aptos-data}:/opt/aptos/data"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

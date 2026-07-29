@@ -57,6 +57,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | XLayer              | `xlayer/`      | L2 (OP Stack)                       | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md)      |
 | XLayer (op-reth)    | `xlayer-reth/` | L2 (OP Stack)                       | xlayer-reth + op-node                     | [README](xlayer-reth/README.md) |
 | Abstract            | `abstract/`    | L2 (ZK Stack)                       | external-node + postgres                  | [README](abstract/README.md)    |
+| Aptos               | `aptos/`       | L1 (Move)                           | aptos-node                                | [README](aptos/README.md)       |
 | Lens                | `lens/`        | L2 (ZK Stack)                       | external-node + postgres                  | [README](lens/README.md)        |
 | opBNB               | `opbnb/`       | L2 (OP Stack)                       | op-geth + op-node                         | [README](opbnb/README.md)       |
 | Pharos              | `pharos/`      | L1 (EVM-compatible)                 | pharos_light                              | [README](pharos/README.md)      |

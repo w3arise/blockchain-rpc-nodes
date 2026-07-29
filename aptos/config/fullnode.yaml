@@ -1,0 +1,24 @@
+# Public fullnode (PFN) — simplified layout for Docker.
+# Paths match the /opt/aptos/etc bind mount in docker-compose.yml.
+base:
+  role: "full_node"
+  data_dir: "/opt/aptos/data"
+  waypoint:
+    from_file: "/opt/aptos/etc/waypoint.txt"
+
+execution:
+  genesis_file_location: "/opt/aptos/etc/genesis.blob"
+
+state_sync:
+  state_sync_driver:
+    bootstrapping_mode: DownloadLatestStates
+    continuous_syncing_mode: ApplyTransactionOutputs
+
+full_node_networks:
+  - network_id: "public"
+    discovery_method: "onchain"
+    listen_address: "/ip4/0.0.0.0/tcp/6182"
+
+api:
+  enabled: true
+  address: "0.0.0.0:8080"
