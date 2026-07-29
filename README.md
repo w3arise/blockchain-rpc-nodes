@@ -28,7 +28,9 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Chain               | Directory      | Type                                | Execution Client                          | Setup                           |
 | ------------------- | -------------- | ----------------------------------- | ----------------------------------------- | ------------------------------- |
 | AB Core             | `ab/`          | L1 (EVM-compatible)                 | abcore geth                               | [README](ab/README.md)          |
+| Abstract            | `abstract/`    | L2 (ZK Stack)                       | external-node + postgres                  | [README](abstract/README.md)    |
 | ApeChain            | `apechain/`    | L3 (Arbitrum Orbit)                 | Caldera nitro                             | [README](apechain/README.md)    |
+| Aptos               | `aptos/`       | L1 (Move)                           | aptos-node                                | [README](aptos/README.md)       |
 | Arbitrum            | `arbitrum/`    | L2 (Nitro)                          | nitro                                     | [README](arbitrum/README.md)    |
 | Berachain           | `berachain/`   | L1                                  | bera-reth + beacon-kit                    | [README](berachain/README.md)   |
 | Bitlayer            | `bitlayer/`    | L2 (Bitcoin)                        | bitlayer-l2 geth                          | [README](bitlayer/README.md)    |
@@ -43,12 +45,15 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Hemi                | `hemi/`        | L2 (OP Stack / Bitcoin)             | hemi op-geth + op-node + bssd             | [README](hemi/README.md)        |
 | Kaia                | `kaia/`        | L1                                  | ken (Endpoint Node)                       | [README](kaia/README.md)        |
 | Katana              | `katana/`      | L2 (OP Stack / Agglayer CDK)        | conduit-op-reth + op-node                 | [README](katana/README.md)      |
+| Lens                | `lens/`        | L2 (ZK Stack)                       | external-node + postgres                  | [README](lens/README.md)        |
 | Linea               | `linea/`       | L2 (ZK)                             | Besu / Nethermind + Maru                  | [README](linea/README.md)       |
 | Lisk                | `lisk/`        | L2 (OP Stack)                       | op-reth + op-node                         | [README](lisk/README.md)        |
-| Morph               | `morph/`       | L2 (Optimistic + ZK)                | morph-geth + morph-node                   | [README](morph/README.md)       |
 | Monad               | `monad/`       | L1                                  | monad-bft + monad-execution + monad-rpc   | [README](monad/README.md)       |
+| Morph               | `morph/`       | L2 (Optimistic + ZK)                | morph-geth + morph-node                   | [README](morph/README.md)       |
 | Neo X               | `neox/`        | L1 (EVM-compatible)                 | bane-labs geth                            | [README](neox/README.md)        |
+| opBNB               | `opbnb/`       | L2 (OP Stack)                       | op-geth + op-node                         | [README](opbnb/README.md)       |
 | Optimism            | `optimism/`    | L2 (OP Stack)                       | op-reth + op-node                         | [README](optimism/README.md)    |
+| Pharos              | `pharos/`      | L1 (EVM-compatible)                 | pharos_light                              | [README](pharos/README.md)      |
 | Robinhood Chain     | `robinhood/`   | L2 (Arbitrum Nitro)                 | nitro                                     | [README](robinhood/README.md)   |
 | Ronin               | `ronin/`       | L2 (OP Stack / EigenDA)             | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md)       |
 | Soneium             | `soneium/`     | L2 (OP Stack)                       | op-reth + op-node                         | [README](soneium/README.md)     |
@@ -56,11 +61,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Worldchain          | `worldchain/`  | L2 (OP Stack)                       | op-reth + op-node                         | [README](worldchain/README.md)  |
 | XLayer              | `xlayer/`      | L2 (OP Stack)                       | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md)      |
 | XLayer (op-reth)    | `xlayer-reth/` | L2 (OP Stack)                       | xlayer-reth + op-node                     | [README](xlayer-reth/README.md) |
-| Abstract            | `abstract/`    | L2 (ZK Stack)                       | external-node + postgres                  | [README](abstract/README.md)    |
-| Aptos               | `aptos/`       | L1 (Move)                           | aptos-node                                | [README](aptos/README.md)       |
-| Lens                | `lens/`        | L2 (ZK Stack)                       | external-node + postgres                  | [README](lens/README.md)        |
-| opBNB               | `opbnb/`       | L2 (OP Stack)                       | op-geth + op-node                         | [README](opbnb/README.md)       |
-| Pharos              | `pharos/`      | L1 (EVM-compatible)                 | pharos_light                              | [README](pharos/README.md)      |
 
 
 ## Planned
