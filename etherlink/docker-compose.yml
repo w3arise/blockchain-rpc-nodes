@@ -7,15 +7,22 @@ services:
     env_file: .env
     user: "1000:1000"
     entrypoint: ["octez-evm-node"]
+    # Octez CLI rejects --flag=value; pass flag and value as separate argv entries.
     command:
       - run
       - observer
-      - --network=${NETWORK}
-      - --history=${HISTORY_MODE}
-      - --data-dir=/data
-      - --rpc-addr=0.0.0.0
-      - --rpc-port=8545
-      - --cors-origins=*
+      - --network
+      - ${NETWORK}
+      - --history
+      - ${HISTORY_MODE}
+      - --data-dir
+      - /data
+      - --rpc-addr
+      - 0.0.0.0
+      - --rpc-port
+      - "8545"
+      - --cors-origins
+      - "*"
       - --ws
       - --init-from-snapshot
       - --dont-track-rollup-node
