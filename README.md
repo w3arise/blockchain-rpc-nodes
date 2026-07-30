@@ -59,6 +59,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Pharos              | `pharos/`      | L1 (EVM-compatible)                 | pharos_light                              | [README](pharos/README.md)      |
 | Robinhood Chain     | `robinhood/`   | L2 (Arbitrum Nitro)                 | nitro                                     | [README](robinhood/README.md)   |
 | Ronin               | `ronin/`       | L2 (OP Stack / EigenDA)             | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md)       |
+| Sei                 | `sei/`         | L1 (Cosmos + EVM)                   | seid (historical RPC)                     | [README](sei/README.md)         |
 | Soneium             | `soneium/`     | L2 (OP Stack)                       | op-reth + op-node                         | [README](soneium/README.md)     |
 | Sonic               | `sonic/`       | L1                                  | sonic-node                                | [README](sonic/README.md)       |
 | Tac                 | `tac/`         | L1 (CosmoseVM / Ethermint)          | tacchaind                                 | [README](tac/README.md)         |
@@ -84,7 +85,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Mode              | L2 (OP Stack)         | op-reth + op-node |
 | Nexon Henesys     | L2                    | —                |
 | Scroll            | L2 (ZK)               | —                |
-| Sei               | L1                    | —                |
 | Superseed         | L2 (OP Stack)         | —                |
 | Zircuit           | L2 (ZK)               | —                |
 
