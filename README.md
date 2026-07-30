@@ -62,6 +62,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Sonic               | `sonic/`       | L1                                  | sonic-node                                | [README](sonic/README.md)       |
 | Tempo               | `tempo/`       | L1                                  | tempo (Reth SDK + Simplex BFT)            | [README](tempo/README.md)       |
 | Worldchain          | `worldchain/`  | L2 (OP Stack)                       | op-reth + op-node                         | [README](worldchain/README.md)  |
+| XDC                 | `xdc/`         | L1                                  | XDPoSChain (hash-full)                    | [README](xdc/README.md)         |
 | XLayer              | `xlayer/`      | L2 (OP Stack)                       | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md)      |
 | XLayer (op-reth)    | `xlayer-reth/` | L2 (OP Stack)                       | xlayer-reth + op-node                     | [README](xlayer-reth/README.md) |
 
@@ -85,7 +86,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Sei               | L1                    | —                |
 | Superseed         | L2 (OP Stack)         | —                |
 | Tac               | L2                    | —                |
-| XDC               | L1                    | —                |
 | Zircuit           | L2 (ZK)               | —                |
 
 

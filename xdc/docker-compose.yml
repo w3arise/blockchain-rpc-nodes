@@ -1,0 +1,24 @@
+services:
+  xdc-node:
+    image: xinfinorg/xdposchain:${XDC_VERSION:-v2.7.1}
+    platform: linux/amd64
+    container_name: xdc-node
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file:
+      - .env
+    entrypoint: ["/bin/bash", "/scripts/start-node.sh"]
+    volumes:
+      - ${HOST_DATADIR:-$HOME/xdc-data}:/data
+      - ./config/genesis.json:/config/genesis.json:ro
+      - ./config/bootnodes.list:/config/bootnodes.list:ro
+      - ./start-node.sh:/scripts/start-node.sh:ro
+    ports:
+      - "${P2P_PORT}:${P2P_PORT}/tcp"
+      - "${P2P_PORT}:${P2P_PORT}/udp"
+      - "${RPC_BIND_ADDR}:${HTTP_PORT}:${HTTP_PORT}"
+      - "${RPC_BIND_ADDR}:${WS_PORT}:${WS_PORT}"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
