@@ -62,11 +62,17 @@ if [[ -d "${DATA_DIR}/geth" ]]; then
 fi
 
 mkdir -p "${DATA_DIR}"
-TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/b2-snapshot.XXXXXX")"
+# Keep download/extract off /tmp (usually the small OS partition). Prefer home disk
+# space; override with SNAPSHOT_TMPDIR. Prefer same filesystem as HOST_DATADIR so
+# the final mv is a rename when possible.
+TMP_BASE="${SNAPSHOT_TMPDIR:-${HOME}/b2-snapshot-tmp}"
+mkdir -p "${TMP_BASE}"
+TMP_DIR="$(mktemp -d "${TMP_BASE}/XXXXXX")"
 cleanup() {
   rm -rf "${TMP_DIR}"
 }
 trap cleanup EXIT
+echo "using temp dir ${TMP_DIR}"
 
 download() {
   local url="$1"

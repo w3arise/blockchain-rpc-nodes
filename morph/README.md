@@ -17,12 +17,15 @@ docker compose up -d
 Download and extract a snapshot from [snapshot.morphl2.io](https://snapshot.morphl2.io/) (see [run-morph-node README](https://github.com/morph-l2/run-morph-node#snapshot-information)). Latest mainnet archive: `snapshot-archive-20260701-1`.
 
 ```bash
-wget -O /tmp/morph-snapshot.tar.gz \
+SNAP_TMP="${SNAPSHOT_TMPDIR:-$HOME/morph-snapshot-tmp}"
+mkdir -p "$SNAP_TMP"
+wget -O "$SNAP_TMP/morph-snapshot.tar.gz" \
   https://snapshot.morphl2.io/mainnet/snapshot-archive-20260701-1.tar.gz
-tar -xzf /tmp/morph-snapshot.tar.gz -C /tmp
-mv /tmp/snapshot-archive-20260701-1/geth $HOME/morph-geth-data/
+tar -xzf "$SNAP_TMP/morph-snapshot.tar.gz" -C "$SNAP_TMP"
+mv "$SNAP_TMP/snapshot-archive-20260701-1/geth" $HOME/morph-geth-data/
 mkdir -p $HOME/morph-node-data/data
-mv /tmp/snapshot-archive-20260701-1/data/* $HOME/morph-node-data/data/
+mv "$SNAP_TMP/snapshot-archive-20260701-1/data/"* $HOME/morph-node-data/data/
+rm -rf "$SNAP_TMP"
 ./init-database.sh    # stages config/ into $HOME/morph-node-data/config
 ./create-jwt.sh
 docker compose up -d
