@@ -1,0 +1,29 @@
+services:
+  etherlink-evm:
+    image: ${EVM_IMAGE}
+    container_name: etherlink-evm
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file: .env
+    user: "1000:1000"
+    entrypoint: ["octez-evm-node"]
+    command:
+      - run
+      - observer
+      - --network=${NETWORK}
+      - --history=${HISTORY_MODE}
+      - --data-dir=/data
+      - --rpc-addr=0.0.0.0
+      - --rpc-port=8545
+      - --cors-origins=*
+      - --ws
+      - --init-from-snapshot
+      - --dont-track-rollup-node
+    volumes:
+      - ${HOST_DATADIR:-$HOME/etherlink-data}:/data
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
