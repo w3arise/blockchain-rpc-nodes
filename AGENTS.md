@@ -22,7 +22,7 @@ Use this table format — one row per chain:
 - **Links** — docs, repos, network specs, and other setup references. Multiple links in one cell, separated by ` · `.
 - **Snapshot** — official or documented snapshot download / recovery pages. Use `—` if none.
 
-## Chain README (`<chain>/README.md`)
+Keep rows sorted **alphabetically by Chain** (case-insensitive).
 
 Each chain directory gets a **minimal** `README.md` with the exact steps to run it. Keep it short — see `neox/README.md` or `berachain/README.md` for tone and length.
 
@@ -443,7 +443,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 4. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap).
 5. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists.
 6. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above); include **Pruning Mode** / **State retention** when applicable.
-7. **Update** root `README.md` — Supported Chains table (status, type, execution client); remove from Planned if applicable.
+7. **Update** root `README.md` — **Ready** and **Planned** tables (type, execution client); remove from Planned when the chain is ready. Keep both tables sorted alphabetically by **Chain** (case-insensitive).
 8. **Update** `CHAIN_LINKS.md` — official explorer (if any), docs, network specs, and client repo/release links.
 9. Check `.gitignore` for secrets and generated files (`.env`, JWT, downloaded binaries).
 

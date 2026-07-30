@@ -1,0 +1,46 @@
+services:
+  tempo:
+    image: ${TEMPO_IMAGE}
+    container_name: tempo
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file: .env
+    entrypoint: ["tempo"]
+    command:
+      - node
+      - --chain=${CHAIN}
+      - --datadir=/data
+      - --follow=${FOLLOW_URL}
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=${HTTP_API}
+      - --http.corsdomain=*
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=${WS_API}
+      - --ws.origins=*
+      - --rpc.gascap=${GAS_CAP}
+      - --port=${P2P_PORT}
+      - --discovery.addr=0.0.0.0
+      - --discovery.port=${P2P_PORT}
+      - --discovery.v5.port=${P2P_PORT}
+      - --nat=extip:${EXT_IP}
+      - --metrics=0.0.0.0:9000
+    volumes:
+      - ${HOST_DATADIR:-$HOME/tempo-data}:/data
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR}:${METRICS_PORT}:9000
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
