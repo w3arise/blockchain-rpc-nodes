@@ -4,7 +4,7 @@
 # This is hash-full chaindata: blocks/receipts/logs retained; state pruned.
 # Skip ./init-database.sh after a successful restore.
 #
-# Requires: curl, tar, lz4 (or tar with -I lz4), md5sum/md5
+# Requires: tar, lz4 (or tar with -I lz4), md5sum/md5; aria2c (preferred) or curl
 #
 # Usage: ./restore-snapshot.sh
 #
@@ -28,12 +28,29 @@ DATA_DIR="${HOST_DATADIR:-${HOME}/core-data}"
 SNAPSHOT_URL="${SNAPSHOT_URL:?SNAPSHOT_URL must be set in .env}"
 SNAPSHOT_MD5="${SNAPSHOT_MD5:-}"
 
-for tool in curl tar; do
-  command -v "${tool}" >/dev/null 2>&1 || {
-    echo "ERROR: '${tool}' is required." >&2
-    exit 1
-  }
-done
+command -v tar >/dev/null 2>&1 || {
+  echo "ERROR: 'tar' is required." >&2
+  exit 1
+}
+
+download() {
+  local url="$1"
+  local out="$2"
+  if command -v aria2c >/dev/null 2>&1; then
+    # Prefer aria2c for large snapshots (multi-connection, resume).
+    aria2c --max-tries=0 -x 16 -s 16 -k 100M -c \
+      --dir="$(dirname "${out}")" \
+      --out="$(basename "${out}")" \
+      "${url}"
+  else
+    echo "aria2c not found; falling back to curl (install aria2 for faster downloads)" >&2
+    command -v curl >/dev/null 2>&1 || {
+      echo "ERROR: neither aria2c nor curl is available." >&2
+      exit 1
+    }
+    curl -fL --retry 3 -C - --progress-bar -o "${out}" "${url}"
+  fi
+}
 
 if [[ -d "${DATA_DIR}/geth" ]]; then
   echo "WARNING: ${DATA_DIR} already contains a geth database."
@@ -55,7 +72,7 @@ echo "==> Using temp dir ${TMP_DIR}"
 
 ARCHIVE="${TMP_DIR}/snapshot.tar.lz4"
 echo "==> Downloading ${SNAPSHOT_URL}"
-curl -fL --retry 3 -o "${ARCHIVE}" "${SNAPSHOT_URL}"
+download "${SNAPSHOT_URL}" "${ARCHIVE}"
 
 if [[ -n "${SNAPSHOT_MD5}" ]]; then
   echo "==> Verifying MD5 ${SNAPSHOT_MD5}"
