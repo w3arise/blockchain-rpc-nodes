@@ -4,6 +4,56 @@ Conventions for adding and maintaining chain nodes in this repo (L1, L2, OP Stac
 
 Nodes in this repo are meant to run on **Linux hosts**. Do not target macOS for deployment scripts.
 
+## Client selection (historical receipts & logs)
+
+**Primary product goal:** serve **historical receipts and logs** (block/`eth_getLogs` history from genesis or a long window). Historical **state** queries (`eth_call` / proofs at old blocks) are secondary and often intentionally omitted.
+
+Client “full” vs “archive” means different things — do not assume they match:
+
+| Family | Typical “full” | Typical “archive” |
+| --- | --- | --- |
+| **Geth / geth forks** (incl. BSC-lineage, Core, op-geth, …) | Keeps **full block / receipt / log** history; **prunes old state**. Enough for our receipts/logs goal. | Also keeps historical **state** (much heavier on hash scheme). |
+| **Reth** (incl. op-reth; prefer Storage V2 when available, else V1) | Default `--full` prunes receipts/logs to a short window (~**10k** blocks). **Not enough** for historical log RPC. | Keeps full receipts/logs (and state unless separately pruned). |
+
+### Choosing the client family
+
+When a chain offers **both** reth-family and geth-family clients:
+
+1. Rank viable modes inside each family (sections below).
+2. **Present the options to the user** (client, mode letter, receipts/logs retention, state retention, snapshot/HW notes).
+3. **Do not implement until the user picks.** Lean recommendation when asked: **prefer Reth** (usually archive / state-pruned archive) over Geth for new setups, unless HW, snapshots, or chain support clearly favor Geth.
+
+When only one family exists, still present the ranked modes for that family and confirm before building. Document the chosen mode and retention flags in `<chain>/README.md` (**Pruning Mode** / **State retention**).
+
+### Geth-based (within-family ranking)
+
+Most preferred → least preferred:
+
+1. **A. PBSS archive** (`--state.scheme=path`, archive / configurable state history) — full receipts/logs; **state history is configurable** (retain recent `X` states via `--history.state` / equivalent). Best when PBSS is supported and snapshots/docs allow it.
+2. **B. PBSS full** (`--state.scheme=path`, non-archive) — almost the same for our use case (full receipts/logs); less flexible if you later want a bounded recent-state window. Prefer A when state-history is configurable.
+3. **C. Hash full** (`--state.scheme=hash`, `--gcmode=full`) — full blocks/receipts/logs from genesis (or snapshot tip); no historical state. Prefer over hash archive.
+4. **D. Hash archive** (`--gcmode=archive` on hash) — only if A–C are unavailable. Full data including state; **much heavier** disk/CPU. Avoid when a full (non-archive) hash or any PBSS option exists.
+5. **E. Heavily pruned snapshots** (ancient/block prune from a cutoff) — last resort. Prefer snapshots that retain at least **~6 months** of block/receipt/log history over ~1-week (or shorter) pruned tips.
+
+Notes:
+
+- Do **not** enable `--pruneancient` / equivalent if it drops receipts/logs older than a short window.
+- Prefer official **PBSS/path** snapshots when choosing A/B; hash and path datadirs are incompatible.
+- On many geth forks, `--gcmode=archive` **forces hash** scheme — treat that as D, not A.
+
+### Reth-based (within-family ranking)
+
+Most preferred → least preferred:
+
+1. **A. Archive** — only stock mode that keeps **full receipts and logs**. Default choice for reth when historical log RPC is required.
+2. **B. `--full`** — prunes receipts/logs to ~last 10k blocks. Use only when historical logs are explicitly not needed.
+
+**Operator preference (reth):** start from **archive**, then prune **only** `states.history` (or equivalent) if the admin wants to drop historical state while **keeping full receipts and logs**. Do not use default `--full` pruning for that goal — it removes receipt/log history too.
+
+### Checklist reminder
+
+When researching a new chain, list viable options (Reth A–B and/or Geth A–E) with trade-offs, recommend **Reth** when both families work, and **wait for the user to choose** before scaffolding. See also [Archive and state retention (general)](#archive-and-state-retention-general).
+
 ## RPC gas cap
 
 Unless a chain’s docs or operator requirements say otherwise, set the execution client’s RPC gas cap to **`600000000`** (600M) via env (typically `GAS_CAP`) and wire it to the client flag (e.g. `--rpc.gascap=${GAS_CAP}`). This matches the BSC / DRPC default used elsewhere in the repo. Prefer making it env-configurable rather than hardcoding.
@@ -274,13 +324,28 @@ chain/
 
 ## Archive and state retention (general)
 
+**Receipts/logs first:** choose client mode using [Client selection (historical receipts & logs)](#client-selection-historical-receipts--logs) before tuning state retention. “Full” on geth usually keeps receipts/logs; “full” on reth usually does not.
+
 Some clients prune history at **startup flags**, **init/priming time**, or **both**. Nitro uses `state-history` / `archive` — see [Arbitrum Nitro (PathDB / PBSS)](#arbitrum-nitro-pathdb--pbss). Others (e.g. Sonic/Fantom `sonicd`) use **`--mode validator`** for live pruning vs default **`rpc`** mode for RPC/archive nodes, and may offer **pruned vs archive genesis files** when priming the DB.
 
 For any chain with non-obvious retention behavior:
 
-- Add a **Pruning Mode** or **State retention** section to `<chain>/README.md` — which flags/modes are safe for archive RPC, and what triggers pruning.
+- Add a **Pruning Mode** or **State retention** section to `<chain>/README.md` — which flags/modes keep **receipts/logs**, which only affect **state**, and what triggers pruning.
 - **Do not re-run init/priming** (genesis import, snapshot restore script, etc.) against an existing **archive** datadir using a **pruned** source unless you intend to discard history.
-- When documenting snapshots, distinguish **chaindata tarballs** from **genesis/state prime files** (`.g`, vendor-specific exports) if the chain uses the latter.
+- When documenting snapshots, distinguish **chaindata tarballs** from **genesis/state prime files** (`.g`, vendor-specific exports) if the chain uses the latter. Note whether a snapshot is **PBSS/path vs hash**, and whether it is **receipt/log-complete** vs tip-pruned.
+
+## Snapshot downloads (temp space)
+
+Large snapshot downloads must **not** use `/tmp` (or default `TMPDIR` on the OS partition). `/tmp` is usually small; multi‑GB / TB tarballs will fill the root disk during download + extract.
+
+For `restore-snapshot.sh` (and README snapshot steps that download tarballs):
+
+- Put download/extract staging under **`$HOME/<chain>-snapshot-tmp`** (or another path on the **same large volume as `HOST_DATADIR`**).
+- Allow override via **`SNAPSHOT_TMPDIR`** when set.
+- Prefer `aria2c` for large HTTP(S) tarballs when available; fall back to `curl`.
+- Clean up the staging dir on success (and on failure via `trap` when using a script).
+
+Do not change this for tiny `mktemp` usage in `configure.sh` (sed helpers, etc.).
 
 ## First-start permissions
 
@@ -438,38 +503,39 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 ### All chains
 
 1. Create `<chain>/` with `docker-compose.yml`, `env.template`, and any needed setup scripts.
-2. Pin client versions in `env.template` (image tags, release versions, etc.).
-3. Store datadirs under `$HOME`.
-4. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap).
-5. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists.
-6. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above); include **Pruning Mode** / **State retention** when applicable.
-7. **Update** root `README.md` — **Ready** and **Planned** tables (type, execution client); remove from Planned when the chain is ready. Keep both tables sorted alphabetically by **Chain** (case-insensitive).
-8. **Update** `CHAIN_LINKS.md` — official explorer (if any), docs, network specs, and client repo/release links.
-9. Check `.gitignore` for secrets and generated files (`.env`, JWT, downloaded binaries).
+2. **Pick client + retention mode** using [Client selection (historical receipts & logs)](#client-selection-historical-receipts--logs). Present viable Reth A–B / Geth A–E options (receipts/logs vs state, snapshots, HW); **prefer Reth when both families work, but wait for the user to choose** before scaffolding. Avoid reth `--full` and short-pruned geth snapshots for historical log RPC.
+3. Pin client versions in `env.template` (image tags, release versions, etc.).
+4. Store datadirs under `$HOME`.
+5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap).
+6. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists. Match snapshot scheme (path vs hash) to the chosen mode. Download/extract staging must follow [Snapshot downloads (temp space)](#snapshot-downloads-temp-space) — never default large tarballs to `/tmp`.
+7. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above); include **Pruning Mode** / **State retention** when applicable (receipts/logs vs state).
+8. **Update** root `README.md` — **Ready** and **Planned** tables (type, execution client); remove from Planned when the chain is ready. Keep both tables sorted alphabetically by **Chain** (case-insensitive).
+9. **Update** `CHAIN_LINKS.md` — official explorer (if any), docs, network specs, and client repo/release links.
+10. Check `.gitignore` for secrets and generated files (`.env`, JWT, downloaded binaries).
 
 ### Prometheus / Grafana (when included in compose)
 
-10. Document host datadir paths and first-start `chown` for Prometheus (`65534:65534`) and Grafana (`472:0`) in `<chain>/README.md` (see [Prometheus and Grafana](#prometheus-and-grafana-optional-monitoring)).
+11. Document host datadir paths and first-start `chown` for Prometheus (`65534:65534`) and Grafana (`472:0`) in `<chain>/README.md` (see [Prometheus and Grafana](#prometheus-and-grafana-optional-monitoring)).
 
 ### OP Stack (op-node + execution client)
 
-11. `create-jwt.sh` and mount shared JWT for Engine API auth.
-12. Use `OP_NODE_L1_*` env vars in a single `.env`.
-13. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
-14. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
-15. Follow [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2): `RPC_BIND_ADDR`, configurable host RPC ports, public P2P (TCP + UDP), op-node admin RPC on localhost, `configure.sh` for `EXT_IP` / `OP_NODE_P2P_ADVERTISE_IP`.
+12. `create-jwt.sh` and mount shared JWT for Engine API auth.
+13. Use `OP_NODE_L1_*` env vars in a single `.env`.
+14. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
+15. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
+16. Follow [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2): `RPC_BIND_ADDR`, configurable host RPC ports, public P2P (TCP + UDP), op-node admin RPC on localhost, `configure.sh` for `EXT_IP` / `OP_NODE_P2P_ADVERTISE_IP`.
 
 ### Conduit OP Stack (additional)
 
-16. Fetch bootnodes/static peers — [Conduit bootnodes (OP Stack)](#conduit-bootnodes-op-stack).
-17. Fetch genesis/rollup from Conduit API; verify before committing.
+17. Fetch bootnodes/static peers — [Conduit bootnodes (OP Stack)](#conduit-bootnodes-op-stack).
+18. Fetch genesis/rollup from Conduit API; verify before committing.
 
 ### ZK Stack (external node, when applicable)
 
-18. Follow [ZK Stack / ZKsync external nodes](#zk-stack--zksync-external-nodes) — `matterlabs/external-node`, PostgreSQL, `EN_*` env vars, snapshot bucket, and `ulimits.nofile`.
+19. Follow [ZK Stack / ZKsync external nodes](#zk-stack--zksync-external-nodes) — `matterlabs/external-node`, PostgreSQL, `EN_*` env vars, snapshot bucket, and `ulimits.nofile`.
 
 ### Nitro (PathDB / PBSS)
 
-19. Use `STATE_SCHEME=path`, `STATE_HISTORY=0`, and `--execution.caching.archive` for archive defaults (see [Arbitrum Nitro (PathDB / PBSS)](#arbitrum-nitro-pathdb--pbss)).
-20. Add a **State retention** section to the chain README — warn that non-zero `state-history` prunes on change or snapshot restore.
+20. Use `STATE_SCHEME=path`, `STATE_HISTORY=0`, and `--execution.caching.archive` for archive defaults (see [Arbitrum Nitro (PathDB / PBSS)](#arbitrum-nitro-pathdb--pbss)).
+21. Add a **State retention** section to the chain README — warn that non-zero `state-history` prunes on change or snapshot restore.
 
