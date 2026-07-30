@@ -1,0 +1,37 @@
+services:
+  tacchaind:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TACCHAIN_VERSION: ${TACCHAIN_VERSION}
+        BUILD_UID: ${BUILD_UID:-1000}
+        BUILD_GID: ${BUILD_GID:-1000}
+    image: tacchaind:${TACCHAIN_VERSION}
+    container_name: tacchaind
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file: .env
+    environment:
+      - TACCHAIND_HOME=/data
+      - CHAIN_ID=${CHAIN_ID}
+      - EXT_IP=${EXT_IP}
+      - P2P_PORT=${P2P_PORT}
+    volumes:
+      - ${HOST_DATADIR:-$HOME/tac-data}:/data
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR}:${TM_RPC_PORT}:26657
+      - ${RPC_BIND_ADDR}:${API_PORT}:1317
+      - ${RPC_BIND_ADDR}:${GRPC_PORT}:9090
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
