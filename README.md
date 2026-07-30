@@ -41,6 +41,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Celo (op-geth)      | `celo-geth/`   | L2 (OP Stack / EigenDA, deprecated) | op-geth + op-node + eigenda-proxy         | [README](celo-geth/README.md)   |
 | Core                | `core/`        | L1                                  | core-chain geth (hash-full)               | [README](core/README.md)        |
 | Cronos              | `cronos/`      | L1 (Ethermint)                      | cronosd                                   | [README](cronos/README.md)      |
+| Etherlink           | `etherlink/`   | L2 (Tezos Smart Rollup)             | octez-evm-node (full)                     | [README](etherlink/README.md)   |
 | Fantom (FTM)        | `ftm/`         | L1                                  | go-opera (Sonic)                          | —                               |
 | Gnosis Chain (xDai) | `gnosis/`      | L1                                  | reth_gnosis + lighthouse                  | [README](gnosis/README.md)      |
 | HashKey Chain       | `hashkey/`     | L2 (OP Stack / CGT)                 | op-geth + op-node                         | [README](hashkey/README.md)     |
@@ -60,6 +61,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Ronin               | `ronin/`       | L2 (OP Stack / EigenDA)             | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md)       |
 | Soneium             | `soneium/`     | L2 (OP Stack)                       | op-reth + op-node                         | [README](soneium/README.md)     |
 | Sonic               | `sonic/`       | L1                                  | sonic-node                                | [README](sonic/README.md)       |
+| Tac                 | `tac/`         | L1 (CosmoseVM / Ethermint)          | tacchaind                                 | [README](tac/README.md)         |
 | Tempo               | `tempo/`       | L1                                  | tempo (Reth SDK + Simplex BFT)            | [README](tempo/README.md)       |
 | Worldchain          | `worldchain/`  | L2 (OP Stack)                       | op-reth + op-node                         | [README](worldchain/README.md)  |
 | XDC                 | `xdc/`         | L1                                  | XDPoSChain (hash-full)                    | [README](xdc/README.md)         |
@@ -75,7 +77,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | 0G                | L1                    | 0g-node + 0g-geth |
 | Astar (L1)        | L1                    | —                |
 | Bittensor         | L1                    | —                |
-| Etherlink (Tezos) | L2                    | —                |
 | Hedera            | L1                    | —                |
 | Hyperliquid       | L1                    | hl-node (visor)  |
 | Mantle            | L2 (OP Stack)         | mantle-op-geth + mantle-op-node |
@@ -85,7 +86,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Scroll            | L2 (ZK)               | —                |
 | Sei               | L1                    | —                |
 | Superseed         | L2 (OP Stack)         | —                |
-| Tac               | L2                    | —                |
 | Zircuit           | L2 (ZK)               | —                |
 
 

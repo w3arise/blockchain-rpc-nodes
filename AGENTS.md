@@ -74,6 +74,8 @@ Use this table format — one row per chain:
 
 Keep rows sorted **alphabetically by Chain** (case-insensitive).
 
+## Chain README (`<chain>/README.md`)
+
 Each chain directory gets a **minimal** `README.md` with the exact steps to run it. Keep it short — see `neox/README.md` or `berachain/README.md` for tone and length.
 
 Include:
@@ -347,6 +349,19 @@ For `restore-snapshot.sh` (and README snapshot steps that download tarballs):
 
 Do not change this for tiny `mktemp` usage in `configure.sh` (sed helpers, etc.).
 
+### Snapshot source preference (Tendermint / Cosmos SDK)
+
+Same product goal as Geth: **full history** (blocks → logs / receipts), **not** full **state** history by default. On Tendermint / CosmoseVM chains, retaining full blocks (with a working tx indexer) is enough for historical logs/receipts; pruning old app state is fine.
+
+When researching snapshots (incl. CosmoseVM / Ethermint-style EVM, e.g. Tac):
+
+1. **Prefer official `full` first** — full block history (and indexer where applicable); state may be pruned. Example for Tac: Ankr `tac-*-full-latest` in [`NETWORKS.md`](https://github.com/TacBuild/tacchain/blob/main/NETWORKS.md) (`snapshot.tac.ankr.com`).
+2. **Archive next** — full state history (`pruning = "nothing"` / official `archive` snapshots). Use when historical `eth_call` / state at old heights is required, or when no viable `full` snapshot exists.
+3. Treat other community snapshots (NodeStake, etc.) as usable only after checking block retention and whether the tx **indexer** is retained (not `indexer = "null"`).
+4. **[Polkachu Tendermint snapshots](https://www.polkachu.com/tendermint_snapshots)** — useful catalog for many Cosmos/Tendermint chains, but **always pruned** for operator/validator bootstrap (`pruning-keep-recent` ~100, often `indexer = "null"`, sometimes state-synced so size stays tiny). **Last resort** for this repo’s historical receipts/logs RPC goal — document as pruned tip-only and only after `full` / `archive` sources are unavailable or broken.
+
+When documenting a chain, list the preferred **`full`** URL in `CHAIN_LINKS.md` / README first (then archive if needed); mention Polkachu only as a pruned fallback if needed.
+
 ## First-start permissions
 
 Do not fight container UID/permission issues with compose **init containers** (one-shot `chown`, config copy, genesis init). Prefer **`configure.sh` + `init-database.sh` + one `sudo chown`** — document the UID/GID and exact command in `<chain>/README.md` **Start**. This matches `opbnb/`, `neox/`, and `hemi/`. Keep `docker-compose.yml` to runtime services only.
@@ -507,7 +522,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 3. Pin client versions in `env.template` (image tags, release versions, etc.).
 4. Store datadirs under `$HOME`.
 5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap).
-6. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists. Match snapshot scheme (path vs hash) to the chosen mode. Download/extract staging must follow [Snapshot downloads (temp space)](#snapshot-downloads-temp-space) — never default large tarballs to `/tmp`.
+6. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists. Match snapshot scheme (path vs hash) to the chosen mode. For Tendermint/Cosmos chains, prefer official **`full`** (block/log/receipt history) first, then **archive** (full state); use [Polkachu](https://www.polkachu.com/tendermint_snapshots) only as a **pruned last resort** — see [Snapshot source preference (Tendermint / Cosmos SDK)](#snapshot-source-preference-tendermint--cosmos-sdk). Download/extract staging must follow [Snapshot downloads (temp space)](#snapshot-downloads-temp-space) — never default large tarballs to `/tmp`.
 7. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above); include **Pruning Mode** / **State retention** when applicable (receipts/logs vs state).
 8. **Update** root `README.md` — **Ready** and **Planned** tables (type, execution client); remove from Planned when the chain is ready. Keep both tables sorted alphabetically by **Chain** (case-insensitive).
 9. **Update** `CHAIN_LINKS.md` — official explorer (if any), docs, network specs, and client repo/release links.
