@@ -34,6 +34,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Arbitrum            | `arbitrum/`    | L2 (Nitro)                          | nitro                                     | [README](arbitrum/README.md)    |
 | Berachain           | `berachain/`   | L1                                  | bera-reth + beacon-kit                    | [README](berachain/README.md)   |
 | Bitlayer            | `bitlayer/`    | L2 (Bitcoin)                        | bitlayer-l2 geth                          | [README](bitlayer/README.md)    |
+| B² Network          | `b2/`          | L2 (OP Stack / Bitcoin)             | op-geth + op-node                         | [README](b2/README.md)          |
 | Bob                 | `bob/`         | L2 (OP Stack)                       | op-reth + op-node                         | [README](bob/README.md)         |
 | BSC                 | `bsc/`         | L1                                  | bsc-geth                                  | [README](bsc/README.md)         |
 | Celo                | `celo/`        | L2 (OP Stack / EigenDA)             | celo-op-reth + op-node + eigenda-proxy    | [README](celo/README.md)        |
@@ -70,7 +71,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | ----------------- | --------------------- | ---------------- |
 | 0G                | L1                    | 0g-node + 0g-geth |
 | Astar (L1)        | L1                    | —                |
-| B² Network        | L2 (Bitcoin)          | —                |
 | Bittensor         | L1                    | —                |
 | Core              | L1                    | —                |
 | Etherlink (Tezos) | L2                    | —                |
