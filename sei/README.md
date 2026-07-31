@@ -40,7 +40,7 @@ Keep existing `config/` after restore — do not re-run `init-database.sh`.
 | `ss-keep-recent` | `100000` (~28h) | Recent state only — no `eth_call` at ancient heights |
 | SeiDB | `sc-enable` + `ss-enable` | Required for RPC |
 
-Use **v6.4.2+** (`SEID_VERSION`) — v6.4.0–v6.4.1 incorrectly pruned receipts regardless of `min-retain-blocks`.
+Pinned to **v6.5.2** (`SEID_VERSION`), matching current mainnet. Use **v6.4.2+** minimum — v6.4.0–v6.4.1 incorrectly pruned receipts regardless of `min-retain-blocks`.
 
 For full state history (Option B / archive), set `ss-keep-recent=0` and plan **10 TB+** storage.
 
