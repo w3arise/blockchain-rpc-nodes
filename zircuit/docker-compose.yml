@@ -1,0 +1,80 @@
+services:
+  zircuit-l2-geth:
+    image: ${L2_GETH_IMAGE}
+    container_name: zircuit-l2-geth
+    platform: linux/amd64
+    entrypoint: ["/bin/sh", "-c", "exec geth \"$$@\"", "--"]
+    command:
+      - --datadir=/data
+      - --db.engine=pebble
+      - --gcmode=full
+      - --maxpeers=50
+      - --network=mainnet
+      - --nodiscover
+      - --rpc.gascap=${GAS_CAP}
+      - --rpc.txfeecap=0
+      - --txlookuplimit=0
+      - --state.scheme=hash
+      - --syncmode=full
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=eth,net,web3,debug,admin,txpool,engine
+      - --http.vhosts=*
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=eth,net,web3,debug,admin,txpool,engine
+      - --ws.origins=*
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --authrpc.jwtsecret=/config/jwt.hex
+      - --authrpc.vhosts=*
+    environment:
+      GETH_ROLLUP_DISABLETXPOOLGOSSIP: "true"
+      GETH_ROLLUP_SEQUENCERHTTP: ${SEQUENCER_HTTP}
+      GETH_TXPOOL_GLOBALQUEUE: "1024"
+      ZIRCUIT_NETWORK: mainnet
+    volumes:
+      - ${HOST_DATADIR:-$HOME/zircuit-l2-geth-data}:/data
+      - ./config:/config:ro
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    stop_grace_period: 5m
+    networks:
+      - zircuit-network
+
+  zircuit-op-node:
+    image: ${OP_NODE_IMAGE}
+    container_name: zircuit-op-node
+    platform: linux/amd64
+    command:
+      - op-node
+    env_file: .env
+    depends_on:
+      zircuit-l2-geth:
+        condition: service_started
+    volumes:
+      - ${HOST_OP_NODE_DATADIR:-$HOME/zircuit-op-node-data}:/data
+      - ./config:/config:ro
+    ports:
+      - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - zircuit-network
+
+networks:
+  zircuit-network:
+    driver: bridge
