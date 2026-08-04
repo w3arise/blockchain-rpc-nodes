@@ -214,7 +214,7 @@ Typical `env.template` ports block:
 | `HTTP_PORT` | chain-specific | Host → op-reth container `8545` |
 | `WS_PORT` | chain-specific | Host → op-reth container `8546` |
 | `OP_NODE_RPC_PORT` | chain-specific | op-node admin RPC (e.g. `optimism_syncStatus`) |
-| `OP_NODE_P2P_PORT` | `9222` (Conduit default) | op-node rollup P2P (TCP + UDP, public) |
+| `OP_NODE_P2P_PORT` | `9222` (Conduit default) | op-node rollup P2P — host mapping **and** in-container listen (TCP + UDP, public); wired via compose `environment` |
 | `P2P_PORT` | chain-specific | op-reth execution P2P (TCP + UDP, public) |
 
 **Compose mappings (op-reth):**
@@ -249,13 +249,25 @@ ports:
   - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
 ```
 
-Set in `env.template` for op-node listen/advertise:
+**Single source of truth for op-node P2P port:** `${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}` maps host → container on the same port, so op-node must listen on that port inside the container. Do **not** add separate `OP_NODE_P2P_LISTEN_TCP*` / `OP_NODE_P2P_LISTEN_UDP*` vars in `env.template` — they are easy to drift from `OP_NODE_P2P_PORT` and break P2P silently.
+
+Wire listen ports from compose instead (official op-node env names use the `_PORT` suffix):
+
+```yaml
+zircuit-op-node:
+  env_file: .env
+  environment:
+    OP_NODE_P2P_LISTEN_TCP_PORT: ${OP_NODE_P2P_PORT}
+    OP_NODE_P2P_LISTEN_UDP_PORT: ${OP_NODE_P2P_PORT}
+```
+
+Reference: [`zircuit/docker-compose.yml`](zircuit/docker-compose.yml).
+
+Set in `env.template` for op-node listen/advertise (ports defined once under `### Ports ###` above — do not duplicate `OP_NODE_RPC_PORT` or `OP_NODE_P2P_PORT` in the op-node section):
 
 ```
 OP_NODE_RPC_ADDR=0.0.0.0
 OP_NODE_P2P_LISTEN_IP=0.0.0.0
-OP_NODE_P2P_LISTEN_TCP=<same as OP_NODE_P2P_PORT>
-OP_NODE_P2P_LISTEN_UDP=<same as OP_NODE_P2P_PORT>
 OP_NODE_P2P_ADVERTISE_IP=          # filled by configure.sh
 ```
 
@@ -538,7 +550,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 13. Use `OP_NODE_L1_*` env vars in a single `.env`.
 14. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
 15. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
-16. Follow [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2): `RPC_BIND_ADDR`, configurable host RPC ports, public P2P (TCP + UDP), op-node admin RPC on localhost, `configure.sh` for `EXT_IP` / `OP_NODE_P2P_ADVERTISE_IP`.
+16. Follow [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2): `RPC_BIND_ADDR`, configurable host RPC ports, public P2P (TCP + UDP), op-node admin RPC on localhost, `configure.sh` for `EXT_IP` / `OP_NODE_P2P_ADVERTISE_IP`. Wire `OP_NODE_P2P_LISTEN_TCP_PORT` / `OP_NODE_P2P_LISTEN_UDP_PORT` from `${OP_NODE_P2P_PORT}` in compose — do not duplicate listen ports in `env.template`.
 
 ### Conduit OP Stack (additional)
 

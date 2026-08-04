@@ -6,13 +6,15 @@ Mainnet OP Stack L2 on **Conduit** infrastructure (chain ID **48900**). Chain da
 
 **Pruning mode:** op-reth **archive** (no `--full` / `--prune.*` flags) — full block, receipt, and log history plus historical state.
 
+**Bedrock migration:** Zircuit is a *migration* network. Blocks `0`–`32956467` come from legacy `l2-geth`; the OP Stack chain starts at **`bedrockBlock` 32956468**, which `config/genesis.json` sets. Pre-bedrock blocks are **not** derivable from L1 and are **not** served over OP Stack P2P, so a genesis sync is impossible — **the Conduit snapshot is required**. `--rollup.historicalrpc` proxies pre-bedrock queries to `SEQUENCER_HTTP`. `bedrockBlock` also feeds the execution fork ID: a wrong value makes every Zircuit peer reject the handshake, so op-reth finds **0 peers** and never syncs.
+
 ## Start
 
 ```bash
 ./configure.sh          # .env + EXT_IP / P2P advertise IP
 # set OP_NODE_L1_ETH_RPC and OP_NODE_L1_BEACON in .env
 ./create-jwt.sh
-./restore-snapshot.sh   # optional
+./restore-snapshot.sh   # required — see Bedrock migration above
 docker compose up -d
 ```
 
@@ -22,7 +24,7 @@ Refresh `config/genesis.json` and `config/rollup.json` from the [Conduit API](ht
 
 ## Snapshot
 
-Conduit requester-pays GCS (optional):
+Conduit requester-pays GCS (required — no genesis sync path):
 
 ```bash
 # set GCP_PROJECT in .env first
@@ -40,6 +42,6 @@ Chain ID **48898**. Conduit slug **`zircuit-garfield-testnet`** (already on Cond
 
 ## Host ports
 
-When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (op-reth, default **11588**) and `OP_NODE_P2P_PORT` (op-node, default **9222**). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (op-reth, default **11588**) and `OP_NODE_P2P_PORT` (op-node, default **9228**). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
 
 Docs: [Conduit — Run an OP Stack node](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes) · [Zircuit RPCs](https://docs.zircuit.com/infra/rpcs) · [Conduit Hub](https://hub.conduit.xyz/)

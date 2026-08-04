@@ -53,6 +53,9 @@ services:
     command:
       - op-node
     env_file: .env
+    environment:
+      OP_NODE_P2P_LISTEN_TCP_PORT: ${OP_NODE_P2P_PORT}
+      OP_NODE_P2P_LISTEN_UDP_PORT: ${OP_NODE_P2P_PORT}
     depends_on:
       zircuit-op-reth:
         condition: service_started
