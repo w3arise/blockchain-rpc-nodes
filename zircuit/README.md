@@ -10,7 +10,13 @@ Mainnet OP Stack L2 on **Conduit** infrastructure (chain ID **48900**). Chain da
 
 **Pruning mode:** op-reth **archive** (no `--full` / `--prune.*` flags) — full block, receipt, and log history plus historical state.
 
-**Bedrock migration:** Zircuit is a *migration* network. Blocks `0`–`32956467` come from legacy `l2-geth`; the OP Stack chain starts at **`bedrockBlock` 32956468**, which `config/genesis.json` sets. Pre-bedrock blocks are **not** derivable from L1 and are **not** served over OP Stack P2P, so a genesis sync is impossible — **the Conduit snapshot is required**. `--rollup.historicalrpc` proxies pre-bedrock queries to `SEQUENCER_HTTP`. `bedrockBlock` also feeds the execution fork ID, so a wrong value makes every Zircuit peer reject the handshake and leaves op-reth at **0 peers**.
+**Derivation anchor:** Zircuit has been Bedrock since block 0 (`bedrockBlock: 0` — do not change it), but `config/rollup.json` anchors derivation at the Conduit migration point, L2 block **32956468** (`0x739969ca…`). op-node derives forward from that anchor only, so it requires op-reth to **already contain that block** and refuses to start otherwise:
+
+```
+failed to find the L2 Heads to start from: ... could not get payload: not found
+```
+
+Blocks `0`–`32956468` are not derivable from L1 under this rollup config, so **the Conduit snapshot is required** — an empty datadir cannot bootstrap. `--rollup.historicalrpc` proxies pre-anchor queries to `SEQUENCER_HTTP`.
 
 ## Start
 
@@ -18,7 +24,7 @@ Mainnet OP Stack L2 on **Conduit** infrastructure (chain ID **48900**). Chain da
 ./configure.sh          # .env + EXT_IP / P2P advertise IP
 # set OP_NODE_L1_ETH_RPC and OP_NODE_L1_BEACON in .env
 ./create-jwt.sh
-./restore-snapshot.sh   # required — see Bedrock migration above
+./restore-snapshot.sh   # required — see Derivation anchor above
 docker compose up -d
 ```
 
@@ -46,7 +52,7 @@ Chain ID **48898**. Conduit slug **`zircuit-garfield-testnet`** (already on Cond
 
 ## op-reth peers
 
-Conduit publishes op-node bootnodes and static peers but **no Zircuit execution bootnodes**, and `mainnet.zircuit.com` sits behind Cloudflare with `admin_nodeInfo` disabled, so its enode cannot be read. `OP_RETH_BOOTNODES` therefore uses the generic OP Stack mainnet pool as shared-DHT entry points; fork-ID filtering keeps only chain-48900 peers, which requires the correct `bedrockBlock`. If Conduit support hands you a Zircuit enode, add `--trusted-peers=<enode>` to the `zircuit-op-reth` command for a direct connection.
+Conduit publishes op-node bootnodes and static peers but **no Zircuit execution bootnodes**, and `mainnet.zircuit.com` sits behind Cloudflare with `admin_nodeInfo` disabled, so its enode cannot be read. `OP_RETH_BOOTNODES` therefore uses the generic OP Stack mainnet pool as shared-DHT entry points; fork-ID filtering keeps only chain-48900 peers. Expect few or no peers — with a restored snapshot and `consensus-layer` sync, op-reth needs none. If Conduit support hands you a Zircuit enode, add `--trusted-peers=<enode>` to the `zircuit-op-reth` command for a direct connection.
 
 ## Host ports
 

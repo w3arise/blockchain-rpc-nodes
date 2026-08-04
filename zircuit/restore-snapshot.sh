@@ -24,8 +24,8 @@ GCS_URI="gs://conduit-networks-snapshots/${NETWORK_SLUG}/latest.tar"
 TMP_BASE="${SNAPSHOT_TMPDIR:-${HOME}/zircuit-snapshot-tmp}"
 TMP_BASE="${TMP_BASE/\$HOME/$HOME}"
 
-# Zircuit migrated to OP Stack at bedrockBlock 32956468; pre-bedrock blocks cannot be synced
-# from L1 or P2P, so this restore is the only way to bootstrap a datadir.
+# rollup.json anchors derivation at L2 block 32956468, so op-node cannot build the chain below it.
+# This restore is the only practical way to bootstrap a datadir.
 if [[ -n "$(ls -A "${DATA_DIR}" 2>/dev/null || true)" ]]; then
   echo "ERROR: ${DATA_DIR} is not empty; refuse to overwrite" >&2
   echo "Remove existing data first if you intend to restore from snapshot." >&2
