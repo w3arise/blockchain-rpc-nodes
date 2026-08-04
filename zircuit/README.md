@@ -2,9 +2,9 @@
 
 Mainnet OP Stack L2 on **Conduit** infrastructure (chain ID **48900**). Chain data: `$HOME/zircuit-op-reth-data`, `$HOME/zircuit-op-node-data`.
 
-**Client:** [`conduit-op-reth`](https://github.com/conduitxyz/conduit-op-reth) — the op-reth drop-in Conduit runs on Zircuit and uses to produce the GCS snapshots this setup restores. It symlinks `op-reth`, so flags are unchanged.
+**Client:** [`conduit-op-reth`](https://github.com/conduitxyz/conduit-op-reth) (Conduit op-reth build; GCS snapshots match this client).
 
-**Sync mode:** `OP_NODE_SYNCMODE=consensus-layer` — op-node derives from L1 and drives op-reth over the Engine API, so no execution peers are needed. See [op-reth peers](#op-reth-peers).
+**Sync mode:** `OP_NODE_SYNCMODE=consensus-layer` — op-node derives from L1 and drives op-reth over the Engine API.
 
 **Migration (Aug 2026):** Zircuit mainnet moved from `zircuit1/l2-geth` + `bootstrap.mainnet.zircuit.com` to Conduit. Legacy Zircuit node software and docs are **not maintained** for mainnet — use this setup. Wipe pre-migration `l2-geth` datadirs; op-reth uses a new layout.
 
@@ -48,11 +48,7 @@ Pre-Conduit Liquify lz4 snapshots (`zircuit-snapshot.liquify.com`) target **lega
 
 ## Testnet (Garfield)
 
-Chain ID **48898**. Conduit slug **`zircuit-garfield-testnet`** (already on Conduit — use to validate before mainnet changes). Refresh `config/` from the Conduit API, set L1 to Sepolia, `SEQUENCER_HTTP=https://garfield-testnet.zircuit.com`, update P2P bootnodes/static peers, and snapshot `gs://conduit-networks-snapshots/zircuit-garfield-testnet/latest.tar`.
-
-## op-reth peers
-
-Conduit publishes op-node bootnodes and static peers but **no Zircuit execution bootnodes**, and `mainnet.zircuit.com` sits behind Cloudflare with `admin_nodeInfo` disabled, so its enode cannot be read. `OP_RETH_BOOTNODES` therefore uses the generic OP Stack mainnet pool as shared-DHT entry points; fork-ID filtering keeps only chain-48900 peers. Expect few or no peers — with a restored snapshot and `consensus-layer` sync, op-reth needs none. If Conduit support hands you a Zircuit enode, add `--trusted-peers=<enode>` to the `zircuit-op-reth` command for a direct connection.
+Chain ID **48898**. Conduit slug **`zircuit-garfield-testnet`**. Refresh `config/` from the Conduit API, set L1 to Sepolia, `SEQUENCER_HTTP=https://garfield-testnet.zircuit.com`, update P2P bootnodes/static peers, and snapshot `gs://conduit-networks-snapshots/zircuit-garfield-testnet/latest.tar`.
 
 ## Host ports
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Generate a shared Engine API JWT for l2-geth and op-node.
+# Generate a shared Engine API JWT for op-reth and op-node.
 #
 # Usage: ./create-jwt.sh
 
