@@ -1,12 +1,16 @@
-# Zircuit (op-reth + op-node)
+# Zircuit (conduit-op-reth + op-node)
 
 Mainnet OP Stack L2 on **Conduit** infrastructure (chain ID **48900**). Chain data: `$HOME/zircuit-op-reth-data`, `$HOME/zircuit-op-node-data`.
+
+**Client:** [`conduit-op-reth`](https://github.com/conduitxyz/conduit-op-reth) — the op-reth drop-in Conduit runs on Zircuit and uses to produce the GCS snapshots this setup restores. It symlinks `op-reth`, so flags are unchanged.
+
+**Sync mode:** `OP_NODE_SYNCMODE=consensus-layer` — op-node derives from L1 and drives op-reth over the Engine API, so no execution peers are needed. See [op-reth peers](#op-reth-peers).
 
 **Migration (Aug 2026):** Zircuit mainnet moved from `zircuit1/l2-geth` + `bootstrap.mainnet.zircuit.com` to Conduit. Legacy Zircuit node software and docs are **not maintained** for mainnet — use this setup. Wipe pre-migration `l2-geth` datadirs; op-reth uses a new layout.
 
 **Pruning mode:** op-reth **archive** (no `--full` / `--prune.*` flags) — full block, receipt, and log history plus historical state.
 
-**Bedrock migration:** Zircuit is a *migration* network. Blocks `0`–`32956467` come from legacy `l2-geth`; the OP Stack chain starts at **`bedrockBlock` 32956468**, which `config/genesis.json` sets. Pre-bedrock blocks are **not** derivable from L1 and are **not** served over OP Stack P2P, so a genesis sync is impossible — **the Conduit snapshot is required**. `--rollup.historicalrpc` proxies pre-bedrock queries to `SEQUENCER_HTTP`. `bedrockBlock` also feeds the execution fork ID: a wrong value makes every Zircuit peer reject the handshake, so op-reth finds **0 peers** and never syncs.
+**Bedrock migration:** Zircuit is a *migration* network. Blocks `0`–`32956467` come from legacy `l2-geth`; the OP Stack chain starts at **`bedrockBlock` 32956468**, which `config/genesis.json` sets. Pre-bedrock blocks are **not** derivable from L1 and are **not** served over OP Stack P2P, so a genesis sync is impossible — **the Conduit snapshot is required**. `--rollup.historicalrpc` proxies pre-bedrock queries to `SEQUENCER_HTTP`. `bedrockBlock` also feeds the execution fork ID, so a wrong value makes every Zircuit peer reject the handshake and leaves op-reth at **0 peers**.
 
 ## Start
 
@@ -39,6 +43,10 @@ Pre-Conduit Liquify lz4 snapshots (`zircuit-snapshot.liquify.com`) target **lega
 ## Testnet (Garfield)
 
 Chain ID **48898**. Conduit slug **`zircuit-garfield-testnet`** (already on Conduit — use to validate before mainnet changes). Refresh `config/` from the Conduit API, set L1 to Sepolia, `SEQUENCER_HTTP=https://garfield-testnet.zircuit.com`, update P2P bootnodes/static peers, and snapshot `gs://conduit-networks-snapshots/zircuit-garfield-testnet/latest.tar`.
+
+## op-reth peers
+
+Conduit publishes op-node bootnodes and static peers but **no Zircuit execution bootnodes**, and `mainnet.zircuit.com` sits behind Cloudflare with `admin_nodeInfo` disabled, so its enode cannot be read. `OP_RETH_BOOTNODES` therefore uses the generic OP Stack mainnet pool as shared-DHT entry points; fork-ID filtering keeps only chain-48900 peers, which requires the correct `bedrockBlock`. If Conduit support hands you a Zircuit enode, add `--trusted-peers=<enode>` to the `zircuit-op-reth` command for a direct connection.
 
 ## Host ports
 
