@@ -51,11 +51,12 @@ if [[ "${CURRENT_ADVERTISE_IP}" != "${PUBLIC_IP}" ]]; then
   echo "set OP_NODE_P2P_ADVERTISE_IP=${PUBLIC_IP} in .env"
 fi
 
-mkdir -p "${HOME}/zircuit-l2-geth-data" "${HOME}/zircuit-op-node-data"
+mkdir -p "${HOME}/zircuit-op-reth-data" "${HOME}/zircuit-op-node-data"
 
 echo ""
 echo "Next:"
-echo "  # set OP_NODE_L1_ETH_RPC, OP_NODE_L1_BEACON, and SEQUENCER_HTTP in .env"
+echo "  # set OP_NODE_L1_ETH_RPC and OP_NODE_L1_BEACON in .env"
+echo "  # optional: SEQUENCER_HTTP with Conduit API key for production"
 echo "  ./create-jwt.sh"
 echo "  ./restore-snapshot.sh   # optional"
 echo "  docker compose up -d"

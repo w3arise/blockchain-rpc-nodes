@@ -1,54 +1,48 @@
 services:
-  zircuit-l2-geth:
-    image: ${L2_GETH_IMAGE}
-    container_name: zircuit-l2-geth
+  zircuit-op-reth:
+    image: ${OP_RETH_IMAGE}
+    container_name: zircuit-op-reth
     platform: linux/amd64
-    entrypoint: ["/bin/sh", "-c", "exec geth \"$$@\"", "--"]
+    entrypoint: ["op-reth"]
     command:
+      - node
+      - --chain=/config/genesis.json
+      - --storage.v2
       - --datadir=/data
-      - --db.engine=pebble
-      - --gcmode=full
-      - --maxpeers=50
-      - --network=mainnet
-      - --nodiscover
-      - --rpc.gascap=${GAS_CAP}
-      - --rpc.txfeecap=0
-      - --txlookuplimit=0
-      - --state.scheme=hash
-      - --syncmode=full
+      - --rollup.sequencer=${SEQUENCER_HTTP}
+      - --rollup.historicalrpc=${SEQUENCER_HTTP}
+      - --rollup.disable-tx-pool-gossip
       - --http
       - --http.addr=0.0.0.0
       - --http.port=8545
-      - --http.api=eth,net,web3,debug,admin,txpool,engine
-      - --http.vhosts=*
+      - --http.api=web3,debug,eth,txpool,net,trace
+      - --http.corsdomain=*
       - --ws
       - --ws.addr=0.0.0.0
       - --ws.port=8546
-      - --ws.api=eth,net,web3,debug,admin,txpool,engine
+      - --ws.api=web3,debug,eth,txpool,net,trace
       - --ws.origins=*
       - --authrpc.addr=0.0.0.0
-      - --authrpc.port=8551
+      - --authrpc.port=9551
       - --authrpc.jwtsecret=/config/jwt.hex
-      - --authrpc.vhosts=*
-    environment:
-      GETH_ROLLUP_DISABLETXPOOLGOSSIP: "true"
-      GETH_ROLLUP_SEQUENCERHTTP: ${SEQUENCER_HTTP}
-      GETH_TXPOOL_GLOBALQUEUE: "1024"
-      ZIRCUIT_NETWORK: mainnet
+      - --rpc.gascap=${GAS_CAP}
+      - --nat=extip:${EXT_IP}
+      - --port=${P2P_PORT}
+      - --discovery.addr=0.0.0.0
+      - --discovery.port=${P2P_PORT}
+      - --discovery.v5.port=${P2P_PORT}
     volumes:
-      - ${HOST_DATADIR:-$HOME/zircuit-l2-geth-data}:/data
+      - ${HOST_DATADIR:-$HOME/zircuit-op-reth-data}:/data
       - ./config:/config:ro
     ports:
       - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
       - ${RPC_BIND_ADDR}:${WS_PORT}:8546
-    ulimits:
-      nofile:
-        soft: 1048576
-        hard: 1048576
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
-    stop_grace_period: 5m
+    stop_grace_period: 120s
     networks:
       - zircuit-network
 
@@ -60,7 +54,7 @@ services:
       - op-node
     env_file: .env
     depends_on:
-      zircuit-l2-geth:
+      zircuit-op-reth:
         condition: service_started
     volumes:
       - ${HOST_OP_NODE_DATADIR:-$HOME/zircuit-op-node-data}:/data

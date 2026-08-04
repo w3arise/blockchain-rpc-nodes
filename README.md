@@ -68,6 +68,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | XDC                 | `xdc/`         | L1                                  | XDPoSChain (hash-full)                    | [README](xdc/README.md)         |
 | XLayer              | `xlayer/`      | L2 (OP Stack)                       | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md)      |
 | XLayer (op-reth)    | `xlayer-reth/` | L2 (OP Stack)                       | xlayer-reth + op-node                     | [README](xlayer-reth/README.md) |
+| Zircuit             | `zircuit/`     | L2 (OP Stack / Conduit)             | op-reth + op-node                         | [README](zircuit/README.md)     |
 
 
 ## Planned
@@ -86,7 +87,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Nexon Henesys     | L2                    | —                |
 | Scroll            | L2 (ZK)               | —                |
 | Superseed         | L2 (OP Stack)         | —                |
-| Zircuit           | L2 (ZK)               | —                |
 
 
 ## Quick Start

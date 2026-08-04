@@ -1,40 +1,45 @@
-# Zircuit (l2-geth + op-node)
+# Zircuit (op-reth + op-node)
 
-Mainnet OP Stack L2 replica (Zircuit `l2-geth`). Chain data: `$HOME/zircuit-l2-geth-data`, `$HOME/zircuit-op-node-data`.
+Mainnet OP Stack L2 on **Conduit** infrastructure (chain ID **48900**). Chain data: `$HOME/zircuit-op-reth-data`, `$HOME/zircuit-op-node-data`.
 
-**Pruning mode:** l2-geth **hash full** (`--gcmode=full`, `--state.scheme=hash`, `--txlookuplimit=0`) — full block, receipt, and log history; historical state is pruned. For historical `eth_call` / proofs, use `--gcmode=archive` and `OP_NODE_SYNCMODE=execution-layer` instead (much larger disk).
+**Migration (Aug 2026):** Zircuit mainnet moved from `zircuit1/l2-geth` + `bootstrap.mainnet.zircuit.com` to Conduit. Legacy Zircuit node software and docs are **not maintained** for mainnet — use this setup. Wipe pre-migration `l2-geth` datadirs; op-reth uses a new layout.
+
+**Pruning mode:** op-reth **archive** (no `--full` / `--prune.*` flags) — full block, receipt, and log history plus historical state.
 
 ## Start
 
 ```bash
 ./configure.sh          # .env + EXT_IP / P2P advertise IP
-# set OP_NODE_L1_ETH_RPC, OP_NODE_L1_BEACON, and SEQUENCER_HTTP in .env
+# set OP_NODE_L1_ETH_RPC and OP_NODE_L1_BEACON in .env
 ./create-jwt.sh
-./restore-snapshot.sh   # optional; skip to sync from P2P (slow)
+./restore-snapshot.sh   # optional
 docker compose up -d
 ```
 
 When L1 runs on the Docker host, `host.docker.internal` works for L1 URLs (compose sets `extra_hosts`).
 
+Refresh `config/genesis.json` and `config/rollup.json` from the [Conduit API](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes) (slug **`zircuit-mainnet`**) after network upgrades.
+
 ## Snapshot
 
-Liquify lz4 tarballs (~300–400 GB compressed; growing). Restore into `$HOME/zircuit-l2-geth-data`:
+Conduit requester-pays GCS (optional):
 
 ```bash
+# set GCP_PROJECT in .env first
 ./restore-snapshot.sh
 docker compose up -d
 ```
 
-Manual: [Run Zircuit — snapshots](https://docs.zircuit.com/build/start/run-zircuit#snapshots) · `https://zircuit-snapshot.liquify.com/files/mainnet/`
+Manual: `gs://conduit-networks-snapshots/zircuit-mainnet/latest.tar` into `$HOME/zircuit-op-reth-data`. See [Conduit OP Stack nodes](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes).
 
-Staging uses `$HOME/zircuit-snapshot-tmp` (override with `SNAPSHOT_TMPDIR`). Requires `lz4`; `aria2c` strongly recommended.
+Pre-Conduit Liquify lz4 snapshots (`zircuit-snapshot.liquify.com`) target **legacy l2-geth** datadirs and are **not** compatible with this op-reth setup.
 
 ## Testnet (Garfield)
 
-Chain ID **48898**. Refresh image tags from [Zircuit docs](https://docs.zircuit.com/build/start/run-zircuit), set `OP_NODE_NETWORK` / `ZIRCUIT_NETWORK` to `garfield-testnet`, point L1 at Sepolia, and use `SNAPSHOT_BASE=https://zircuit-snapshot.liquify.com/files/garfield-testnet`.
+Chain ID **48898**. Conduit slug **`zircuit-garfield-testnet`** (already on Conduit — use to validate before mainnet changes). Refresh `config/` from the Conduit API, set L1 to Sepolia, `SEQUENCER_HTTP=https://garfield-testnet.zircuit.com`, update P2P bootnodes/static peers, and snapshot `gs://conduit-networks-snapshots/zircuit-garfield-testnet/latest.tar`.
 
 ## Host ports
 
-When running a public replica, allow inbound P2P on **TCP + UDP** for `OP_NODE_P2P_PORT` (default **18688**). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`). l2-geth uses `--nodiscover` (no execution-layer P2P).
+When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (op-reth, default **11588**) and `OP_NODE_P2P_PORT` (op-node, default **9222**). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
 
-Docs: [Run Zircuit](https://docs.zircuit.com/build/start/run-zircuit) · [zircuit-labs/l2-geth-public](https://github.com/zircuit-labs/l2-geth-public)
+Docs: [Conduit — Run an OP Stack node](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes) · [Zircuit RPCs](https://docs.zircuit.com/infra/rpcs) · [Conduit Hub](https://hub.conduit.xyz/)
