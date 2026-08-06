@@ -37,7 +37,11 @@ def make_token():
 
 def rpc(url, method, params, token=None):
     body = json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params}).encode()
-    headers = {"Content-Type": "application/json"}
+    headers = {
+        "Content-Type": "application/json",
+        # AltLayer public RPC returns 403 for Python-urllib's default User-Agent.
+        "User-Agent": "curl/8.5.0",
+    }
     if token:
         headers["Authorization"] = "Bearer " + token
     req = urllib.request.Request(url, data=body, headers=headers)
