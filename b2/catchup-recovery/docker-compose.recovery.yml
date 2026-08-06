@@ -1,0 +1,12 @@
+# Temporary override: publish Engine API on localhost for catch-up scripts.
+# Do not leave this running in production — tear down after set_labels.py.
+#
+# From b2/:
+#   docker compose -f docker-compose.yml -f catchup-recovery/docker-compose.recovery.yml up -d b2-op-geth
+#   # ... run catchup-recovery/*.py ...
+#   docker compose up -d
+
+services:
+  b2-op-geth:
+    ports:
+      - 127.0.0.1:8551:8551

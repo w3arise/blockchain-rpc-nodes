@@ -23,6 +23,7 @@ hyperliquid/
 mantle/
 henesys/
 megaeth/
+hedera/
 
 # Hyperliquid
 override_gossip_config.json
@@ -31,3 +32,4 @@ override_gossip_config.json
 target/
 target-native/
 .dockerignore
+!hedera/.dockerignore

@@ -42,8 +42,12 @@ Default is archive (`GC_MODE=archive`, `GETH_SYNC_MODE=full`) for historical sta
 
 Pinned client (`op-geth:v1.101315.2`) supports PathDB via `--state.scheme=path`, but official snapshots and `gcmode=archive` use **HashDB**; this setup initializes with `--state.scheme=hash`.
 
+## Catch-up recovery (expired Hub blobs)
+
+If `op-node` stalls with `failed to fetch blobs` after a long outage or an old snapshot restore, see [catchup-recovery/](catchup-recovery/).
+
 ## Testnet
 
 Not packaged. Upstream has a small `testnet/` prefix on the same COS bucket and [snap-sync from scratch](https://docs.bsquared.network/for-developers/deploy_a_node_from_scratch) notes.
 
-Docs: [rollup node](https://docs.bsquared.network/for-developers/running_rollup_node) · [archive node](https://docs.bsquared.network/for-developers/running_rollup_archive_node) · [b2network/docs](https://github.com/b2network/docs)
+Docs: [rollup node](https://docs.bsquared.network/for-developers/running_rollup_node) · [archive node](https://docs.bsquared.network/for-developers/running_rollup_archive_node) · [catch-up recovery](https://docs.bsquared.network/for-developers/b2_op-geth_catchup_recovery) · [b2network/docs](https://github.com/b2network/docs)
