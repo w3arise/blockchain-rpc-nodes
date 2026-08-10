@@ -20,11 +20,21 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
    ./configure.sh
    ```
 
-   Edit `.env`: set `GCP_PROJECT_ID`, `GCP_ACCESS_KEY`, and `GCP_SECRET_KEY`. To submit transactions, also set a funded `OPERATOR_ID_MAIN` and its `OPERATOR_KEY_MAIN`; otherwise set `READ_ONLY=true`. Rerun `./configure.sh` after editing.
+   Then edit `.env` and rerun `./configure.sh`:
 
-   `configure.sh` generates the PostgreSQL role passwords once, fetches stock `config/init.sh` for `MIRROR_NODE_VERSION` from the Hiero Mirror Node tag (gitignored), and copies `.env` into `secrets-backups/` whenever it generates new secrets, then pauses for confirmation. Those passwords are applied on first Postgres start (`init.sh` via `docker-entrypoint-initdb.d`); if `.env` is lost afterward and regenerated, the new passwords won't match the existing database and every service will fail to authenticate. Copy the backup file to secure, offline storage before continuing.
+   - Set `GCP_PROJECT_ID`, `GCP_ACCESS_KEY`, and `GCP_SECRET_KEY` (required for download + live importer).
+   - To allow `eth_sendRawTransaction`: set a funded `OPERATOR_ID_MAIN` and `OPERATOR_KEY_MAIN` (relay submits via that Hedera account).
+   - Read-only RPC (no TX send): set `READ_ONLY=true` instead.
 
-3. Confirm the available export and version, then download the minimal mainnet database:
+   What `configure.sh` also does:
+
+   - Generates PostgreSQL role passwords once (replaces `GENERATE` in `.env`).
+   - Fetches stock `config/init.sh` for `MIRROR_NODE_VERSION` from the matching Hiero Mirror Node tag (gitignored).
+   - When new secrets are generated: copies `.env` to `secrets-backups/` and pauses for confirmation.
+
+   Those DB passwords are written into Postgres on **first** start (`init.sh` via `docker-entrypoint-initdb.d`). If `.env` is lost and `configure.sh` regenerates new passwords later, they will **not** match the existing database — restore a backup, reset roles manually, or wipe and re-bootstrap. Copy the backup file to secure offline storage before continuing.
+
+3. Confirm the available export and version, then download the minimal mainnet database (see [Database bootstrap](#database-bootstrap) for Atma vs full export, sizing, and size-check commands):
 
    ```bash
    ./bootstrap.sh list
@@ -32,6 +42,8 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
    ```
 
    `MIRROR_NODE_VERSION` must match the selected export's `MIRRORNODE_VERSION.gz`. The initial importer must run that same version.
+
+   If you cannot store the minimal export, use [Partial history](#partial-history-skip-the-backfill) instead (`./bootstrap.sh download-schema` — sync from ~now, no CSV backfill).
 
 4. Initialize PostgreSQL and import the export:
 
@@ -72,28 +84,59 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
 
 ## Database bootstrap
 
-The official requester-pays export is downloaded from `gs://mirrornode-db-export/MAINNET/<version>/`. Downloads use `$HOME/hedera-bootstrap-data`, never `/tmp`.
+### Source
 
-The minimal mainnet export excludes `*_atma.csv.gz` bulk data. It retains the remaining historical transaction, receipt, and log data, but queries involving omitted Atma traffic are not complete. Use the full export instead if every Atma record is required.
+Requester-pays export: `gs://mirrornode-db-export/MAINNET/<version>/`.
 
-Upstream sizing for a busy full-history Mirror Node is PostgreSQL 16+, about 10 vCPU, 40 GiB RAM, and 1–55 TiB depending on retained history; Hedera's operator guide warns that complete mainnet history can require roughly 50 TiB. Check the actual size for the current export before downloading:
+Downloads go under `$HOME/hedera-bootstrap-data` — never `/tmp`.
+
+### Minimal vs full export (Atma)
+
+This setup’s `./bootstrap.sh download` uses the **minimal** mainnet export: it skips `*_atma.csv.gz`.
+
+**What is Atma?** [atma.io](https://hedera.com/blog/avery-dennisons-atma-io-connected-product-cloud-to-utilize-the-hedera-network-to-account-for-carbon-emissions-of-billions-of-unique-items/) (Avery Dennison) — connected-product / carbon-accounting traffic on Hedera, a very large share of mainnet volume. Hedera splits that history into separate `*_atma.csv.gz` files so operators can bootstrap without those rows.
+
+| Mode | How | History | What’s missing | Compressed download (approx.) | After Postgres import |
+| --- | --- | --- | --- | --- | --- |
+| **Minimal (default)** | `./bootstrap.sh download` | Full timeline of non-Atma txs / receipts / logs | Atma bulk rows only | ~1.2 TiB for `0.156.0` (measure with the size check below) | Often ~2–4+ TiB; leave headroom — larger than the `.csv.gz` download (indexes, WAL) |
+| **Full (with Atma)** | Same GCS rsync **without** the Atma exclude | Complete mainnet history including Atma | Nothing from the export | Multi‑TiB larger than minimal (`du -s` on the folder) | Can approach the upstream ~tens of TiB / ~50 TiB class |
+| **Schema-only** | `./bootstrap.sh download-schema` | From ~now forward only | All history before start | Kilobytes | Small; grows with live catch-up |
+
+Minimal is still **full history without Atma** — not a tip-only snapshot. Enough for typical EVM / log RPC. Use full export only if you need Atma’s historical records; use schema-only only if you cannot store the minimal download.
+
+### Hardware (upstream guide)
+
+For a busy Mirror Node: PostgreSQL 16+, ~10 vCPU, ~40 GiB RAM. Disk **1–55 TiB** depending on retention; complete mainnet (with Atma-scale data) can approach ~50 TiB. Skipping Atma puts you on the **low end** of that band, but still plan **several TiB** free for the DB volume after a minimal import — not just the ~1.2 TiB download.
+
+### Check export size before download
+
+Full folder (includes Atma — larger than what we download):
 
 ```bash
 gcloud storage du -s --readable-sizes --billing-project=<GCP_PROJECT_ID> \
   gs://mirrornode-db-export/MAINNET/<version>/
 ```
 
-### Partial history (skip the full backfill)
-
-If you don't have room for the full (still multi-TiB) minimal export, you can skip historical backfill entirely and start the Mirror Node from ~now instead. This sacrifices this repo's usual historical-logs goal in exchange for a much smaller disk footprint — only use this if recent-forward data is acceptable for your use case.
+What `./bootstrap.sh download` actually pulls (excludes `*_atma.csv.gz`):
 
 ```bash
-./bootstrap.sh download-schema   # fetches only schema.sql.gz + MIRRORNODE_VERSION.gz, not the CSV data
-./bootstrap.sh init
-./bootstrap.sh start-mirror       # no ./bootstrap.sh import step — the DB starts empty
+gcloud storage ls -l --billing-project=<GCP_PROJECT_ID> \
+  gs://mirrornode-db-export/MAINNET/<version>/** \
+  | grep -v '_atma\.csv\.gz' \
+  | awk '$1 ~ /^[0-9]+$/ {sum += $1} END {printf "%.2f GiB\n", sum/1024/1024/1024}'
 ```
 
-This works because `hiero.mirror.importer.startDate` defaults to "now" when it's unset and the database is empty, so the importer syncs forward from the live record/block stream instead of backfilling. `./bootstrap.sh import` and `status`/`watch` are not used in this path; `start-mirror`/`start-relay` detect schema-only mode automatically and skip the historical-import completeness check.
+### Partial history (skip the backfill)
+
+If you cannot store the minimal export, skip historical CSV import and sync forward from ~now. You lose this repo’s usual genesis-history logs goal.
+
+```bash
+./bootstrap.sh download-schema   # schema.sql.gz + MIRRORNODE_VERSION.gz only
+./bootstrap.sh init
+./bootstrap.sh start-mirror      # no import — empty DB, catch up from live streams
+```
+
+`hiero.mirror.importer.startDate` defaults to “now” when unset and the DB is empty. Skip `import` / `status` / `watch`; `start-mirror` / `start-relay` detect schema-only mode automatically.
 
 ## State retention
 
