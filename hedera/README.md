@@ -6,7 +6,7 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
 
 ## Start
 
-1. Install Docker, `gcloud`, `jq`, and `gzip`. Authenticate a GCP project with billing enabled:
+1. **Install prerequisites.** Install Docker, `gcloud`, `jq`, and `gzip`. Authenticate a GCP project with billing enabled:
 
    ```bash
    gcloud auth login
@@ -14,7 +14,7 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
 
    Create GCP HMAC credentials for the live importer as described in the [GCS mirror-node guide](https://docs.hedera.com/operators/mirror-node/run-your-own/gcs).
 
-2. Create configuration and secrets:
+2. **Create configuration and secrets:**
 
    ```bash
    ./configure.sh
@@ -34,7 +34,7 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
 
    Those DB passwords are written into Postgres on **first** start (`init.sh` via `docker-entrypoint-initdb.d`). If `.env` is lost and `configure.sh` regenerates new passwords later, they will **not** match the existing database — restore a backup, reset roles manually, or wipe and re-bootstrap. Copy the backup file to secure offline storage before continuing.
 
-3. Confirm the available export and version, then download the minimal mainnet database (see [Database bootstrap](#database-bootstrap) for Atma vs full export, sizing, and size-check commands):
+3. **Download the minimal mainnet database.** Confirm the available export and version (see [Database bootstrap](#database-bootstrap) for Atma vs full export, sizing, and size-check commands):
 
    ```bash
    ./bootstrap.sh list
@@ -45,7 +45,7 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
 
    If you cannot store the minimal export, use [Partial history](#partial-history-skip-the-backfill) instead (`./bootstrap.sh download-schema` — sync from ~now, no CSV backfill).
 
-4. Initialize PostgreSQL and import the export:
+4. **Initialize PostgreSQL and import the export:**
 
    ```bash
    ./bootstrap.sh init
@@ -55,7 +55,7 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
 
    `init` starts Postgres (first boot runs `config/init.sh` inside the DB container to create roles), then applies `schema.sql`. The import is resumable: rerun `import` after an interruption. Run `./bootstrap.sh watch` in another terminal for live progress.
 
-   During a large import, Postgres may log `checkpoints are occurring too frequently` and thrash the disk. After `import` has started, raise WAL limits (needs free space on the DB volume — use `64GB` or higher, up to ~`512GB` per Hedera’s restore guide):
+   During a large import, Postgres may log `checkpoints are occurring too frequently` and thrash the disk. After import has started, raise WAL limits (needs free space on the DB volume — try 64GB or higher, up to about 512GB per Hedera's restore guide).
 
    ```bash
    docker exec -i hedera-mirror-db psql -U postgres -c "ALTER SYSTEM SET max_wal_size = '64GB';"
@@ -63,7 +63,7 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
    docker exec -i hedera-mirror-db psql -U postgres -c "SELECT pg_reload_conf();"
    ```
 
-   When import finishes, dial back for steady state (e.g. `max_wal_size = '24GB'`) and run `SELECT pg_reload_conf();` again.
+   When import finishes, dial back for steady state (for example `max_wal_size` to 24GB) and run `SELECT pg_reload_conf();` again.
 
    `docker-entrypoint-initdb.d` only runs on an **empty** datadir. After a failed or partial first start, wipe and retry:
 
@@ -73,7 +73,7 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
    ./bootstrap.sh init
    ```
 
-5. Start the Mirror Node only after every bootstrap file is imported:
+5. **Start the Mirror Node** only after every bootstrap file is imported:
 
    ```bash
    ./bootstrap.sh start-mirror
@@ -81,7 +81,7 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
    docker compose logs -f importer
    ```
 
-6. Once the importer is catching up successfully, start HTTP and WebSocket RPC:
+6. **Start HTTP and WebSocket RPC** once the importer is catching up successfully:
 
    ```bash
    ./bootstrap.sh start-relay
