@@ -45,6 +45,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Fantom (FTM)        | `ftm/`         | L1                                  | go-opera (Sonic)                          | —                               |
 | Gnosis Chain (xDai) | `gnosis/`      | L1                                  | reth_gnosis + lighthouse                  | [README](gnosis/README.md)      |
 | HashKey Chain       | `hashkey/`     | L2 (OP Stack / CGT)                 | op-geth + op-node                         | [README](hashkey/README.md)     |
+| Hedera              | `hedera/`      | L1 (Hashgraph / EVM)                | JSON-RPC Relay + Mirror Node              | [README](hedera/README.md)      |
 | Hemi                | `hemi/`        | L2 (OP Stack / Bitcoin)             | hemi op-geth + op-node + bssd             | [README](hemi/README.md)        |
 | Kaia                | `kaia/`        | L1                                  | ken (Endpoint Node)                       | [README](kaia/README.md)        |
 | Katana              | `katana/`      | L2 (OP Stack / Agglayer CDK)        | conduit-op-reth + op-node                 | [README](katana/README.md)      |
@@ -68,7 +69,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | XDC                 | `xdc/`         | L1                                  | XDPoSChain (hash-full)                    | [README](xdc/README.md)         |
 | XLayer              | `xlayer/`      | L2 (OP Stack)                       | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md)      |
 | XLayer (op-reth)    | `xlayer-reth/` | L2 (OP Stack)                       | xlayer-reth + op-node                     | [README](xlayer-reth/README.md) |
-| Zircuit             | `zircuit/`     | L2 (OP Stack / Conduit)             | op-reth + op-node                         | [README](zircuit/README.md)     |
+| Zircuit             | `zircuit/`     | L2 (OP Stack / Conduit)             | conduit-op-reth + op-node                 | [README](zircuit/README.md)     |
 
 
 ## Planned
@@ -79,14 +80,11 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | 0G                | L1                    | 0g-node + 0g-geth |
 | Astar (L1)        | L1                    | —                |
 | Bittensor         | L1                    | —                |
-| Hedera            | L1                    | —                |
 | Hyperliquid       | L1                    | hl-node (visor)  |
 | Mantle            | L2 (OP Stack)         | mantle-op-geth + mantle-op-node |
-| MegaETH           | L2                    | stateless-validator |
 | Mode              | L2 (OP Stack)         | op-reth + op-node |
 | Nexon Henesys     | L2                    | —                |
 | Scroll            | L2 (ZK)               | —                |
-| Superseed         | L2 (OP Stack)         | —                |
 
 
 ## Quick Start

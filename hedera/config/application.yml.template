@@ -1,0 +1,40 @@
+hiero:
+  mirror:
+    importer:
+      network: MAINNET
+      downloader:
+        cloudProvider: "GCP"
+      db:
+        host: db
+        name: mirror_node
+        owner: mirror_node
+        port: 5432
+        restUsername: mirror_api
+        sslMode: disable
+        username: mirror_importer
+      retention:
+        enabled: false
+    rest:
+      db:
+        host: db
+        name: mirror_node
+        port: 5432
+        sslMode: DISABLE
+        username: mirror_api
+      redis:
+        enabled: true
+        uri: redis://mirror-redis:6379
+    restJava:
+      db:
+        host: db
+        name: mirror_node
+        port: 5432
+        sslMode: DISABLE
+        username: mirror_rest_java
+    web3:
+      db:
+        host: db
+        name: mirror_node
+        port: 5432
+        sslMode: DISABLE
+        username: mirror_web3

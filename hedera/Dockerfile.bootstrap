@@ -1,0 +1,23 @@
+FROM golang:1.25-bookworm AS builder
+
+ARG MIRROR_NODE_VERSION
+
+RUN test -n "${MIRROR_NODE_VERSION}"
+
+WORKDIR /src
+RUN git clone --depth 1 --branch "v${MIRROR_NODE_VERSION}" \
+      https://github.com/hiero-ledger/hiero-mirror-node.git .
+
+WORKDIR /src/tools/bootstrap
+RUN go build -o /bootstrap .
+
+FROM debian:bookworm-slim
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /bootstrap /usr/local/bin/bootstrap
+
+WORKDIR /work
+ENTRYPOINT ["bootstrap"]

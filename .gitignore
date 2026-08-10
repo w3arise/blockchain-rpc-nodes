@@ -22,8 +22,13 @@ logs/
 hyperliquid/
 mantle/
 henesys/
-megaeth/
-hedera/
+
+# Hedera: generated secrets and bootstrap artifacts (not the chain directory itself)
+hedera/bootstrap.env
+hedera/config/application.yml
+hedera/bootstrap-logs/
+hedera/db-export/
+hedera/secrets-backups/
 
 # Hyperliquid
 override_gossip_config.json

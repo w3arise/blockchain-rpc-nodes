@@ -1,0 +1,206 @@
+services:
+  db:
+    image: ${MIRROR_POSTGRES_IMAGE}
+    container_name: hedera-mirror-db
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ${HOST_DB_DATADIR:-$HOME/hedera-postgres-data}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    stop_grace_period: 2m
+    stop_signal: SIGTERM
+    restart: unless-stopped
+    networks:
+      - hedera
+
+  mirror-redis:
+    image: ${MIRROR_REDIS_IMAGE}
+    container_name: hedera-mirror-redis
+    profiles: ["mirror"]
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ${HOST_MIRROR_REDIS_DATADIR:-$HOME/hedera-mirror-redis-data}:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    stop_grace_period: 2m
+    restart: unless-stopped
+    networks:
+      - hedera
+
+  importer:
+    image: gcr.io/mirrornode/hedera-mirror-importer:${MIRROR_NODE_VERSION}
+    container_name: hedera-mirror-importer
+    profiles: ["mirror"]
+    environment:
+      HIERO_MIRROR_IMPORTER_DB_HOST: db
+      HIERO_MIRROR_IMPORTER_DB_OWNERPASSWORD: ${OWNER_PASSWORD}
+      HIERO_MIRROR_IMPORTER_DB_PASSWORD: ${IMPORTER_PASSWORD}
+      HIERO_MIRROR_IMPORTER_DB_RESTPASSWORD: ${REST_PASSWORD}
+      HIERO_MIRROR_IMPORTER_DOWNLOADER_ACCESSKEY: ${GCP_ACCESS_KEY}
+      HIERO_MIRROR_IMPORTER_DOWNLOADER_CLOUDPROVIDER: GCP
+      HIERO_MIRROR_IMPORTER_DOWNLOADER_GCPPROJECTID: ${GCP_PROJECT_ID}
+      HIERO_MIRROR_IMPORTER_DOWNLOADER_SECRETKEY: ${GCP_SECRET_KEY}
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/usr/etc/hiero/
+      SPRING_DATA_REDIS_HOST: mirror-redis
+    volumes:
+      - ./config/application.yml:/usr/etc/hiero/application.yml:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      mirror-redis:
+        condition: service_healthy
+    stop_grace_period: 2m
+    restart: unless-stopped
+    networks:
+      - hedera
+
+  rest:
+    image: gcr.io/mirrornode/hedera-mirror-rest:${MIRROR_NODE_VERSION}
+    container_name: hedera-mirror-rest
+    profiles: ["mirror"]
+    environment:
+      CONFIG_PATH: /usr/etc/hiero/
+      HIERO_MIRROR_REST_DB_HOST: db
+      HIERO_MIRROR_REST_DB_PASSWORD: ${REST_PASSWORD}
+      HIERO_MIRROR_REST_REDIS_URI: redis://mirror-redis:6379
+    volumes:
+      - ./config/application.yml:/usr/etc/hiero/application.yml:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      mirror-redis:
+        condition: service_healthy
+    stop_grace_period: 2m
+    restart: unless-stopped
+    networks:
+      - hedera
+
+  rest-java:
+    image: gcr.io/mirrornode/hedera-mirror-rest-java:${MIRROR_NODE_VERSION}
+    container_name: hedera-mirror-rest-java
+    profiles: ["mirror"]
+    environment:
+      HIERO_MIRROR_RESTJAVA_DB_HOST: db
+      HIERO_MIRROR_RESTJAVA_DB_PASSWORD: ${REST_JAVA_PASSWORD}
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/usr/etc/hiero/
+    volumes:
+      - ./config/application.yml:/usr/etc/hiero/application.yml:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    stop_grace_period: 2m
+    restart: unless-stopped
+    networks:
+      - hedera
+
+  web3:
+    image: gcr.io/mirrornode/hedera-mirror-web3:${MIRROR_NODE_VERSION}
+    container_name: hedera-mirror-web3
+    profiles: ["mirror"]
+    environment:
+      HIERO_MIRROR_WEB3_DB_HOST: db
+      HIERO_MIRROR_WEB3_DB_PASSWORD: ${WEB3_PASSWORD}
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/usr/etc/hiero/
+    volumes:
+      - ./config/application.yml:/usr/etc/hiero/application.yml:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    stop_grace_period: 2m
+    restart: unless-stopped
+    networks:
+      - hedera
+
+  api-proxy:
+    image: ${MIRROR_PROXY_IMAGE}
+    container_name: hedera-mirror-api
+    profiles: ["mirror"]
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - ${RPC_BIND_ADDR}:${MIRROR_API_PORT}:8080
+    depends_on:
+      - rest
+      - rest-java
+      - web3
+    restart: unless-stopped
+    networks:
+      - hedera
+
+  relay-redis:
+    image: ${RELAY_REDIS_IMAGE}
+    container_name: hedera-relay-redis
+    profiles: ["relay"]
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ${HOST_RELAY_REDIS_DATADIR:-$HOME/hedera-relay-redis-data}:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+    networks:
+      - hedera
+
+  relay:
+    image: ghcr.io/hiero-ledger/hiero-json-rpc-relay:${RELAY_VERSION}
+    container_name: hedera-json-rpc-relay
+    profiles: ["relay"]
+    env_file: .env
+    environment:
+      SERVER_HOST: 0.0.0.0
+      MIRROR_NODE_URL: http://api-proxy:8080
+      MIRROR_NODE_URL_WEB3: http://api-proxy:8080
+      REDIS_ENABLED: "true"
+      REDIS_URL: redis://relay-redis:6379
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:7546
+    depends_on:
+      api-proxy:
+        condition: service_started
+      relay-redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - hedera
+
+  relay-ws:
+    image: ghcr.io/hiero-ledger/hiero-json-rpc-relay:${RELAY_VERSION}
+    container_name: hedera-json-rpc-relay-ws
+    profiles: ["relay"]
+    command: ["packages/ws-server/dist/index.js"]
+    env_file: .env
+    environment:
+      WEB_SOCKET_HOST: 0.0.0.0
+      HEALTHCHECK_PORT: 8547
+      SUBSCRIPTIONS_ENABLED: "true"
+      MIRROR_NODE_URL: http://api-proxy:8080
+      MIRROR_NODE_URL_WEB3: http://api-proxy:8080
+      REDIS_ENABLED: "true"
+      REDIS_URL: redis://relay-redis:6379
+    ports:
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR}:${WS_HEALTH_PORT}:8547
+    depends_on:
+      api-proxy:
+        condition: service_started
+      relay-redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - hedera
+
+networks:
+  hedera:
+    name: ${COMPOSE_PROJECT_NAME:-hedera}-network
