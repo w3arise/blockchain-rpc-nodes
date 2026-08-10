@@ -70,6 +70,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | XLayer              | `xlayer/`      | L2 (OP Stack)                       | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md)      |
 | XLayer (op-reth)    | `xlayer-reth/` | L2 (OP Stack)                       | xlayer-reth + op-node                     | [README](xlayer-reth/README.md) |
 | Zircuit             | `zircuit/`     | L2 (OP Stack / Conduit)             | conduit-op-reth + op-node                 | [README](zircuit/README.md)     |
+| Zircuit (legacy)    | `zircuit-legacy/` | L2 (OP Stack, pre-Conduit)       | zircuit1/l2-geth + zircuit1/op-node       | [README](zircuit-legacy/README.md) |
 
 
 ## Planned

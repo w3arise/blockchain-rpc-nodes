@@ -6,7 +6,7 @@ Mainnet OP Stack L2 on **Conduit** infrastructure (chain ID **48900**). Chain da
 
 **Sync mode:** `OP_NODE_SYNCMODE=consensus-layer` — op-node derives from L1 and drives op-reth over the Engine API.
 
-**Migration (Aug 2026):** Zircuit mainnet moved from `zircuit1/l2-geth` + `bootstrap.mainnet.zircuit.com` to Conduit. Legacy Zircuit node software and docs are **not maintained** for mainnet — use this setup. Wipe pre-migration `l2-geth` datadirs; op-reth uses a new layout.
+**Migration (Aug 2026):** Zircuit mainnet moved from `zircuit1/l2-geth` + `bootstrap.mainnet.zircuit.com` to Conduit. Legacy Zircuit node software and docs are **not maintained** for mainnet — use this setup. Wipe pre-migration `l2-geth` datadirs; op-reth uses a new layout. Pre-Conduit **`l2-geth` + Liquify snapshots** are documented in [`../zircuit-legacy/`](../zircuit-legacy/README.md).
 
 **Pruning mode:** op-reth **archive** (no `--full` / `--prune.*` flags) — full block, receipt, and log history plus historical state.
 

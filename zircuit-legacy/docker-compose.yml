@@ -1,0 +1,83 @@
+services:
+  zircuit-mainnet:
+    image: ${L2_GETH_IMAGE}
+    container_name: zircuit-mainnet
+    platform: linux/amd64
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    user: root
+    env_file: .env
+    environment:
+      GETH_ROLLUP_DISABLETXPOOLGOSSIP: "true"
+      GETH_ROLLUP_SEQUENCERHTTP: ${SEQUENCER_HTTP}
+      GETH_TXPOOL_GLOBALQUEUE: "1024"
+      ZIRCUIT_NETWORK: mainnet
+    entrypoint: ["/bin/sh", "-c", "exec geth \"$@\"", "--"]
+    command:
+      - --datadir=/data
+      - --db.engine=pebble
+      - --gcmode=full
+      - --maxpeers=50
+      - --metrics
+      - --metrics.addr=0.0.0.0
+      - --metrics.port=6060
+      - --network=mainnet
+      - --nodiscover
+      - --rpc.gascap=${GAS_CAP}
+      - --rpc.txfeecap=0
+      - --txlookuplimit=0
+      - --state.scheme=hash
+      - --syncmode=full
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.api=eth,net,web3,debug,admin,txpool,engine
+      - --http.port=8545
+      - --http.vhosts=*
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.api=eth,net,web3,debug,admin,txpool,engine
+      - --ws.origins=*
+      - --ws.port=8546
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.jwtsecret=/config/jwt.hex
+      - --authrpc.vhosts=*
+    restart: unless-stopped
+    stop_grace_period: 5m
+    volumes:
+      - ${HOST_DATADIR:-$HOME/zircuit-data}:/data
+      - ./config:/config:ro
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  zircuit-mainnet-node:
+    image: ${OP_NODE_IMAGE}
+    container_name: zircuit-mainnet-node
+    platform: linux/amd64
+    user: root
+    env_file: .env
+    environment:
+      OP_NODE_L1_BEACON: ${ETHEREUM_MAINNET_BEACON_REST}
+      OP_NODE_L1_BEACON_ARCHIVER: ${ETHEREUM_MAINNET_BEACON_ARCHIVER}
+      OP_NODE_L1_ETH_RPC: ${ETHEREUM_MAINNET_EXECUTION_RPC}
+      OP_NODE_L1_RPC_KIND: ${ETHEREUM_MAINNET_EXECUTION_KIND:-basic}
+      OP_NODE_L1_TRUST_RPC: ${ETHEREUM_MAINNET_EXECUTION_TRUST:-false}
+      OP_NODE_P2P_LISTEN_TCP_PORT: ${OP_NODE_P2P_PORT}
+      OP_NODE_P2P_LISTEN_UDP_PORT: ${OP_NODE_P2P_PORT}
+      OP_NODE_P2P_ADVERTISE_IP: ${EXT_IP}
+    entrypoint: [op-node]
+    restart: unless-stopped
+    depends_on:
+      zircuit-mainnet:
+        condition: service_started
+    volumes:
+      - ./config:/config:ro
+    ports:
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
