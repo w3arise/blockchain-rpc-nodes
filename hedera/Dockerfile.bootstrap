@@ -14,7 +14,12 @@ RUN go build -o /bootstrap .
 FROM debian:bookworm-slim
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends ca-certificates \
+  && apt-get install -y --no-install-recommends \
+    bash \
+    ca-certificates \
+    curl \
+    gzip \
+    postgresql-client \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /bootstrap /usr/local/bin/bootstrap

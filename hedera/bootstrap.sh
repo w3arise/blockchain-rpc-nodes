@@ -95,10 +95,15 @@ start_database() {
 }
 
 run_bootstrap() {
+  # Upstream bootstrap always creates logs next to the binary via os.Executable()
+  # (so /usr/local/bin/bootstrap-logs). Bind-mount our host logs dir there so the
+  # non-root --user can write, and tracking/SKIP_DB_INIT land where we expect.
+  mkdir -p "${HOST_BOOTSTRAP_DATADIR}/bootstrap-logs"
   docker run --rm \
     --network "${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
     --volume "${HOST_BOOTSTRAP_DATADIR}:/work" \
+    --volume "${HOST_BOOTSTRAP_DATADIR}/bootstrap-logs:/usr/local/bin/bootstrap-logs" \
     --volume "${BOOTSTRAP_ENV}:/config/bootstrap.env:ro" \
     "${BOOTSTRAP_IMAGE}" "$@"
 }
@@ -155,6 +160,7 @@ case "${command_name}" in
 
   download-schema)
     require_command gcloud
+    require_command gzip
     require_value GCP_PROJECT_ID
     mkdir -p "${EXPORT_DIR}"
     gcloud storage cp \
@@ -163,6 +169,9 @@ case "${command_name}" in
       "gs://mirrornode-db-export/MAINNET/${MIRROR_NODE_VERSION}/schema.sql.gz" \
       "${EXPORT_DIR}/"
     verify_export_version
+    # Upstream init only auto-decompresses schema.sql.gz when manifest.csv is present.
+    # Schema-only has no manifest, so decompress here for database.Initialize().
+    gzip -dc "${EXPORT_DIR}/schema.sql.gz" > "${EXPORT_DIR}/schema.sql"
     touch "${SCHEMA_ONLY_MARKER}"
     echo "downloaded schema only (no historical CSV data)"
     echo "next: ./bootstrap.sh init, then ./bootstrap.sh start-mirror (skips the import step)"
