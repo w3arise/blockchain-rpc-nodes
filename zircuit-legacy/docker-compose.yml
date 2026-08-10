@@ -46,7 +46,7 @@ services:
     restart: unless-stopped
     stop_grace_period: 5m
     volumes:
-      - ${HOST_DATADIR:-$HOME/zircuit-data}:/data
+      - ${HOST_DATADIR:-$HOME/zircuit-historical-data}:/data
       - ./config:/config:ro
     ports:
       - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545

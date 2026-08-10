@@ -45,7 +45,7 @@ else
   echo "EXT_IP already set to ${PUBLIC_IP}"
 fi
 
-mkdir -p "${HOME}/zircuit-data"
+mkdir -p "${HOME}/zircuit-historical-data"
 
 if [[ ! -f "${SCRIPT_DIR}/config/jwt.hex" ]]; then
   "${SCRIPT_DIR}/create-jwt.sh"

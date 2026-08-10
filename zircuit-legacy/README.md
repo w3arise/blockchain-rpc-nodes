@@ -1,6 +1,6 @@
 # Zircuit legacy (l2-geth + op-node)
 
-Pre-Conduit mainnet OP Stack L2 (**chain ID 48900**) on **`zircuit1/l2-geth`** + **`zircuit1/op-node`**. Chain data: `$HOME/zircuit-data`.
+Pre-Conduit mainnet OP Stack L2 (**chain ID 48900**) on **`zircuit1/l2-geth`** + **`zircuit1/op-node`**. Chain data: `$HOME/zircuit-historical-data`.
 
 **Deprecated for current mainnet.** Zircuit migrated to Conduit in Aug 2026 — use [`../zircuit/`](../zircuit/) for new mainnet nodes. Keep this setup only if you already have a legacy l2-geth datadir or Liquify snapshot.
 
@@ -10,7 +10,7 @@ Pre-Conduit mainnet OP Stack L2 (**chain ID 48900**) on **`zircuit1/l2-geth`** +
 
 ```bash
 ./configure.sh
-# restore external snapshot into $HOME/zircuit-data — see Snapshot
+# restore external snapshot into $HOME/zircuit-historical-data — see Snapshot
 docker compose up -d
 ```
 
@@ -18,7 +18,7 @@ When L1 runs on the Docker host, `host.docker.internal` works for L1 URLs (compo
 
 ## Snapshot
 
-This setup expects an **external Liquify lz4 snapshot** restored into `$HOME/zircuit-data` before first start. Conduit op-reth snapshots are **not** compatible.
+This setup expects an **external Liquify lz4 snapshot** restored into `$HOME/zircuit-historical-data` before first start. Conduit op-reth snapshots are **not** compatible.
 
 Latest mainnet snapshot name:
 
@@ -26,7 +26,7 @@ Latest mainnet snapshot name:
 curl -sS https://zircuit-snapshot.liquify.com/files/mainnet/latest_compressed_zircuit.txt
 ```
 
-Download from `https://zircuit-snapshot.liquify.com/files/mainnet/<snapshot>.tar.lz4` (verify with the matching `.sha256`). Extract/decompress into `$HOME/zircuit-data` using the layout expected by l2-geth.
+Download from `https://zircuit-snapshot.liquify.com/files/mainnet/<snapshot>.tar.lz4` (verify with the matching `.sha256`). Extract/decompress into `$HOME/zircuit-historical-data` using the layout expected by l2-geth.
 
 Docs: [Run Zircuit](https://docs.zircuit.com/build/start/run-zircuit).
 
