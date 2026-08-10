@@ -9,7 +9,7 @@ services:
       - --chain=/config/genesis.json
       - --datadir=/data
       - --rollup.sequencer=${SEQUENCER_HTTP}
-      - --rollup.historicalrpc=${SEQUENCER_HTTP}
+      - --rollup.historicalrpc=${HISTORICAL_RPC}
       - --rollup.disable-tx-pool-gossip
       - --http
       - --http.addr=0.0.0.0

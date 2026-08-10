@@ -16,7 +16,7 @@ Mainnet OP Stack L2 on **Conduit** infrastructure (chain ID **48900**). Chain da
 failed to find the L2 Heads to start from: ... could not get payload: not found
 ```
 
-Blocks `0`–`32956468` are not derivable from L1 under this rollup config, so **the Conduit snapshot is required** — an empty datadir cannot bootstrap. `--rollup.historicalrpc` proxies pre-anchor queries to `SEQUENCER_HTTP`.
+Blocks `0`–`32956468` are not derivable from L1 under this rollup config, so **the Conduit snapshot is required** — an empty datadir cannot bootstrap. `--rollup.historicalrpc` proxies pre-anchor queries to **`HISTORICAL_RPC`** (default: public RPC; set to `http://host.docker.internal:11565` when running [`../zircuit-legacy/`](../zircuit-legacy/README.md) locally).
 
 ## Start
 
