@@ -6,91 +6,106 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
 
 ## Start
 
-1. **Install prerequisites.** Install Docker, `gcloud`, `jq`, and `gzip`. Authenticate a GCP project with billing enabled:
+### 1. Install prerequisites
 
-   ```bash
-   gcloud auth login
-   ```
+Install Docker, `gcloud`, `jq`, and `gzip`. Authenticate a GCP project with billing enabled:
 
-   Create GCP HMAC credentials for the live importer as described in the [GCS mirror-node guide](https://docs.hedera.com/operators/mirror-node/run-your-own/gcs).
+```bash
+gcloud auth login
+```
 
-2. **Create configuration and secrets:**
+Create GCP HMAC credentials for the live importer as described in the [GCS mirror-node guide](https://docs.hedera.com/operators/mirror-node/run-your-own/gcs).
 
-   ```bash
-   ./configure.sh
-   ```
+### 2. Create configuration and secrets
 
-   Then edit `.env` and rerun `./configure.sh`:
+```bash
+./configure.sh
+```
 
-   - Set `GCP_PROJECT_ID`, `GCP_ACCESS_KEY`, and `GCP_SECRET_KEY` (required for download + live importer).
-   - To allow `eth_sendRawTransaction`: set a funded `OPERATOR_ID_MAIN` and `OPERATOR_KEY_MAIN` (relay submits via that Hedera account).
-   - Read-only RPC (no TX send): set `READ_ONLY=true` instead.
+Then edit `.env` and rerun `./configure.sh`:
 
-   What `configure.sh` also does:
+- Set `GCP_PROJECT_ID`, `GCP_ACCESS_KEY`, and `GCP_SECRET_KEY` (required for download + live importer).
+- To allow `eth_sendRawTransaction`: set a funded `OPERATOR_ID_MAIN` and `OPERATOR_KEY_MAIN` (relay submits via that Hedera account).
+- Read-only RPC (no TX send): set `READ_ONLY=true` instead.
 
-   - Generates PostgreSQL role passwords once (replaces `GENERATE` in `.env`).
-   - Fetches stock `config/init.sh` for `MIRROR_NODE_VERSION` from the matching Hiero Mirror Node tag (gitignored).
-   - When new secrets are generated: copies `.env` to `secrets-backups/` and pauses for confirmation.
+What `configure.sh` also does:
 
-   Those DB passwords are written into Postgres on **first** start (`init.sh` via `docker-entrypoint-initdb.d`). If `.env` is lost and `configure.sh` regenerates new passwords later, they will **not** match the existing database — restore a backup, reset roles manually, or wipe and re-bootstrap. Copy the backup file to secure offline storage before continuing.
+- Generates PostgreSQL role passwords once (replaces `GENERATE` in `.env`).
+- Fetches stock `config/init.sh` for `MIRROR_NODE_VERSION` from the matching Hiero Mirror Node tag (gitignored).
+- When new secrets are generated: copies `.env` to `secrets-backups/` and pauses for confirmation.
 
-3. **Download the minimal mainnet database.** Confirm the available export and version (see [Database bootstrap](#database-bootstrap) for Atma vs full export, sizing, and size-check commands):
+Those DB passwords are written into Postgres on **first** start (`init.sh` via `docker-entrypoint-initdb.d`). If `.env` is lost and `configure.sh` regenerates new passwords later, they will **not** match the existing database — restore a backup, reset roles manually, or wipe and re-bootstrap. Copy the backup file to secure offline storage before continuing.
 
-   ```bash
-   ./bootstrap.sh list
-   ./bootstrap.sh download
-   ```
+### 3. Download the minimal mainnet database
 
-   `MIRROR_NODE_VERSION` must match the selected export's `MIRRORNODE_VERSION.gz`. The initial importer must run that same version.
+Confirm the available export and version (see [Database bootstrap](#database-bootstrap) for Atma vs full export, sizing, and size-check commands):
 
-   If you cannot store the minimal export, use [Partial history](#partial-history-skip-the-backfill) instead (`./bootstrap.sh download-schema` — sync from ~now, no CSV backfill).
+```bash
+./bootstrap.sh list
+./bootstrap.sh download
+```
 
-4. **Initialize PostgreSQL and import the export:**
+`MIRROR_NODE_VERSION` must match the selected export's `MIRRORNODE_VERSION.gz`. The initial importer must run that same version.
 
-   ```bash
-   ./bootstrap.sh init
-   ./bootstrap.sh import
-   ./bootstrap.sh status
-   ```
+If you cannot store the minimal export, use [Partial history](#partial-history-skip-the-backfill) instead (`./bootstrap.sh download-schema` — sync from ~now, no CSV backfill).
 
-   `init` starts Postgres (first boot runs `config/init.sh` inside the DB container to create roles), then applies `schema.sql`. The import is resumable: rerun `import` after an interruption. Run `./bootstrap.sh watch` in another terminal for live progress.
+### 4. Initialize PostgreSQL and import the export
 
-   During a large import, Postgres may log `checkpoints are occurring too frequently` and thrash the disk. After import has started, raise WAL limits (needs free space on the DB volume — try 64GB or higher, up to about 512GB per Hedera's restore guide).
+```bash
+./bootstrap.sh init
+./bootstrap.sh import
+./bootstrap.sh status
+```
 
-   ```bash
-   docker exec -i hedera-mirror-db psql -U postgres -c "ALTER SYSTEM SET max_wal_size = '64GB';"
-   docker exec -i hedera-mirror-db psql -U postgres -c "ALTER SYSTEM SET checkpoint_timeout = '30min';"
-   docker exec -i hedera-mirror-db psql -U postgres -c "SELECT pg_reload_conf();"
-   ```
+`init` starts Postgres (first boot runs `config/init.sh` inside the DB container to create roles), then applies `schema.sql`. The import is resumable: rerun `import` after an interruption. Run `./bootstrap.sh watch` in another terminal for live progress.
 
-   When import finishes, dial back for steady state (for example `max_wal_size` to 24GB) and run `SELECT pg_reload_conf();` again.
+During a large import, Postgres may log `checkpoints are occurring too frequently` and thrash the disk. Steady-state `max_wal_size=24GB` is already set via compose (`PG_*` in `.env`); only if checkpoints are still a problem, temporarily raise WAL with `ALTER SYSTEM` (needs free space on the DB volume — try 64GB or higher, up to about 512GB per Hedera's restore guide):
 
-   `docker-entrypoint-initdb.d` only runs on an **empty** datadir. After a failed or partial first start, wipe and retry:
+```bash
+docker exec -i hedera-mirror-db psql -U postgres -c "ALTER SYSTEM SET max_wal_size = '64GB';"
+docker exec -i hedera-mirror-db psql -U postgres -c "ALTER SYSTEM SET checkpoint_timeout = '30min';"
+docker exec -i hedera-mirror-db psql -U postgres -c "SELECT pg_reload_conf();"
+```
 
-   ```bash
-   docker compose down
-   rm -rf "$HOME/hedera-postgres-data"/* "$HOME/hedera-bootstrap-data/bootstrap-logs/SKIP_DB_INIT"
-   ./bootstrap.sh init
-   ```
+**If you ran those `ALTER SYSTEM` commands**, undo them after import so compose `-c` flags take effect again (`ALTER SYSTEM` writes `postgresql.auto.conf`, which overrides compose even after container restart):
 
-5. **Start the Mirror Node** only after every bootstrap file is imported:
+```bash
+docker exec -i hedera-mirror-db psql -U postgres -c "ALTER SYSTEM RESET max_wal_size;"
+docker exec -i hedera-mirror-db psql -U postgres -c "SELECT pg_reload_conf();"
+```
 
-   ```bash
-   ./bootstrap.sh start-mirror
-   curl -s http://127.0.0.1:8080/api/v1/blocks?limit=1
-   docker compose logs -f importer
-   ```
+**If you never raised WAL during import**, skip the reset — compose already applies `max_wal_size=24GB`.
 
-6. **Start HTTP and WebSocket RPC** once the importer is catching up successfully:
+`docker-entrypoint-initdb.d` only runs on an **empty** datadir. After a failed or partial first start, wipe and retry:
 
-   ```bash
-   ./bootstrap.sh start-relay
-   curl -s http://127.0.0.1:7546 \
-     -H 'Content-Type: application/json' \
-     -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}'
-   ```
+```bash
+docker compose down
+rm -rf "$HOME/hedera-postgres-data"/* "$HOME/hedera-bootstrap-data/bootstrap-logs/SKIP_DB_INIT"
+./bootstrap.sh init
+```
 
-   HTTP RPC is `127.0.0.1:7546`, WebSocket RPC is `127.0.0.1:8546`, and the local Mirror REST API is `127.0.0.1:8080`.
+### 5. Start the Mirror Node
+
+Only after every bootstrap file is imported:
+
+```bash
+./bootstrap.sh start-mirror
+curl -s http://127.0.0.1:8080/api/v1/blocks?limit=1
+docker compose logs -f importer
+```
+
+### 6. Start HTTP and WebSocket RPC
+
+Once the importer is catching up successfully:
+
+```bash
+./bootstrap.sh start-relay
+curl -s http://127.0.0.1:7546 \
+  -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}'
+```
+
+HTTP RPC is `127.0.0.1:7546`, WebSocket RPC is `127.0.0.1:8546`, and the local Mirror REST API is `127.0.0.1:8080`.
 
 ## Database bootstrap
 
@@ -117,6 +132,8 @@ Minimal is still **full history without Atma** — not a tip-only snapshot. Enou
 ### Hardware (upstream guide)
 
 For a busy Mirror Node: PostgreSQL 16+, ~10 vCPU, ~40 GiB RAM. Disk **1–55 TiB** depending on retention; complete mainnet (with Atma-scale data) can approach ~50 TiB. Skipping Atma puts you on the **low end** of that band, but still plan **several TiB** free for the DB volume after a minimal import — not just the ~1.2 TiB download.
+
+Steady-state Postgres tuning from the [Mirror Node database guide](https://github.com/hiero-ledger/hiero-mirror-node/blob/v0.156.0/docs/database/README.md) lives in `config/postgresql.conf` and is applied by the `db` service in `docker-compose.yml` (`max_wal_size=24GB`, `checkpoint_timeout=30min`, etc.). Recreate the DB container to pick up changes (`docker compose up -d db`). Temporary import-time WAL bumps stay manual — see [step 4](#4-initialize-postgresql-and-import-the-export).
 
 ### Check export size before download
 
