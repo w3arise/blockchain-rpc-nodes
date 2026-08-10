@@ -19,7 +19,7 @@ services:
       - --datadir=/data
       - --db.engine=pebble
       - --gcmode=full
-      - --maxpeers=50
+      - --maxpeers=0
       - --metrics
       - --metrics.addr=0.0.0.0
       - --metrics.port=6060
@@ -32,52 +32,18 @@ services:
       - --syncmode=full
       - --http
       - --http.addr=0.0.0.0
-      - --http.api=eth,net,web3,debug,admin,txpool,engine
+      - --http.api=eth,net,web3,debug,txpool
       - --http.port=8545
       - --http.vhosts=*
       - --ws
       - --ws.addr=0.0.0.0
-      - --ws.api=eth,net,web3,debug,admin,txpool,engine
+      - --ws.api=eth,net,web3,debug,txpool
       - --ws.origins=*
       - --ws.port=8546
-      - --authrpc.addr=0.0.0.0
-      - --authrpc.jwtsecret=/config/jwt.hex
-      - --authrpc.vhosts=*
     restart: unless-stopped
     stop_grace_period: 5m
     volumes:
       - ${HOST_DATADIR:-$HOME/zircuit-historical-data}:/data
-      - ./config:/config:ro
     ports:
       - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
       - ${RPC_BIND_ADDR}:${WS_PORT}:8546
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-  zircuit-historical-op-node:
-    image: ${OP_NODE_IMAGE}
-    container_name: zircuit-historical-op-node
-    platform: linux/amd64
-    user: root
-    env_file: .env
-    environment:
-      OP_NODE_L1_BEACON: ${ETHEREUM_MAINNET_BEACON_REST}
-      OP_NODE_L1_BEACON_ARCHIVER: ${ETHEREUM_MAINNET_BEACON_ARCHIVER}
-      OP_NODE_L1_ETH_RPC: ${ETHEREUM_MAINNET_EXECUTION_RPC}
-      OP_NODE_L1_RPC_KIND: ${ETHEREUM_MAINNET_EXECUTION_KIND:-basic}
-      OP_NODE_L1_TRUST_RPC: ${ETHEREUM_MAINNET_EXECUTION_TRUST:-false}
-      OP_NODE_P2P_LISTEN_TCP_PORT: ${OP_NODE_P2P_PORT}
-      OP_NODE_P2P_LISTEN_UDP_PORT: ${OP_NODE_P2P_PORT}
-      OP_NODE_P2P_ADVERTISE_IP: ${EXT_IP}
-    entrypoint: [op-node]
-    restart: unless-stopped
-    depends_on:
-      zircuit-historical-op-geth:
-        condition: service_started
-    volumes:
-      - ./config:/config:ro
-    ports:
-      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
-      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
-    extra_hosts:
-      - "host.docker.internal:host-gateway"

@@ -1,10 +1,10 @@
-# Zircuit legacy (l2-geth + op-node)
+# Zircuit historical RPC (l2-geth)
 
-Pre-Conduit mainnet OP Stack L2 (**chain ID 48900**) on **`zircuit1/l2-geth`** + **`zircuit1/op-node`**. Chain data: `$HOME/zircuit-historical-data`.
+Frozen **pre-Conduit** mainnet history on **`zircuit1/l2-geth`** only (**chain ID 48900**). Chain data: `$HOME/zircuit-historical-data`.
 
-**Deprecated for current mainnet.** Zircuit migrated to Conduit in Aug 2026 — use [`../zircuit/`](../zircuit/) for new mainnet nodes. Keep this setup only if you already have a legacy l2-geth datadir or Liquify snapshot.
+**Not a live node.** No op-node, no L1, no P2P sync — serves RPC from a restored Liquify snapshot at a fixed head. For current mainnet, use [`../zircuit/`](../zircuit/).
 
-**Pruning mode:** l2-geth **hash full** (`--gcmode=full`, `--state.scheme=hash`, `--txlookuplimit=0`) — full block, receipt, and log history; pruned historical state.
+**Pruning mode:** l2-geth **hash full** (`--gcmode=full`, `--state.scheme=hash`, `--txlookuplimit=0`) — full block, receipt, and log history in the snapshot; pruned historical state.
 
 ## Start
 
@@ -14,24 +14,40 @@ Pre-Conduit mainnet OP Stack L2 (**chain ID 48900**) on **`zircuit1/l2-geth`** +
 docker compose up -d
 ```
 
-When L1 runs on the Docker host, `host.docker.internal` works for L1 URLs (compose sets `extra_hosts`).
-
 ## Snapshot
 
-This setup expects an **external Liquify lz4 snapshot** restored into `$HOME/zircuit-historical-data` before first start. Conduit op-reth snapshots are **not** compatible.
+Restore a **Liquify lz4 mainnet snapshot** into `$HOME/zircuit-historical-data` before first start. Conduit op-reth snapshots are **not** compatible.
 
-Latest mainnet snapshot name:
+Latest snapshot name:
 
 ```bash
 curl -sS https://zircuit-snapshot.liquify.com/files/mainnet/latest_compressed_zircuit.txt
 ```
 
-Download from `https://zircuit-snapshot.liquify.com/files/mainnet/<snapshot>.tar.lz4` (verify with the matching `.sha256`). Extract/decompress into `$HOME/zircuit-historical-data` using the layout expected by l2-geth.
+Download from `https://zircuit-snapshot.liquify.com/files/mainnet/<snapshot>.tar.lz4` (verify with the matching `.sha256`).
 
-Docs: [Run Zircuit](https://docs.zircuit.com/build/start/run-zircuit).
+## RPC-only behavior
+
+| Removed | Why |
+| --- | --- |
+| op-node | New blocks arrive only via Engine API from op-node; without it the head stays at the snapshot tip |
+| L1 RPC / beacon | Only op-node reads L1 |
+| JWT / Engine API | Only op-node talks to l2-geth over authrpc |
+| P2P (`--maxpeers=0`, `--nodiscover`) | No execution-layer sync |
+
+`GETH_ROLLUP_SEQUENCERHTTP` remains as an optional fallback when local data is incomplete.
+
+Verify after start:
+
+```bash
+curl -s http://127.0.0.1:11565 -X POST -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}'
+curl -s http://127.0.0.1:11565 -X POST -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
+```
 
 ## Host ports
 
-RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`): HTTP **11585**, WS **11586**. For a public replica, allow inbound op-node P2P (TCP + UDP): **18688** (`OP_NODE_P2P_PORT`). l2-geth runs with `--nodiscover` (no execution-layer P2P).
+RPC only (`RPC_BIND_ADDR=127.0.0.1` by default): HTTP **11565**, WS **11566**.
 
 Docs: [Run Zircuit](https://docs.zircuit.com/build/start/run-zircuit) · [l2-geth-public](https://github.com/zircuit-labs/l2-geth-public) · [current Conduit setup](../zircuit/README.md)

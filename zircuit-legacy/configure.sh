@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Configure legacy Zircuit deployment: create .env from env.template and set public IP.
+# Configure historical Zircuit RPC: create .env from env.template.
 #
 # Usage: ./configure.sh
 #
@@ -12,15 +12,6 @@ cd "${SCRIPT_DIR}"
 ENV_FILE="${SCRIPT_DIR}/.env"
 ENV_TEMPLATE="${SCRIPT_DIR}/env.template"
 
-sed_inplace() {
-  local expr="$1"
-  local file="$2"
-  local tmp
-  tmp="$(mktemp)"
-  sed -e "$expr" "$file" > "${tmp}"
-  mv "${tmp}" "${file}"
-}
-
 if [[ ! -f "${ENV_TEMPLATE}" ]]; then
   echo "ERROR: missing ${ENV_TEMPLATE}" >&2
   exit 1
@@ -31,30 +22,9 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   echo "created .env from env.template"
 fi
 
-PUBLIC_IP="$(curl -4 -sf ip.me | tr -d '[:space:]')"
-if [[ -z "${PUBLIC_IP}" ]]; then
-  echo "ERROR: failed to fetch public IP from ip.me" >&2
-  exit 1
-fi
-
-CURRENT_EXT_IP="$(grep -E '^EXT_IP=' "${ENV_FILE}" | cut -d= -f2- || true)"
-if [[ "${CURRENT_EXT_IP}" != "${PUBLIC_IP}" ]]; then
-  sed_inplace "s|^EXT_IP=.*|EXT_IP=${PUBLIC_IP}|" "${ENV_FILE}"
-  echo "set EXT_IP=${PUBLIC_IP} in .env"
-else
-  echo "EXT_IP already set to ${PUBLIC_IP}"
-fi
-
 mkdir -p "${HOME}/zircuit-historical-data"
-
-if [[ ! -f "${SCRIPT_DIR}/config/jwt.hex" ]]; then
-  "${SCRIPT_DIR}/create-jwt.sh"
-else
-  echo "config/jwt.hex already exists; skipping JWT generation"
-fi
 
 echo ""
 echo "Next:"
-echo "  # set L1 URLs in .env if not using host.docker.internal"
 echo "  # restore Liquify lz4 snapshot into HOST_DATADIR — see README"
 echo "  docker compose up -d"
