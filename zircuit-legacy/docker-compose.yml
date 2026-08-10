@@ -1,7 +1,7 @@
 services:
-  zircuit-mainnet:
+  zircuit-historical-op-geth:
     image: ${L2_GETH_IMAGE}
-    container_name: zircuit-mainnet
+    container_name: zircuit-historical-op-geth
     platform: linux/amd64
     ulimits:
       nofile:
@@ -54,9 +54,9 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  zircuit-mainnet-node:
+  zircuit-historical-op-node:
     image: ${OP_NODE_IMAGE}
-    container_name: zircuit-mainnet-node
+    container_name: zircuit-historical-op-node
     platform: linux/amd64
     user: root
     env_file: .env
@@ -72,7 +72,7 @@ services:
     entrypoint: [op-node]
     restart: unless-stopped
     depends_on:
-      zircuit-mainnet:
+      zircuit-historical-op-geth:
         condition: service_started
     volumes:
       - ./config:/config:ro
