@@ -7,8 +7,19 @@ services:
       POSTGRES_HOST_AUTH_METHOD: scram-sha-256
       POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      OWNER_PASSWORD: ${OWNER_PASSWORD}
+      GRAPHQL_PASSWORD: ${GRAPHQL_PASSWORD}
+      GRPC_PASSWORD: ${GRPC_PASSWORD}
+      IMPORTER_PASSWORD: ${IMPORTER_PASSWORD}
+      REST_PASSWORD: ${REST_PASSWORD}
+      REST_JAVA_PASSWORD: ${REST_JAVA_PASSWORD}
+      ROSETTA_PASSWORD: ${ROSETTA_PASSWORD}
+      WEB3_PASSWORD: ${WEB3_PASSWORD}
+      CREATE_MIRROR_API_USER: "true"
+      IS_GCP_CLOUD_SQL: "false"
     volumes:
       - ${HOST_DB_DATADIR:-$HOME/hedera-postgres-data}:/var/lib/postgresql/data
+      - ./config/init.sh:/docker-entrypoint-initdb.d/init.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 10s

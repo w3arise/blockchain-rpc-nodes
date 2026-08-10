@@ -22,7 +22,7 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
 
    Edit `.env`: set `GCP_PROJECT_ID`, `GCP_ACCESS_KEY`, and `GCP_SECRET_KEY`. To submit transactions, also set a funded `OPERATOR_ID_MAIN` and its `OPERATOR_KEY_MAIN`; otherwise set `READ_ONLY=true`. Rerun `./configure.sh` after editing.
 
-   `configure.sh` generates the PostgreSQL role passwords once and copies `.env` into `secrets-backups/` (gitignored) whenever it generates new ones, then pauses for confirmation. These passwords get set on roles **inside** the database during `./bootstrap.sh init`; if `.env` is lost afterward and regenerated, the new passwords won't match the existing database and every service will fail to authenticate. Copy the backup file to secure, offline storage before continuing.
+   `configure.sh` generates the PostgreSQL role passwords once, fetches stock `config/init.sh` for `MIRROR_NODE_VERSION` from the Hiero Mirror Node tag (gitignored), and copies `.env` into `secrets-backups/` whenever it generates new secrets, then pauses for confirmation. Those passwords are applied on first Postgres start (`init.sh` via `docker-entrypoint-initdb.d`); if `.env` is lost afterward and regenerated, the new passwords won't match the existing database and every service will fail to authenticate. Copy the backup file to secure, offline storage before continuing.
 
 3. Confirm the available export and version, then download the minimal mainnet database:
 
@@ -41,7 +41,15 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
    ./bootstrap.sh status
    ```
 
-   The import is resumable: rerun `import` after an interruption. Run `./bootstrap.sh watch` in another terminal for live progress.
+   `init` starts Postgres (first boot runs `config/init.sh` inside the DB container to create roles), then applies `schema.sql`. The import is resumable: rerun `import` after an interruption. Run `./bootstrap.sh watch` in another terminal for live progress.
+
+   `docker-entrypoint-initdb.d` only runs on an **empty** datadir. After a failed or partial first start, wipe and retry:
+
+   ```bash
+   docker compose down
+   rm -rf "$HOME/hedera-postgres-data"/* "$HOME/hedera-bootstrap-data/bootstrap-logs/SKIP_DB_INIT"
+   ./bootstrap.sh init
+   ```
 
 5. Start the Mirror Node only after every bootstrap file is imported:
 

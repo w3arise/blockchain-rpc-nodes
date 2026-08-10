@@ -108,6 +108,57 @@ run_bootstrap() {
     "${BOOTSTRAP_IMAGE}" "$@"
 }
 
+ensure_schema_sql() {
+  if [[ -f "${EXPORT_DIR}/schema.sql" ]]; then
+    return
+  fi
+  if [[ -f "${EXPORT_DIR}/schema.sql.gz" ]]; then
+    gzip -dc "${EXPORT_DIR}/schema.sql.gz" > "${EXPORT_DIR}/schema.sql"
+    return
+  fi
+  echo "ERROR: missing ${EXPORT_DIR}/schema.sql (or .gz); run download or download-schema" >&2
+  exit 1
+}
+
+# Roles come from config/init.sh via Postgres docker-entrypoint-initdb.d (first boot).
+# configure.sh fetches that script for MIRROR_NODE_VERSION. This step applies schema.sql.
+run_db_init() {
+  if [[ ! -f "${SCRIPT_DIR}/config/init.sh" ]]; then
+    echo "ERROR: missing config/init.sh; run ./configure.sh first (fetches it for MIRROR_NODE_VERSION)" >&2
+    exit 1
+  fi
+  ensure_schema_sql
+  mkdir -p "${HOST_BOOTSTRAP_DATADIR}/bootstrap-logs"
+
+  if [[ -f "${SKIP_DB_INIT_FILE}" ]]; then
+    echo "database already initialized (${SKIP_DB_INIT_FILE} exists); skipping"
+    return
+  fi
+
+  # Confirm entrypoint init.sh created mirror_node (empty datadir on first up).
+  if ! docker compose exec -T \
+      -e "PGPASSWORD=${OWNER_PASSWORD}" \
+      db \
+      psql -U mirror_node -d mirror_node -v ON_ERROR_STOP=1 -c 'select 1' >/dev/null 2>&1; then
+    echo "ERROR: mirror_node role missing or password mismatch." >&2
+    echo "entrypoint init.sh only runs on an empty Postgres datadir. Wipe and retry:" >&2
+    echo "  docker compose down" >&2
+    echo "  rm -rf \"\${HOST_DB_DATADIR:-\$HOME/hedera-postgres-data}\"/*" >&2
+    echo "  rm -f \"${SKIP_DB_INIT_FILE}\"" >&2
+    echo "  ./bootstrap.sh init" >&2
+    exit 1
+  fi
+
+  docker compose exec -T \
+    -e "PGPASSWORD=${OWNER_PASSWORD}" \
+    db \
+    psql -U mirror_node -d mirror_node -v ON_ERROR_STOP=1 -q \
+    < "${EXPORT_DIR}/schema.sql"
+
+  printf 'Database initialized successfully\n' > "${SKIP_DB_INIT_FILE}"
+  echo "database initialization complete"
+}
+
 check_import_complete() {
   if [[ -f "${SCHEMA_ONLY_MARKER}" ]]; then
     if [[ ! -f "${SKIP_DB_INIT_FILE}" ]]; then
@@ -187,10 +238,7 @@ case "${command_name}" in
     require_command docker
     verify_export_version
     start_database
-    ensure_bootstrap_image
-    run_bootstrap init \
-      --config /config/bootstrap.env \
-      --data-dir /work/export
+    run_db_init
     ;;
 
   import)

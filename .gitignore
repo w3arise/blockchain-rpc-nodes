@@ -26,6 +26,8 @@ henesys/
 # Hedera: generated secrets and bootstrap artifacts (not the chain directory itself)
 hedera/bootstrap.env
 hedera/config/application.yml
+hedera/config/init.sh
+hedera/config/.init.version
 hedera/bootstrap-logs/
 hedera/db-export/
 hedera/secrets-backups/

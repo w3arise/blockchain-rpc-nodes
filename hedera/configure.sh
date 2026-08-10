@@ -12,6 +12,8 @@ ENV_FILE="${SCRIPT_DIR}/.env"
 ENV_TEMPLATE="${SCRIPT_DIR}/env.template"
 APP_TEMPLATE="${SCRIPT_DIR}/config/application.yml.template"
 APP_CONFIG="${SCRIPT_DIR}/config/application.yml"
+INIT_SCRIPT="${SCRIPT_DIR}/config/init.sh"
+INIT_VERSION_FILE="${SCRIPT_DIR}/config/.init.version"
 BOOTSTRAP_ENV="${SCRIPT_DIR}/bootstrap.env"
 
 sed_inplace() {
@@ -27,6 +29,43 @@ set_env_value() {
   local name="$1"
   local value="$2"
   sed_inplace "s|^${name}=.*|${name}=${value}|" "${ENV_FILE}"
+}
+
+fetch_init_script() {
+  local version="${MIRROR_NODE_VERSION:-}"
+  local url temporary
+  if [[ -z "${version}" ]]; then
+    echo "ERROR: MIRROR_NODE_VERSION is empty in .env" >&2
+    exit 1
+  fi
+  if [[ -f "${INIT_SCRIPT}" && -f "${INIT_VERSION_FILE}" ]] \
+    && [[ "$(tr -d '[:space:]' < "${INIT_VERSION_FILE}")" == "${version}" ]]; then
+    echo "config/init.sh already matches Mirror Node ${version}"
+    return
+  fi
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "ERROR: curl is required to fetch config/init.sh" >&2
+    exit 1
+  fi
+  url="https://raw.githubusercontent.com/hiero-ledger/hiero-mirror-node/v${version}/importer/src/main/resources/db/scripts/init.sh"
+  temporary="$(mktemp)"
+  echo "fetching config/init.sh for Mirror Node ${version}"
+  if ! curl -fsSL --connect-timeout 30 --max-time 120 "${url}" -o "${temporary}"; then
+    rm -f "${temporary}"
+    echo "ERROR: failed to download init.sh from ${url}" >&2
+    echo "Check MIRROR_NODE_VERSION=${version} and network access." >&2
+    exit 1
+  fi
+  if ! head -n 1 "${temporary}" | grep -q '^#!'; then
+    rm -f "${temporary}"
+    echo "ERROR: downloaded init.sh does not look like a shell script (bad version or URL)" >&2
+    exit 1
+  fi
+  mkdir -p "$(dirname "${INIT_SCRIPT}")"
+  mv "${temporary}" "${INIT_SCRIPT}"
+  chmod 755 "${INIT_SCRIPT}"
+  printf '%s\n' "${version}" > "${INIT_VERSION_FILE}"
+  echo "wrote config/init.sh (v${version})"
 }
 
 if [[ ! -f "${ENV_TEMPLATE}" || ! -f "${APP_TEMPLATE}" ]]; then
@@ -54,6 +93,8 @@ done
 
 # shellcheck disable=SC1091
 source "${ENV_FILE}"
+
+fetch_init_script
 
 mkdir -p \
   "${HOST_DB_DATADIR}" \
@@ -86,7 +127,7 @@ chmod 644 "${APP_CONFIG}"
 } > "${BOOTSTRAP_ENV}"
 chmod 600 "${BOOTSTRAP_ENV}"
 
-echo "rendered config/application.yml and bootstrap.env"
+echo "rendered config/application.yml, bootstrap.env, and config/init.sh"
 
 if [[ "${generated_any}" == "true" ]]; then
   BACKUP_DIR="${SCRIPT_DIR}/secrets-backups"
@@ -104,10 +145,11 @@ if [[ "${generated_any}" == "true" ]]; then
   echo "    ${BACKUP_FILE}"
   echo ""
   echo "  These passwords are set on PostgreSQL roles INSIDE the mirror"
-  echo "  node database once you run ./bootstrap.sh init. If this .env"
-  echo "  is later lost and configure.sh regenerates new passwords, the"
-  echo "  new values will NOT match what's stored in the database, and"
-  echo "  the importer/rest/relay services will fail to authenticate."
+  echo "  node database on first Postgres start (config/init.sh via"
+  echo "  docker-entrypoint-initdb.d). If this .env is later lost and"
+  echo "  configure.sh regenerates new passwords, the new values will"
+  echo "  NOT match what's stored in the database, and the"
+  echo "  importer/rest/relay services will fail to authenticate."
   echo "  Recovering from that means restoring a backup, manually"
   echo "  resetting the PostgreSQL role passwords, or wiping and"
   echo "  reimporting the entire multi-TB database from scratch."
