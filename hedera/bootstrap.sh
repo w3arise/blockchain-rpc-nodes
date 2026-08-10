@@ -98,8 +98,10 @@ run_bootstrap() {
   # Upstream bootstrap always creates logs next to the binary via os.Executable()
   # (so /usr/local/bin/bootstrap-logs). Bind-mount our host logs dir there so the
   # non-root --user can write, and tracking/SKIP_DB_INIT land where we expect.
+  # Set DOCKER_RUN_DETACH=-d for background (import).
   mkdir -p "${HOST_BOOTSTRAP_DATADIR}/bootstrap-logs"
-  docker run --rm \
+  # shellcheck disable=SC2086
+  docker run --rm ${DOCKER_RUN_DETACH:-} \
     --network "${DOCKER_NETWORK}" \
     --user "$(id -u):$(id -g)" \
     --volume "${HOST_BOOTSTRAP_DATADIR}:/work" \
@@ -251,11 +253,12 @@ case "${command_name}" in
     verify_export_version
     start_database
     ensure_bootstrap_image
-    run_bootstrap import \
+    cid="$(DOCKER_RUN_DETACH=-d run_bootstrap import \
       --config /config/bootstrap.env \
       --data-dir /work/export \
       --manifest /work/export/manifest.csv \
-      --jobs "${BOOTSTRAP_JOBS}"
+      --jobs "${BOOTSTRAP_JOBS}")"
+    echo "import started (${cid:0:12}); follow logs with: docker logs -f ${cid}"
     ;;
 
   status)

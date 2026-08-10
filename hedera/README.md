@@ -53,7 +53,7 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
    ./bootstrap.sh status
    ```
 
-   `init` starts Postgres (first boot runs `config/init.sh` inside the DB container to create roles), then applies `schema.sql`. The import is resumable: rerun `import` after an interruption. Run `./bootstrap.sh watch` in another terminal for live progress.
+   `init` starts Postgres (first boot runs `config/init.sh` inside the DB container to create roles), then applies `schema.sql`. `import` runs detached (prints a `docker logs -f` command). It is resumable: rerun `import` after an interruption. Use `./bootstrap.sh status` or `./bootstrap.sh watch` for progress.
 
    `docker-entrypoint-initdb.d` only runs on an **empty** datadir. After a failed or partial first start, wipe and retry:
 
