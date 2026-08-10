@@ -68,7 +68,24 @@ The official requester-pays export is downloaded from `gs://mirrornode-db-export
 
 The minimal mainnet export excludes `*_atma.csv.gz` bulk data. It retains the remaining historical transaction, receipt, and log data, but queries involving omitted Atma traffic are not complete. Use the full export instead if every Atma record is required.
 
-Upstream sizing for a busy full-history Mirror Node is PostgreSQL 16+, about 10 vCPU, 40 GiB RAM, and 1–55 TiB depending on retained history; Hedera's operator guide warns that complete mainnet history can require roughly 50 TiB.
+Upstream sizing for a busy full-history Mirror Node is PostgreSQL 16+, about 10 vCPU, 40 GiB RAM, and 1–55 TiB depending on retained history; Hedera's operator guide warns that complete mainnet history can require roughly 50 TiB. Check the actual size for the current export before downloading:
+
+```bash
+gcloud storage du -s --readable-sizes --billing-project=<GCP_PROJECT_ID> \
+  gs://mirrornode-db-export/MAINNET/<version>/
+```
+
+### Partial history (skip the full backfill)
+
+If you don't have room for the full (still multi-TiB) minimal export, you can skip historical backfill entirely and start the Mirror Node from ~now instead. This sacrifices this repo's usual historical-logs goal in exchange for a much smaller disk footprint — only use this if recent-forward data is acceptable for your use case.
+
+```bash
+./bootstrap.sh download-schema   # fetches only schema.sql.gz + MIRRORNODE_VERSION.gz, not the CSV data
+./bootstrap.sh init
+./bootstrap.sh start-mirror       # no ./bootstrap.sh import step — the DB starts empty
+```
+
+This works because `hiero.mirror.importer.startDate` defaults to "now" when it's unset and the database is empty, so the importer syncs forward from the live record/block stream instead of backfilling. `./bootstrap.sh import` and `status`/`watch` are not used in this path; `start-mirror`/`start-relay` detect schema-only mode automatically and skip the historical-import completeness check.
 
 ## State retention
 
@@ -79,5 +96,7 @@ The relay limits a single `eth_getLogs` request to 10,000 blocks by default in `
 ## Upgrade
 
 Bootstrap and first-start the importer with the version recorded in `MIRRORNODE_VERSION.gz`. After it starts cleanly and catches up, upgrade `MIRROR_NODE_VERSION` separately so database migrations run from the known-compatible schema. Do not point a newer importer at a fresh older export before the version-matched first start.
+
+**Block streams cutover (2026):** Hedera mainnet is replacing record streams with block streams by September 2026 (consensus node v0.77). Mirror Node operators must be running v0.160.0 or later before that date, or ingestion stops at cutover — see the [block streams announcement](https://hedera.com/blog/block-streams-replace-the-record-stream-by-default-starting-september-2026-action-required-by-mirror-node-operators/). Watch `gs://mirrornode-db-export/MAINNET/` for a `0.160.0`+ export and plan the upgrade well before the deadline.
 
 Docs: [Mirror Node bootstrap](https://github.com/hiero-ledger/hiero-mirror-node/blob/main/docs/database/bootstrap.md) · [Mirror Node GCS setup](https://docs.hedera.com/operators/mirror-node/run-your-own/gcs) · [JSON-RPC Relay](https://github.com/hiero-ledger/hiero-json-rpc-relay)

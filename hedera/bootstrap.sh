@@ -4,9 +4,10 @@
 #
 # Usage:
 #   ./bootstrap.sh list
-#   ./bootstrap.sh download [version]
+#   ./bootstrap.sh download [version]       # full history (large, see README sizing)
+#   ./bootstrap.sh download-schema          # schema only: skip history, sync forward from ~now
 #   ./bootstrap.sh init
-#   ./bootstrap.sh import
+#   ./bootstrap.sh import                   # not used after download-schema
 #   ./bootstrap.sh status
 #   ./bootstrap.sh watch
 #   ./bootstrap.sh start-mirror
@@ -30,6 +31,8 @@ source "${ENV_FILE}"
 
 EXPORT_DIR="${HOST_BOOTSTRAP_DATADIR}/export"
 TRACKING_FILE="${HOST_BOOTSTRAP_DATADIR}/bootstrap-logs/tracking.json"
+SKIP_DB_INIT_FILE="${HOST_BOOTSTRAP_DATADIR}/bootstrap-logs/SKIP_DB_INIT"
+SCHEMA_ONLY_MARKER="${HOST_BOOTSTRAP_DATADIR}/.schema-only"
 BOOTSTRAP_IMAGE="hedera-mirror-bootstrap:${MIRROR_NODE_VERSION}"
 DOCKER_NETWORK="${COMPOSE_PROJECT_NAME:-hedera}-network"
 
@@ -101,9 +104,17 @@ run_bootstrap() {
 }
 
 check_import_complete() {
+  if [[ -f "${SCHEMA_ONLY_MARKER}" ]]; then
+    if [[ ! -f "${SKIP_DB_INIT_FILE}" ]]; then
+      echo "ERROR: schema-only mode selected but ./bootstrap.sh init has not completed" >&2
+      exit 1
+    fi
+    echo "schema-only mode: no historical data was imported; the importer will start from ~now"
+    return
+  fi
   require_command jq
   if [[ ! -f "${TRACKING_FILE}" ]]; then
-    echo "ERROR: no bootstrap tracking file; complete the import first" >&2
+    echo "ERROR: no bootstrap tracking file; complete the import first (or use ./bootstrap.sh download-schema for a fresh, no-history start)" >&2
     exit 1
   fi
   if ! jq -e 'length > 0 and all(.[]; .status == "IMPORTED")' "${TRACKING_FILE}" >/dev/null; then
@@ -142,6 +153,21 @@ case "${command_name}" in
     verify_export_version
     ;;
 
+  download-schema)
+    require_command gcloud
+    require_value GCP_PROJECT_ID
+    mkdir -p "${EXPORT_DIR}"
+    gcloud storage cp \
+      --billing-project="${GCP_PROJECT_ID}" \
+      "gs://mirrornode-db-export/MAINNET/${MIRROR_NODE_VERSION}/MIRRORNODE_VERSION.gz" \
+      "gs://mirrornode-db-export/MAINNET/${MIRROR_NODE_VERSION}/schema.sql.gz" \
+      "${EXPORT_DIR}/"
+    verify_export_version
+    touch "${SCHEMA_ONLY_MARKER}"
+    echo "downloaded schema only (no historical CSV data)"
+    echo "next: ./bootstrap.sh init, then ./bootstrap.sh start-mirror (skips the import step)"
+    ;;
+
   build)
     require_command docker
     verify_export_version
@@ -160,6 +186,11 @@ case "${command_name}" in
 
   import)
     require_command docker
+    if [[ -f "${SCHEMA_ONLY_MARKER}" ]]; then
+      echo "ERROR: schema-only mode selected (no CSV data was downloaded); there is nothing to import" >&2
+      echo "Run ./bootstrap.sh start-mirror directly to start syncing forward from ~now." >&2
+      exit 1
+    fi
     verify_export_version
     start_database
     ensure_bootstrap_image
@@ -203,7 +234,7 @@ case "${command_name}" in
     ;;
 
   help|--help|-h)
-    echo "Usage: $0 {list|download [version]|build|init|import|status|watch|start-mirror|start-relay}"
+    echo "Usage: $0 {list|download [version]|download-schema|build|init|import|status|watch|start-mirror|start-relay}"
     ;;
 
   *)
