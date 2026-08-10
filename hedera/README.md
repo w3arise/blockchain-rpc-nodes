@@ -53,7 +53,17 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
    ./bootstrap.sh status
    ```
 
-   `init` starts Postgres (first boot runs `config/init.sh` inside the DB container to create roles), then applies `schema.sql`. `import` runs detached (prints a `docker logs -f` command). It is resumable: rerun `import` after an interruption. Use `./bootstrap.sh status` or `./bootstrap.sh watch` for progress.
+   `init` starts Postgres (first boot runs `config/init.sh` inside the DB container to create roles), then applies `schema.sql`. The import is resumable: rerun `import` after an interruption. Run `./bootstrap.sh watch` in another terminal for live progress.
+
+   During a large import, Postgres may log `checkpoints are occurring too frequently` and thrash the disk. After `import` has started, raise WAL limits (needs free space on the DB volume — use `64GB` or higher, up to ~`512GB` per Hedera’s restore guide):
+
+   ```bash
+   docker exec -i hedera-mirror-db psql -U postgres -c "ALTER SYSTEM SET max_wal_size = '64GB';"
+   docker exec -i hedera-mirror-db psql -U postgres -c "ALTER SYSTEM SET checkpoint_timeout = '30min';"
+   docker exec -i hedera-mirror-db psql -U postgres -c "SELECT pg_reload_conf();"
+   ```
+
+   When import finishes, dial back for steady state (e.g. `max_wal_size = '24GB'`) and run `SELECT pg_reload_conf();` again.
 
    `docker-entrypoint-initdb.d` only runs on an **empty** datadir. After a failed or partial first start, wipe and retry:
 
