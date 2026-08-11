@@ -33,6 +33,10 @@ EXPORT_DIR="${HOST_BOOTSTRAP_DATADIR}/export"
 TRACKING_FILE="${HOST_BOOTSTRAP_DATADIR}/bootstrap-logs/tracking.json"
 SKIP_DB_INIT_FILE="${HOST_BOOTSTRAP_DATADIR}/bootstrap-logs/SKIP_DB_INIT"
 SCHEMA_ONLY_MARKER="${HOST_BOOTSTRAP_DATADIR}/.schema-only"
+MINIMAL_EXPORT_MARKER="${HOST_BOOTSTRAP_DATADIR}/.minimal-export"
+MANIFEST_FILE="${EXPORT_DIR}/manifest.csv"
+MANIFEST_MINIMAL_FILE="${EXPORT_DIR}/manifest.minimal.csv"
+ATMA_FILE_PATTERN='_atma\.csv\.gz$'
 BOOTSTRAP_IMAGE="hedera-mirror-bootstrap:${MIRROR_NODE_VERSION}"
 DOCKER_NETWORK="${COMPOSE_PROJECT_NAME:-hedera}-network"
 
@@ -66,6 +70,61 @@ verify_export_version() {
     exit 1
   fi
   echo "export version matches Mirror Node ${MIRROR_NODE_VERSION}"
+}
+
+is_minimal_export() {
+  [[ -f "${MINIMAL_EXPORT_MARKER}" ]]
+}
+
+ensure_minimal_manifest() {
+  if [[ ! -f "${MANIFEST_FILE}" ]]; then
+    return 0
+  fi
+  grep -Ev "${ATMA_FILE_PATTERN}" "${MANIFEST_FILE}" > "${MANIFEST_MINIMAL_FILE}"
+}
+
+manifest_for_import() {
+  if is_minimal_export && [[ -f "${MANIFEST_MINIMAL_FILE}" ]]; then
+    echo "${MANIFEST_MINIMAL_FILE}"
+  else
+    echo "${MANIFEST_FILE}"
+  fi
+}
+
+# Minimal download skips Atma CSVs but the upstream manifest lists them. Drop Atma
+# entries from tracking.json when every remaining failure is Atma-only.
+repair_minimal_tracking() {
+  if [[ ! -f "${TRACKING_FILE}" ]]; then
+    return 0
+  fi
+  require_command jq
+
+  local failed_non_atma
+  failed_non_atma="$(jq -r --arg pattern "${ATMA_FILE_PATTERN}" '
+    to_entries[]
+    | select(.value.status != "IMPORTED")
+    | select(.key | test($pattern) | not)
+    | .key
+  ' "${TRACKING_FILE}")"
+  if [[ -n "${failed_non_atma}" ]]; then
+    return 0
+  fi
+
+  local atma_count
+  atma_count="$(jq -r --arg pattern "${ATMA_FILE_PATTERN}" '
+    [to_entries[] | select(.key | test($pattern))] | length
+  ' "${TRACKING_FILE}")"
+  if [[ "${atma_count}" -eq 0 ]]; then
+    return 0
+  fi
+
+  local tmp
+  tmp="$(mktemp)"
+  jq --arg pattern "${ATMA_FILE_PATTERN}" '
+    with_entries(select(.key | test($pattern) | not))
+  ' "${TRACKING_FILE}" > "${tmp}"
+  mv "${tmp}" "${TRACKING_FILE}"
+  echo "removed ${atma_count} intentionally skipped Atma entries from tracking.json"
 }
 
 build_bootstrap_image() {
@@ -175,6 +234,7 @@ check_import_complete() {
     echo "ERROR: no bootstrap tracking file; complete the import first (or use ./bootstrap.sh download-schema for a fresh, no-history start)" >&2
     exit 1
   fi
+  repair_minimal_tracking
   if ! jq -e 'length > 0 and all(.[]; .status == "IMPORTED")' "${TRACKING_FILE}" >/dev/null; then
     echo "ERROR: bootstrap has unfinished or failed files" >&2
     jq -r 'to_entries[] | select(.value.status != "IMPORTED") | "\(.value.status) \(.key)"' "${TRACKING_FILE}" >&2
@@ -208,6 +268,11 @@ case "${command_name}" in
       --billing-project="${GCP_PROJECT_ID}" \
       "gs://mirrornode-db-export/MAINNET/${MIRROR_NODE_VERSION}/" \
       "${EXPORT_DIR}/"
+    touch "${MINIMAL_EXPORT_MARKER}"
+    ensure_minimal_manifest
+    if [[ -f "${MANIFEST_MINIMAL_FILE}" ]]; then
+      echo "wrote ${MANIFEST_MINIMAL_FILE} (Atma partitions excluded from import)"
+    fi
     verify_export_version
     ;;
 
@@ -253,10 +318,15 @@ case "${command_name}" in
     verify_export_version
     start_database
     ensure_bootstrap_image
+    import_manifest="$(manifest_for_import)"
+    if [[ ! -f "${import_manifest}" ]]; then
+      echo "ERROR: missing ${import_manifest}; run ./bootstrap.sh download" >&2
+      exit 1
+    fi
     cid="$(DOCKER_RUN_DETACH=-d run_bootstrap import \
       --config /config/bootstrap.env \
       --data-dir /work/export \
-      --manifest /work/export/manifest.csv \
+      --manifest "/work/export/$(basename "${import_manifest}")" \
       --jobs "${BOOTSTRAP_JOBS}")"
     echo "import started (${cid:0:12}); follow logs with: docker logs -f ${cid}"
     ;;
@@ -270,10 +340,21 @@ case "${command_name}" in
   watch)
     require_command docker
     ensure_bootstrap_image
+    import_manifest="$(manifest_for_import)"
     run_bootstrap watch \
       --config /config/bootstrap.env \
-      --manifest /work/export/manifest.csv \
+      --manifest "/work/export/$(basename "${import_manifest}")" \
       --data-dir /work/export
+    ;;
+
+  repair-minimal-tracking)
+    require_command jq
+    if [[ ! -f "${TRACKING_FILE}" ]]; then
+      echo "ERROR: no tracking file at ${TRACKING_FILE}" >&2
+      exit 1
+    fi
+    repair_minimal_tracking
+    echo "tracking file updated; run ./bootstrap.sh status to verify"
     ;;
 
   start-mirror)
@@ -294,7 +375,7 @@ case "${command_name}" in
     ;;
 
   help|--help|-h)
-    echo "Usage: $0 {list|download [version]|download-schema|build|init|import|status|watch|start-mirror|start-relay}"
+    echo "Usage: $0 {list|download [version]|download-schema|build|init|import|status|watch|repair-minimal-tracking|start-mirror|start-relay}"
     ;;
 
   *)

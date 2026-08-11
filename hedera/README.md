@@ -129,6 +129,8 @@ This setup’s `./bootstrap.sh download` uses the **minimal** mainnet export: it
 
 Minimal is still **full history without Atma** — not a tip-only snapshot. Enough for typical EVM / log RPC. Use full export only if you need Atma’s historical records; use schema-only only if you cannot store the minimal download.
 
+Import uses `manifest.minimal.csv` (Atma rows stripped from `manifest.csv`). If `start-mirror` reports `FAILED_TO_IMPORT` on `*_atma.csv.gz` files after a minimal import, run `./bootstrap.sh repair-minimal-tracking` (or pull the latest `bootstrap.sh`, which fixes this automatically when only Atma files failed).
+
 ### Hardware (upstream guide)
 
 For a busy Mirror Node: PostgreSQL 16+, ~10 vCPU, ~40 GiB RAM. Disk **1–55 TiB** depending on retention; complete mainnet (with Atma-scale data) can approach ~50 TiB. Skipping Atma puts you on the **low end** of that band, but still plan **several TiB** free for the DB volume after a minimal import — not just the ~1.2 TiB download.
