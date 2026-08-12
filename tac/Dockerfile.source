@@ -1,0 +1,48 @@
+# Build tacchaind from source (TacBuild/tacchain upstream Dockerfile logic).
+# https://github.com/TacBuild/tacchain/blob/main/Dockerfile
+#
+# Used by docker-compose.yml (dockerfile: Dockerfile.source).
+# Release-binary alternative: Dockerfile (set dockerfile: Dockerfile in compose to use it).
+
+FROM golang:1.23.8-alpine3.21 AS go-builder
+
+ARG TACCHAIN_VERSION=1.6.0
+
+RUN apk add --no-cache \
+    ca-certificates \
+    build-base \
+    git \
+    libusb-dev \
+    linux-headers \
+    eudev-dev
+
+WORKDIR /code
+RUN git clone --depth 1 --branch "v${TACCHAIN_VERSION}" \
+      https://github.com/TacBuild/tacchain.git . \
+  && LEDGER_ENABLED=true make build \
+  && ./build/tacchaind version
+
+# --------------------------------------------------------
+FROM alpine:3.21
+
+ARG BUILD_UID=1000
+ARG BUILD_GID=1000
+ARG TACCHAIN_VERSION=1.6.0
+
+RUN apk upgrade --no-cache \
+  && apk add --no-cache ca-certificates libusb \
+  && addgroup -g "${BUILD_GID}" tac \
+  && adduser -D -u "${BUILD_UID}" -G tac tac \
+  && chmod 1777 /tmp
+
+COPY --from=go-builder /code/build/tacchaind /usr/local/bin/tacchaind
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /usr/local/bin/tacchaind /entrypoint.sh \
+  && chown tac:tac /entrypoint.sh
+
+LABEL org.opencontainers.image.source="https://github.com/TacBuild/tacchain"
+LABEL org.opencontainers.image.version="v${TACCHAIN_VERSION}"
+
+USER tac
+
+ENTRYPOINT ["/entrypoint.sh"]

@@ -8,11 +8,26 @@ Default mode: **full** (`pruning=default`) — full block history for receipts/l
 
 ```bash
 ./configure.sh            # .env + EXT_IP + BUILD_UID/GID for the image
-docker compose build      # image runs as your host user
+docker compose build      # see Docker image options below
 ./init-database.sh        # tacchaind init + genesis
 ./restore-snapshot.sh     # Ankr full (preferred); skip for genesis/P2P sync
 ./patch-config.sh         # config.toml + app.toml
 docker compose up -d
+```
+
+### Docker image options
+
+Both produce `tacchaind:<version>`. Choose via `build.dockerfile` in `docker-compose.yml`:
+
+| Dockerfile | What it does | When to use |
+| --- | --- | --- |
+| **`Dockerfile.source`** (default) | Clones [TacBuild/tacchain](https://github.com/TacBuild/tacchain) at `v${TACCHAIN_VERSION}` and compiles `tacchaind` (`make build`) | Prefer for reproducible / auditable builds |
+| **`Dockerfile`** | Downloads the prebuilt GitHub release binary (`tacchaind-linux-*.tar.gz`) | Faster image build; no local compile |
+
+```yaml
+# docker-compose.yml — pick one:
+dockerfile: Dockerfile.source   # build from source (default)
+# dockerfile: Dockerfile        # download release binary
 ```
 
 `patch-config.sh` is **idempotent**. It sets `pruning = "default"`, `indexer = "kv"`, `minimum-gas-prices = "25000000000utac"`, `logs-cap` / `block-range-cap = 100000`, and `gas-cap = 600000000`. Start uses `--home /data` and `--json-rpc.enable`.

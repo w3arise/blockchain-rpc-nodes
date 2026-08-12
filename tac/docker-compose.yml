@@ -2,7 +2,7 @@ services:
   tacchaind:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.source
       args:
         TACCHAIN_VERSION: ${TACCHAIN_VERSION}
         BUILD_UID: ${BUILD_UID:-1000}
