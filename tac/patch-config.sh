@@ -28,6 +28,7 @@ PERSISTENT_PEERS="${PERSISTENT_PEERS:-}"
 PRUNING="${PRUNING:-default}"
 MINIMUM_GAS_PRICES="${MINIMUM_GAS_PRICES:-25000000000utac}"
 INDEXER="${INDEXER:-kv}"
+EVM_CHAIN_ID="${EVM_CHAIN_ID:-239}"
 LOGS_CAP="${LOGS_CAP:-100000}"
 BLOCK_RANGE_CAP="${BLOCK_RANGE_CAP:-100000}"
 GAS_CAP="${GAS_CAP:-600000000}"
@@ -61,6 +62,7 @@ set_toml_key() {
 }
 
 # Set a key inside a TOML section, e.g. [p2p] or [json-rpc] (idempotent).
+# If the key is missing in that section, append it before the next section.
 set_toml_section_key() {
   local file="$1"
   local section="$2"
@@ -69,24 +71,56 @@ set_toml_section_key() {
   local tmp
   tmp="$(mktemp)"
 
-  if ! awk -v section="${section}" -v key="${key}" -v value="${value}" '
+  if awk -v section="${section}" -v key="${key}" -v value="${value}" '
     /^\[.*\]$/ {
       line = $0
       gsub(/^\[|\]$/, "", line)
+      if (in_section && !found) {
+        print key " = " value
+        found = 1
+      }
       current = line
+      in_section = (current == section)
     }
-    current == section && $0 ~ "^" key "[[:space:]]*=" {
+    in_section && $0 ~ "^" key "[[:space:]]*=" {
       print key " = " value
       found = 1
       next
     }
     { print }
-    END { exit(found ? 0 : 1) }
+    END {
+      if (in_section && !found) {
+        print key " = " value
+        found = 1
+      }
+      exit(found ? 0 : 1)
+    }
   ' "${file}" > "${tmp}"; then
-    echo "ERROR: [${section}] ${key} not found in ${file}" >&2
-    rm -f "${tmp}"
-    exit 1
+    mv "${tmp}" "${file}"
+    return 0
   fi
+  echo "ERROR: [${section}] not found in ${file} (cannot set ${key})" >&2
+  rm -f "${tmp}"
+  exit 1
+}
+
+# Delete a key inside a TOML section if present (idempotent).
+delete_toml_section_key() {
+  local file="$1"
+  local section="$2"
+  local key="$3"
+  local tmp
+  tmp="$(mktemp)"
+
+  awk -v section="${section}" -v key="${key}" '
+    /^\[.*\]$/ {
+      line = $0
+      gsub(/^\[|\]$/, "", line)
+      current = line
+    }
+    current == section && $0 ~ "^" key "[[:space:]]*=" { next }
+    { print }
+  ' "${file}" > "${tmp}"
   mv "${tmp}" "${file}"
 }
 
@@ -130,6 +164,9 @@ fi
 echo "==> Patching app.toml"
 set_toml_key "${APP_TOML}" "pruning" "\"${PRUNING}\""
 set_toml_key "${APP_TOML}" "minimum-gas-prices" "\"${MINIMUM_GAS_PRICES}\""
+# v1.6.0 mandatory — missing/0 falls back to upstream 262144 (breaks EVM; can AppHash)
+set_toml_section_key "${APP_TOML}" "evm" "evm-chain-id" "${EVM_CHAIN_ID}"
+delete_toml_section_key "${APP_TOML}" "json-rpc" "fix-revert-gas-refund-height"
 set_toml_section_key "${APP_TOML}" "api" "enable" "true"
 set_toml_section_key "${APP_TOML}" "api" "address" "\"tcp://0.0.0.0:1317\""
 set_toml_section_key "${APP_TOML}" "grpc" "enable" "true"
@@ -149,6 +186,7 @@ print_diff "app.toml" "${BACKUP_DIR}/app.toml" "${APP_TOML}"
 echo ""
 echo "==> Config patched"
 echo "    datadir: ${DATA_DIR}"
-echo "    pruning=${PRUNING} indexer=${INDEXER} minimum-gas-prices=${MINIMUM_GAS_PRICES}"
+echo "    pruning=${PRUNING} indexer=${INDEXER} evm-chain-id=${EVM_CHAIN_ID}"
+echo "    minimum-gas-prices=${MINIMUM_GAS_PRICES}"
 echo "    logs-cap=${LOGS_CAP} block-range-cap=${BLOCK_RANGE_CAP} gas-cap=${GAS_CAP}"
 echo "Next: docker compose up -d"

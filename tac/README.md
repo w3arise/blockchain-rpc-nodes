@@ -30,7 +30,7 @@ dockerfile: Dockerfile.source   # build from source (default)
 # dockerfile: Dockerfile        # download release binary
 ```
 
-`patch-config.sh` is **idempotent**. It sets `pruning = "default"`, `indexer = "kv"`, `minimum-gas-prices = "25000000000utac"`, `logs-cap` / `block-range-cap = 100000`, and `gas-cap = 600000000`. Start uses `--home /data` and `--json-rpc.enable`.
+`patch-config.sh` is **idempotent**. It sets `pruning = "default"`, `indexer = "kv"`, **`evm-chain-id = 239`** (required since v1.6.0), `minimum-gas-prices = "25000000000utac"`, `logs-cap` / `block-range-cap = 100000`, and `gas-cap = 600000000`. Start uses `--home /data` and `--json-rpc.enable`.
 
 RPC: `http://127.0.0.1:8545` · WS: `ws://127.0.0.1:8546`
 
