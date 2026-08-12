@@ -4,6 +4,20 @@ Mainnet EVM JSON-RPC endpoint backed by the Hiero JSON-RPC Relay and a self-host
 
 This is not a Hedera consensus node. Reads are served from the local Mirror Node, while `eth_sendRawTransaction` submits to Hedera consensus nodes using the configured relay operator account.
 
+## Contents
+
+- [Start](#start)
+  - [1. Install prerequisites](#1-install-prerequisites)
+  - [2. Create configuration and secrets](#2-create-configuration-and-secrets)
+  - [3. Download the minimal mainnet database](#3-download-the-minimal-mainnet-database)
+  - [4. Initialize PostgreSQL and import the export](#4-initialize-postgresql-and-import-the-export)
+  - [5. Start the Mirror Node](#5-start-the-mirror-node)
+  - [6. Start HTTP and WebSocket RPC](#6-start-http-and-websocket-rpc)
+- [Stop and restart](#stop-and-restart)
+- [Database bootstrap (reference)](#database-bootstrap-reference)
+- [State retention](#state-retention)
+- [Upgrade](#upgrade)
+
 ## Start
 
 ### 1. Install prerequisites
@@ -38,7 +52,7 @@ Those DB passwords are written into Postgres on **first** start (`init.sh` via `
 
 ### 3. Download the minimal mainnet database
 
-Confirm the available export and version (see [Database bootstrap](#database-bootstrap) for Atma vs full export, sizing, and size-check commands):
+Confirm the available export and version (see [Database bootstrap (reference)](#database-bootstrap-reference) for Atma vs full export, sizing, and size-check commands):
 
 ```bash
 ./bootstrap.sh list
@@ -107,7 +121,36 @@ curl -s http://127.0.0.1:7546 \
 
 HTTP RPC is `127.0.0.1:7546`, WebSocket RPC is `127.0.0.1:8546`, and the local Mirror REST API is `127.0.0.1:8080`.
 
-## Database bootstrap
+## Stop and restart
+
+After the first bootstrap, use Docker Compose for day-to-day stop/start. `./bootstrap.sh` is only for download, init, import, and the first start — not for normal restarts.
+
+Mirror and relay services use Compose **profiles**. Always pass the same profiles you started with; a bare `docker compose up -d` starts only **`db`**.
+
+**Mirror + JSON-RPC relay** (typical):
+
+```bash
+docker compose --profile mirror --profile relay down
+docker compose --profile mirror --profile relay up -d
+```
+
+**Mirror only** (no Ethereum RPC):
+
+```bash
+docker compose --profile mirror down
+docker compose --profile mirror up -d
+```
+
+Data stays on the host (`$HOME/hedera-postgres-data`, Redis dirs, etc.). The importer resumes catch-up after restart. Let `down` finish — Postgres has a 2-minute graceful shutdown.
+
+```bash
+docker compose ps
+docker compose logs -f importer
+```
+
+## Database bootstrap (reference)
+
+Extended detail for [Start](#start) steps 3–4: export modes (minimal / full / schema-only), sizing, hardware, and alternatives. Follow the Start steps to run bootstrap; use this section when choosing an export or planning disk.
 
 ### Source
 
