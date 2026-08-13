@@ -4,6 +4,8 @@ services:
   prometheus:
     image: prom/prometheus:v2.35.0
     container_name: abstract-prometheus
+    profiles:
+      - monitoring
     volumes:
       - $HOME/abstract-prometheus-data:/prometheus
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
@@ -16,6 +18,8 @@ services:
   grafana:
     image: grafana/grafana:9.3.6
     container_name: abstract-grafana
+    profiles:
+      - monitoring
     volumes:
       - $HOME/abstract-grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning

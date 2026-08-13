@@ -1,21 +1,31 @@
 # Abstract (ZK Stack external node)
 
-Mainnet external node (matterlabs/external-node + PostgreSQL). Chain data: `$HOME/abstract-postgres-data`, `$HOME/abstract-rocksdb-data`. Monitoring: `$HOME/abstract-prometheus-data`, `$HOME/abstract-grafana-data`.
+Mainnet external node (matterlabs/external-node + PostgreSQL). Chain data: `$HOME/abstract-postgres-data`, `$HOME/abstract-rocksdb-data`.
 
 ## Start
 
 ```bash
 ./configure.sh
 # edit .env — set EN_ETH_CLIENT_URL and DB_PASSWORD
-mkdir -p "$HOME/abstract-prometheus-data" "$HOME/abstract-grafana-data"
-sudo chown -R 65534:65534 "$HOME/abstract-prometheus-data"   # prom/prometheus runs as nobody (UID 65534)
-sudo chown -R 472:0 "$HOME/abstract-grafana-data"              # grafana/grafana runs as grafana (UID 472)
 docker compose up -d
 ```
 
 First run downloads a snapshot from GCS (`EN_SNAPSHOTS_RECOVERY_ENABLED=true`). RPC is unavailable until recovery completes.
 
 If the external node fails with `Too many open files` during RocksDB catch-up, recreate it so the compose `ulimits` apply: `docker compose up -d --force-recreate external-node`.
+
+## Monitoring (optional)
+
+Prometheus and Grafana are in the **`monitoring` compose profile** — they do not start with the default `docker compose up -d`.
+
+```bash
+mkdir -p "$HOME/abstract-prometheus-data" "$HOME/abstract-grafana-data"
+sudo chown -R 65534:65534 "$HOME/abstract-prometheus-data"   # prom/prometheus runs as nobody (UID 65534)
+sudo chown -R 472:0 "$HOME/abstract-grafana-data"              # grafana/grafana runs as grafana (UID 472)
+docker compose --profile monitoring up -d
+```
+
+Grafana: `http://127.0.0.1:8300` · External-node metrics: `http://127.0.0.1:3322/metrics`
 
 ## Testnet
 
