@@ -1,0 +1,43 @@
+services:
+  bor:
+    image: ${BOR_IMAGE}
+    container_name: bor
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 5m
+    network_mode: host
+    cpus: ${CPU_COUNT_LIMIT}
+    env_file: .env
+    environment:
+      - GOGC=${GOGC}
+      - GOMEMLIMIT=${GO_MEM_LIMIT}
+    mem_limit: ${MEM_LIMIT}
+    memswap_limit: ${MEM_LIMIT}
+    command:
+      - server
+      - --config=/config/config.toml
+      - --datadir=/data
+      - --db.engine=${BOR_DB_ENGINE}
+      - --state.scheme=${BOR_STATE_SCHEME}
+      - --syncmode=${BOR_SYNCMODE}
+      - --gcmode=${BOR_GCMODE}
+      - --history.transactions=${HISTORY_TRANSACTIONS}
+      - --history.logs=${HISTORY_LOGS}
+      - --history.state=${HISTORY_STATE}
+      - --port=${P2P_PORT}
+      - --nat=extip:${EXT_IP}
+      - --bor.heimdall=${HEIMDALL_URL}
+      - --rpc.gascap=${GAS_CAP}
+      - --http
+      - --http.addr=${RPC_BIND_ADDR}
+      - --http.port=${HTTP_PORT}
+      - --ws
+      - --ws.addr=${RPC_BIND_ADDR}
+      - --ws.port=${WS_PORT}
+    volumes:
+      - ${HOST_DATADIR:-$HOME/polygon-bor-data}:/data
+      - ./config/config.toml:/config/config.toml:ro
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

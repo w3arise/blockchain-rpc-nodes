@@ -58,6 +58,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | opBNB               | `opbnb/`       | L2 (OP Stack)                       | op-geth + op-node                         | [README](opbnb/README.md)       |
 | Optimism            | `optimism/`    | L2 (OP Stack)                       | op-reth + op-node                         | [README](optimism/README.md)    |
 | Pharos              | `pharos/`      | L1 (EVM-compatible)                 | pharos_light                              | [README](pharos/README.md)      |
+| Polygon PoS         | `polygon-bor/` | L2 (PoS)                            | bor (PBSS archive)                        | [README](polygon-bor/README.md) |
 | Robinhood Chain     | `robinhood/`   | L2 (Arbitrum Nitro)                 | nitro                                     | [README](robinhood/README.md)   |
 | Ronin               | `ronin/`       | L2 (OP Stack / EigenDA)             | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md)       |
 | Sei                 | `sei/`         | L1 (Cosmos + EVM)                   | seid (historical RPC)                     | [README](sei/README.md)         |
