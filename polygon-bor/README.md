@@ -7,7 +7,7 @@ Bor needs a synced **Heimdall v2** REST API (`HEIMDALL_URL` in `.env`). This com
 ## Start
 
 ```bash
-./configure.sh              # .env + EXT_IP; set HEIMDALL_URL if Heimdall is not on localhost
+./configure.sh mainnet      # .env + EXT_IP + mainnet peers/datadir/ports
 docker compose pull
 docker compose up -d
 ```
@@ -35,12 +35,18 @@ Official `bor-mainnet-archive` packages use **hash** scheme. Do not restore a ha
 
 ## Testnet (Amoy)
 
-In `.env`, set `CHAIN=amoy` and the Amoy `BOOTNODES` / `DISCOVERY_DNS` values commented in `env.template`. Point `HEIMDALL_URL` at a synced **Amoy** Heimdall v2 (`heimdallv2-80002`). Use a separate datadir (`HOST_DATADIR=$HOME/polygon-bor-amoy-data`) — `./configure.sh` refuses Amoy if the path is still `$HOME/polygon-bor-data`. If mainnet is already bound on this host, also shift `HTTP_PORT` / `WS_PORT` / `P2P_PORT`.
+```bash
+./configure.sh amoy
+docker compose pull
+docker compose up -d
+```
 
-Amoy snapshots are listed on the same All4nodes / PublicNode pages (pick **amoy bor**, pebble+path). Docs suggest ~1 TB disk.
+This sets `CHAIN=amoy`, `$HOME/polygon-bor-amoy-data`, Amoy bootnodes/DNS, and ports **8755** / **8756** / **30305**. Point `HEIMDALL_URL` at a synced **Amoy** Heimdall v2 (`heimdallv2-80002`).
+
+Amoy snapshots: [All4nodes](https://all4nodes.io/Polygon) / [PublicNode](https://publicnode.com/snapshots#polygon) — pick **amoy bor**, pebble+path. Docs suggest ~1 TB disk.
 
 ## Host ports
 
-Host network. Inbound P2P: **30304** TCP+UDP. HTTP/WS: localhost **8745** / **8746** (`RPC_BIND_ADDR`).
+Host network. Mainnet P2P **30304** TCP+UDP, HTTP/WS localhost **8745** / **8746**. Amoy: **30305**, **8755** / **8756**.
 
 Docs: [Full node (Docker)](https://docs.polygon.technology/pos/how-to/full-node/full-node-docker) · [0xPolygon/bor](https://github.com/0xPolygon/bor)
