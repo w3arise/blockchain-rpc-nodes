@@ -16,7 +16,10 @@ services:
     command:
       - server
       - --config=/config/config.toml
+      - --chain=${CHAIN}
       - --datadir=/data
+      - --bootnodes=${BOOTNODES}
+      - --discovery.dns=${DISCOVERY_DNS}
       - --db.engine=${BOR_DB_ENGINE}
       - --state.scheme=${BOR_STATE_SCHEME}
       - --syncmode=${BOR_SYNCMODE}

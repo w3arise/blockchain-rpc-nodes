@@ -33,6 +33,12 @@ Restore into `$HOME/polygon-bor-data`, then start as above. Plan **several TB** 
 
 Official `bor-mainnet-archive` packages use **hash** scheme. Do not restore a hash snapshot onto this path datadir (or the reverse). Changing `HISTORY_STATE` on an existing path DB prunes older state.
 
+## Testnet (Amoy)
+
+In `.env`, set `CHAIN=amoy` and the Amoy `BOOTNODES` / `DISCOVERY_DNS` values commented in `env.template`. Point `HEIMDALL_URL` at a synced **Amoy** Heimdall v2 (`heimdallv2-80002`). Use a separate datadir (`HOST_DATADIR=$HOME/polygon-bor-amoy-data`) — `./configure.sh` refuses Amoy if the path is still `$HOME/polygon-bor-data`. If mainnet is already bound on this host, also shift `HTTP_PORT` / `WS_PORT` / `P2P_PORT`.
+
+Amoy snapshots are listed on the same All4nodes / PublicNode pages (pick **amoy bor**, pebble+path). Docs suggest ~1 TB disk.
+
 ## Host ports
 
 Host network. Inbound P2P: **30304** TCP+UDP. HTTP/WS: localhost **8745** / **8746** (`RPC_BIND_ADDR`).

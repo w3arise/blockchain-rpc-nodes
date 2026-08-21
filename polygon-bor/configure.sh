@@ -49,11 +49,32 @@ fi
 set -a
 source "${ENV_FILE}"
 set +a
+
+CHAIN="${CHAIN:-mainnet}"
+case "${CHAIN}" in
+  mainnet|amoy) ;;
+  *)
+    echo "ERROR: CHAIN must be mainnet or amoy (got ${CHAIN})" >&2
+    exit 1
+    ;;
+esac
+
 DATA_DIR="${HOST_DATADIR:-${HOME}/polygon-bor-data}"
+MAINNET_DATADIR="${HOME}/polygon-bor-data"
+if [[ "${CHAIN}" == "amoy" && "${DATA_DIR}" == "${MAINNET_DATADIR}" ]]; then
+  echo "ERROR: CHAIN=amoy would reuse the mainnet datadir (${DATA_DIR})" >&2
+  echo "Set HOST_DATADIR=\$HOME/polygon-bor-amoy-data in .env" >&2
+  exit 1
+fi
+
 mkdir -p "${DATA_DIR}"
 
 echo ""
+echo "chain=${CHAIN}  datadir=${DATA_DIR}"
 echo "Heimdall REST must be reachable at HEIMDALL_URL=${HEIMDALL_URL}"
+if [[ "${CHAIN}" == "amoy" ]]; then
+  echo "Use an Amoy Heimdall v2 (heimdallv2-80002), not mainnet."
+fi
 echo "Next:"
 echo "  docker compose pull"
 echo "  docker compose up -d"
