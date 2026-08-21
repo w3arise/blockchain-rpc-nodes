@@ -1,0 +1,40 @@
+# Polygon PoS Amoy Bor config (from 0xPolygon/bor v2.10.0 archive template,
+# adapted for Docker). Network (chain / bootnodes / DNS), datadir, syncmode,
+# scheme, retention, NAT, Heimdall, ports, and HTTP/WS APIs come from compose
+# CLI flags.
+
+snapshot = true
+
+[p2p]
+ maxpeers = 200
+
+[txpool]
+ pricelimit = 25000000000
+ accountslots = 16
+ globalslots = 131072
+ accountqueue = 64
+ globalqueue = 131072
+ lifetime = "1h30m0s"
+
+[miner]
+ gaslimit = 45000000
+ gasprice = "25000000000"
+
+[jsonrpc]
+ ipcpath = "/data/bor.ipc"
+ [jsonrpc.http]
+ vhosts = ["*"]
+ corsdomain = ["*"]
+ [jsonrpc.ws]
+ origins = ["*"]
+
+[gpo]
+ ignoreprice = "25000000000"
+
+[telemetry]
+ metrics = true
+
+[cache]
+ # cache comes from compose (--cache)
+ gc = 0
+ snapshot = 20

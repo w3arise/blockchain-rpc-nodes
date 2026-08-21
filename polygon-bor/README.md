@@ -7,7 +7,7 @@ Bor needs a synced **Heimdall v2** REST API (`HEIMDALL_URL` in `.env`). This com
 ## Start
 
 ```bash
-./configure.sh mainnet      # .env + EXT_IP + mainnet peers/datadir/ports
+./configure.sh mainnet      # copies env.template.mainnet -> .env, sets EXT_IP
 docker compose pull
 docker compose up -d
 ```
@@ -28,10 +28,10 @@ Restore into `$HOME/polygon-bor-data`, then start as above. Plan **several TB** 
 
 | Flag | This setup | Receipts / logs | State |
 | --- | --- | --- | --- |
-| `BOR_STATE_SCHEME=path` `BOR_GCMODE=archive` | **PBSS archive** | Full blocks; log index `HISTORY_LOGS` (0 = entire chain) | Last `HISTORY_STATE` blocks (`0` = unlimited) |
-| `HISTORY_TRANSACTIONS=0` | Full tx index | `eth_getTransaction*` from genesis | — |
+| `BOR_STATE_SCHEME=path` `BOR_GCMODE=archive` | **PBSS archive** | Full blocks; log index `BOR_HISTORY_LOGS` (0 = entire chain) | Last `BOR_HISTORY_STATE` blocks (`0` = unlimited) |
+| `BOR_HISTORY_TRANSACTIONS=0` | Full tx index | `eth_getTransaction*` from genesis | — |
 
-Official `bor-mainnet-archive` packages use **hash** scheme. Do not restore a hash snapshot onto this path datadir (or the reverse). Changing `HISTORY_STATE` on an existing path DB prunes older state.
+Official `bor-mainnet-archive` packages use **hash** scheme. Do not restore a hash snapshot onto this path datadir (or the reverse). Changing `BOR_HISTORY_STATE` on an existing path DB prunes older state.
 
 ## Testnet (Amoy)
 
@@ -41,16 +41,14 @@ docker compose pull
 docker compose up -d
 ```
 
-This sets `CHAIN=amoy`, container **`bor-amoy`**, project **`polygon-bor-amoy`**, `$HOME/polygon-bor-amoy-data`, Amoy bootnodes/DNS, and ports **8755** / **8756** / **30305**. Point `HEIMDALL_URL` at a synced **Amoy** Heimdall v2 (`heimdallv2-80002`).
+This copies `env.template.amoy` to `.env`: container **`bor-amoy`**, project **`polygon-bor-amoy`**, `$HOME/polygon-bor-amoy-data`, ports **8545** / **8546** / **31304** (`RPC_BIND_ADDR=0.0.0.0`), `--cache=8192`, 12 CPU / 24G, `GAS_CAP=1000000000`, APIs **eth,net,web3,bor**, and `HEIMDALL_URL=https://heimdall-api-amoy.polygon.technology`.
 
 Both can run on one host: different container name, compose project, datadir, and ports. Start mainnet, then `./configure.sh amoy && docker compose up -d` — that overwrites `.env` but leaves `bor` running. `docker compose down` only stops the project named in the current `.env`. To recreate mainnet, run `./configure.sh mainnet` first.
-
-Heimdall REST cannot share a port. If mainnet already uses `http://127.0.0.1:1317`, set Amoy `HEIMDALL_URL` to the other Heimdall's REST port.
 
 Amoy snapshots: [All4nodes](https://all4nodes.io/Polygon) / [PublicNode](https://publicnode.com/snapshots#polygon) — pick **amoy bor**, pebble+path. Docs suggest ~1 TB disk.
 
 ## Host ports
 
-Host network. Mainnet P2P **30304** TCP+UDP, HTTP/WS localhost **8745** / **8746**. Amoy: **30305**, **8755** / **8756**.
+Host network. Mainnet P2P **30304** TCP+UDP, HTTP/WS **8745** / **8746** on all interfaces. Amoy: P2P **31304**, HTTP/WS **8545** / **8546** on all interfaces.
 
 Docs: [Full node (Docker)](https://docs.polygon.technology/pos/how-to/full-node/full-node-docker) · [0xPolygon/bor](https://github.com/0xPolygon/bor)
