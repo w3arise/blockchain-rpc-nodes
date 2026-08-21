@@ -41,7 +41,7 @@ docker compose pull
 docker compose up -d
 ```
 
-This copies `env.template.amoy` to `.env`: container **`bor-amoy`**, project **`polygon-bor-amoy`**, `$HOME/polygon-bor-amoy-data`, ports **8545** / **8546** / **31304** (`RPC_BIND_ADDR=0.0.0.0`), `--cache=8192`, 12 CPU / 24G, `GAS_CAP=1000000000`, APIs **eth,net,web3,bor**, and `HEIMDALL_URL=https://heimdall-api-amoy.polygon.technology`.
+This copies `env.template.amoy` to `.env`: container **`bor-amoy`**, project **`polygon-bor-amoy`**, `$HOME/polygon-bor-amoy-data`, ports **8755** / **8756** / **31304** (`RPC_BIND_ADDR=0.0.0.0`), `--cache=8192`, 12 CPU / 24G, `GAS_CAP=1000000000`, APIs **eth,net,web3,bor**, and `HEIMDALL_URL=https://heimdall-api-amoy.polygon.technology`.
 
 Both can run on one host: different container name, compose project, datadir, and ports. Start mainnet, then `./configure.sh amoy && docker compose up -d` — that overwrites `.env` but leaves `bor` running. `docker compose down` only stops the project named in the current `.env`. To recreate mainnet, run `./configure.sh mainnet` first.
 
@@ -49,6 +49,6 @@ Amoy snapshots: [All4nodes](https://all4nodes.io/Polygon) / [PublicNode](https:/
 
 ## Host ports
 
-Host network. Mainnet P2P **30304** TCP+UDP, HTTP/WS **8745** / **8746** on all interfaces. Amoy: P2P **31304**, HTTP/WS **8545** / **8546** on all interfaces.
+Host network. Mainnet P2P **30304** TCP+UDP, HTTP/WS **8745** / **8746** on all interfaces. Amoy: P2P **31304**, HTTP/WS **8755** / **8756** on all interfaces.
 
 Docs: [Full node (Docker)](https://docs.polygon.technology/pos/how-to/full-node/full-node-docker) · [0xPolygon/bor](https://github.com/0xPolygon/bor)
