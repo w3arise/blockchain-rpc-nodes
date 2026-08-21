@@ -35,6 +35,6 @@ Official `bor-mainnet-archive` packages use **hash** scheme. Do not restore a ha
 
 ## Host ports
 
-Host network. Inbound P2P: **30304** TCP+UDP. HTTP/WS: localhost **8545** / **8546** (`RPC_BIND_ADDR`).
+Host network. Inbound P2P: **30304** TCP+UDP. HTTP/WS: localhost **8745** / **8746** (`RPC_BIND_ADDR`).
 
 Docs: [Full node (Docker)](https://docs.polygon.technology/pos/how-to/full-node/full-node-docker) · [0xPolygon/bor](https://github.com/0xPolygon/bor)
