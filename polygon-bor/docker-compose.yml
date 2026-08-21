@@ -1,7 +1,9 @@
+name: ${COMPOSE_PROJECT_NAME:-polygon-bor}
+
 services:
   bor:
     image: ${BOR_IMAGE}
-    container_name: bor
+    container_name: ${CONTAINER_NAME:-bor}
     init: true
     restart: unless-stopped
     stop_grace_period: 5m

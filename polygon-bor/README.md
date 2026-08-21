@@ -41,7 +41,11 @@ docker compose pull
 docker compose up -d
 ```
 
-This sets `CHAIN=amoy`, `$HOME/polygon-bor-amoy-data`, Amoy bootnodes/DNS, and ports **8755** / **8756** / **30305**. Point `HEIMDALL_URL` at a synced **Amoy** Heimdall v2 (`heimdallv2-80002`).
+This sets `CHAIN=amoy`, container **`bor-amoy`**, project **`polygon-bor-amoy`**, `$HOME/polygon-bor-amoy-data`, Amoy bootnodes/DNS, and ports **8755** / **8756** / **30305**. Point `HEIMDALL_URL` at a synced **Amoy** Heimdall v2 (`heimdallv2-80002`).
+
+Both can run on one host: different container name, compose project, datadir, and ports. Start mainnet, then `./configure.sh amoy && docker compose up -d` — that overwrites `.env` but leaves `bor` running. `docker compose down` only stops the project named in the current `.env`. To recreate mainnet, run `./configure.sh mainnet` first.
+
+Heimdall REST cannot share a port. If mainnet already uses `http://127.0.0.1:1317`, set Amoy `HEIMDALL_URL` to the other Heimdall's REST port.
 
 Amoy snapshots: [All4nodes](https://all4nodes.io/Polygon) / [PublicNode](https://publicnode.com/snapshots#polygon) — pick **amoy bor**, pebble+path. Docs suggest ~1 TB disk.
 

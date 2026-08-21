@@ -72,6 +72,8 @@ fi
 
 if [[ "${NETWORK}" == "amoy" ]]; then
   set_env_value CHAIN amoy
+  set_env_value COMPOSE_PROJECT_NAME polygon-bor-amoy
+  set_env_value CONTAINER_NAME bor-amoy
   set_env_value HOST_DATADIR '$HOME/polygon-bor-amoy-data'
   set_env_value HTTP_PORT 8755
   set_env_value WS_PORT 8756
@@ -80,6 +82,8 @@ if [[ "${NETWORK}" == "amoy" ]]; then
   set_env_value DISCOVERY_DNS 'enrtree://AKUEZKN7PSKVNR65FZDHECMKOJQSGPARGTPPBI7WS2VUL4EGR6XPC@amoy.polygon-peers.io'
 else
   set_env_value CHAIN mainnet
+  set_env_value COMPOSE_PROJECT_NAME polygon-bor
+  set_env_value CONTAINER_NAME bor
   set_env_value HOST_DATADIR '$HOME/polygon-bor-data'
   set_env_value HTTP_PORT 8745
   set_env_value WS_PORT 8746
@@ -111,11 +115,13 @@ DATA_DIR="${HOST_DATADIR:-${HOME}/polygon-bor-data}"
 mkdir -p "${DATA_DIR}"
 
 echo ""
-echo "chain=${CHAIN}  datadir=${DATA_DIR}"
+echo "chain=${CHAIN}  container=${CONTAINER_NAME}  project=${COMPOSE_PROJECT_NAME}"
+echo "datadir=${DATA_DIR}"
 echo "HTTP ${HTTP_PORT}  WS ${WS_PORT}  P2P ${P2P_PORT}"
 echo "Heimdall REST must be reachable at HEIMDALL_URL=${HEIMDALL_URL}"
 if [[ "${CHAIN}" == "amoy" ]]; then
   echo "Use an Amoy Heimdall v2 (heimdallv2-80002), not mainnet."
+  echo "If mainnet Heimdall already uses :1317, point HEIMDALL_URL at the Amoy REST port."
 fi
 echo "Next:"
 echo "  docker compose pull"
