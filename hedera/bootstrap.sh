@@ -4,7 +4,8 @@
 #
 # Usage:
 #   ./bootstrap.sh list
-#   ./bootstrap.sh download [version]       # full history (large, see README sizing)
+#   ./bootstrap.sh download [version]       # minimal export (excludes *_atma.csv.gz)
+#   ./bootstrap.sh download-full [version]  # full export including Atma (alias: download-atma)
 #   ./bootstrap.sh download-schema          # schema only: skip history, sync forward from ~now
 #   ./bootstrap.sh init
 #   ./bootstrap.sh import                   # not used after download-schema
@@ -276,6 +277,26 @@ case "${command_name}" in
     verify_export_version
     ;;
 
+  download-full|download-atma)
+    require_command gcloud
+    require_value GCP_PROJECT_ID
+    requested_version="${2:-${MIRROR_NODE_VERSION}}"
+    if [[ "${requested_version}" != "${MIRROR_NODE_VERSION}" ]]; then
+      echo "ERROR: requested ${requested_version}, but MIRROR_NODE_VERSION=${MIRROR_NODE_VERSION}" >&2
+      echo "Update .env and rerun ./configure.sh before downloading another version." >&2
+      exit 1
+    fi
+    mkdir -p "${EXPORT_DIR}"
+    export CLOUDSDK_STORAGE_SLICED_OBJECT_DOWNLOAD_MAX_COMPONENTS=1
+    gcloud storage rsync -r \
+      --billing-project="${GCP_PROJECT_ID}" \
+      "gs://mirrornode-db-export/MAINNET/${MIRROR_NODE_VERSION}/" \
+      "${EXPORT_DIR}/"
+    rm -f "${MINIMAL_EXPORT_MARKER}" "${MANIFEST_MINIMAL_FILE}"
+    verify_export_version
+    echo "downloaded full export (including Atma); import uses manifest.csv"
+    ;;
+
   download-schema)
     require_command gcloud
     require_command gzip
@@ -375,7 +396,7 @@ case "${command_name}" in
     ;;
 
   help|--help|-h)
-    echo "Usage: $0 {list|download [version]|download-schema|build|init|import|status|watch|repair-minimal-tracking|start-mirror|start-relay}"
+    echo "Usage: $0 {list|download [version]|download-full|download-atma|download-schema|build|init|import|status|watch|repair-minimal-tracking|start-mirror|start-relay}"
     ;;
 
   *)

@@ -167,12 +167,12 @@ This setup’s `./bootstrap.sh download` uses the **minimal** mainnet export: it
 | Mode | How | History | What’s missing | Compressed download (approx.) | After Postgres import |
 | --- | --- | --- | --- | --- | --- |
 | **Minimal (default)** | `./bootstrap.sh download` | Full timeline of non-Atma txs / receipts / logs | Atma bulk rows only | ~1.2 TiB for `0.156.0` (measure with the size check below) | Often ~2–4+ TiB; leave headroom — larger than the `.csv.gz` download (indexes, WAL) |
-| **Full (with Atma)** | Same GCS rsync **without** the Atma exclude | Complete mainnet history including Atma | Nothing from the export | Multi‑TiB larger than minimal (`du -s` on the folder) | Can approach the upstream ~tens of TiB / ~50 TiB class |
+| **Full (with Atma)** | `./bootstrap.sh download-full` | Complete mainnet history including Atma | Nothing from the export | Multi‑TiB larger than minimal (`du -s` on the folder) | Can approach the upstream ~tens of TiB / ~50 TiB class |
 | **Schema-only** | `./bootstrap.sh download-schema` | From ~now forward only | All history before start | Kilobytes | Small; grows with live catch-up |
 
-Minimal is still **full history without Atma** — not a tip-only snapshot. Enough for typical EVM / log RPC. Use full export only if you need Atma’s historical records; use schema-only only if you cannot store the minimal download.
+Minimal is still **full history without Atma** — not a tip-only snapshot. Enough for typical EVM / log RPC. Use `./bootstrap.sh download-full` (alias `download-atma`) only if you need Atma’s historical records; use schema-only only if you cannot store the minimal download.
 
-Import uses `manifest.minimal.csv` (Atma rows stripped from `manifest.csv`). If `start-mirror` reports `FAILED_TO_IMPORT` on `*_atma.csv.gz` files after a minimal import, run `./bootstrap.sh repair-minimal-tracking` (or pull the latest `bootstrap.sh`, which fixes this automatically when only Atma files failed).
+Import uses `manifest.minimal.csv` after `./bootstrap.sh download` (Atma rows stripped from `manifest.csv`). Full download uses `manifest.csv`. If `start-mirror` reports `FAILED_TO_IMPORT` on `*_atma.csv.gz` files after a minimal import, run `./bootstrap.sh repair-minimal-tracking` (or pull the latest `bootstrap.sh`, which fixes this automatically when only Atma files failed).
 
 ### Hardware (upstream guide)
 
