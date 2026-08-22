@@ -166,8 +166,8 @@ This setup’s `./bootstrap.sh download` uses the **minimal** mainnet export: it
 
 | Mode | How | History | What’s missing | Compressed download (approx.) | After Postgres import |
 | --- | --- | --- | --- | --- | --- |
-| **Minimal (default)** | `./bootstrap.sh download` | Full timeline of non-Atma txs / receipts / logs | Atma bulk rows only | ~1.2 TiB for `0.156.0` (measure with the size check below) | Often ~2–4+ TiB; leave headroom — larger than the `.csv.gz` download (indexes, WAL) |
-| **Full (with Atma)** | `./bootstrap.sh download-full` | Complete mainnet history including Atma | Nothing from the export | Multi‑TiB larger than minimal (`du -s` on the folder) | Can approach the upstream ~tens of TiB / ~50 TiB class |
+| **Minimal (default)** | `./bootstrap.sh download` | Full timeline of non-Atma txs / receipts / logs | Atma bulk rows only | **~1.18 TiB** compressed on GCS for `0.156.0` | Often ~2–4+ TiB; leave headroom — larger than the `.csv.gz` download (indexes, WAL) |
+| **Full (with Atma)** | `./bootstrap.sh download-full` | Complete mainnet history including Atma | Nothing from the export | **~13.59 TiB** compressed on GCS for `0.156.0` | Can approach the upstream ~tens of TiB / ~50 TiB class |
 | **Schema-only** | `./bootstrap.sh download-schema` | From ~now forward only | All history before start | Kilobytes | Small; grows with live catch-up |
 
 Minimal is still **full history without Atma** — not a tip-only snapshot. Enough for typical EVM / log RPC. Use `./bootstrap.sh download-full` (alias `download-atma`) only if you need Atma’s historical records; use schema-only only if you cannot store the minimal download.
@@ -176,26 +176,42 @@ Import uses `manifest.minimal.csv` after `./bootstrap.sh download` (Atma rows st
 
 ### Hardware (upstream guide)
 
-For a busy Mirror Node: PostgreSQL 16+, ~10 vCPU, ~40 GiB RAM. Disk **1–55 TiB** depending on retention; complete mainnet (with Atma-scale data) can approach ~50 TiB. Skipping Atma puts you on the **low end** of that band, but still plan **several TiB** free for the DB volume after a minimal import — not just the ~1.2 TiB download.
+For a busy Mirror Node: PostgreSQL 16+, ~10 vCPU, ~40 GiB RAM. Disk **1–55 TiB** depending on retention; complete mainnet (with Atma-scale data) can approach ~50 TiB. Skipping Atma puts you on the **low end** of that band, but still plan **several TiB** free for the DB volume after a minimal import — not just the ~1.18 TiB GCS download.
 
 Steady-state Postgres tuning from the [Mirror Node database guide](https://github.com/hiero-ledger/hiero-mirror-node/blob/v0.156.0/docs/database/README.md) lives in `config/postgresql.conf` and is applied by the `db` service in `docker-compose.yml` (`max_wal_size=24GB`, `checkpoint_timeout=30min`, etc.). Recreate the DB container to pick up changes (`docker compose up -d db`). Temporary import-time WAL bumps stay manual — see [step 4](#4-initialize-postgresql-and-import-the-export).
 
 ### Check export size before download
 
-Full folder (includes Atma — larger than what we download):
+Measured with `gcloud storage du -s -r --readable-sizes` on `0.156.0` (2026-08-22):
+
+| Export | GCS compressed size |
+| --- | --- |
+| Full (with Atma) | **13.59 TiB** — `gs://mirrornode-db-export/MAINNET/0.156.0/` |
+| Minimal (non-Atma) | **1.18 TiB** — same prefix, `--exclude-name-pattern='*_atma.csv.gz'` |
+
+Re-run for other versions before downloading:
+
+**Full export** (includes Atma — for `download-full`):
 
 ```bash
-gcloud storage du -s --readable-sizes --billing-project=<GCP_PROJECT_ID> \
+gcloud storage du -s -r --readable-sizes --billing-project=<GCP_PROJECT_ID> \
   gs://mirrornode-db-export/MAINNET/<version>/
 ```
 
-What `./bootstrap.sh download` actually pulls (excludes `*_atma.csv.gz`):
+**Minimal export** (what `./bootstrap.sh download` pulls — excludes `*_atma.csv.gz`):
 
 ```bash
-gcloud storage ls -l --billing-project=<GCP_PROJECT_ID> \
-  gs://mirrornode-db-export/MAINNET/<version>/** \
-  | grep -v '_atma\.csv\.gz' \
-  | awk '$1 ~ /^[0-9]+$/ {sum += $1} END {printf "%.2f GiB\n", sum/1024/1024/1024}'
+gcloud storage du -s -r --readable-sizes --billing-project=<GCP_PROJECT_ID> \
+  --exclude-name-pattern='*_atma.csv.gz' \
+  gs://mirrornode-db-export/MAINNET/<version>/
+```
+
+Example for `0.156.0`:
+
+```bash
+gcloud storage du -s -r --readable-sizes --billing-project=e2s-misc \
+  --exclude-name-pattern='*_atma.csv.gz' \
+  gs://mirrornode-db-export/MAINNET/0.156.0/
 ```
 
 ### Partial history (skip the backfill)
