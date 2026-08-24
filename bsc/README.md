@@ -5,7 +5,7 @@ Mainnet RPC node. Chain data: `$HOME/chain-data` (override with `HOST_DATADIR` i
 ## Start
 
 ```bash
-cp env.template .env    # set EXT_IP
+./configure.sh          # creates .env, sets EXT_IP from ip.me
 docker compose up -d
 ```
 
