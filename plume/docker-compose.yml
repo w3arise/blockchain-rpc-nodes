@@ -1,0 +1,50 @@
+services:
+  plume-mainnet:
+    image: ${NITRO_IMAGE}
+    container_name: plume-mainnet
+    restart: unless-stopped
+    user: "1000:1000"
+    stop_grace_period: 120s
+    env_file: .env
+    ports:
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8547
+      - ${RPC_BIND_ADDR}:${METRICS_PORT}:6070
+    volumes:
+      - ${HOST_DATADIR:-$HOME/plume-data}:/home/user/.arbitrum
+      - ./config/chainInfo.json:/config/chainInfo.json:ro
+    command:
+      - --chain.id=${CHAIN_ID}
+      - --chain.name=${CHAIN_NAME}
+      - --chain.info-files=/config/chainInfo.json
+      - --parent-chain.connection.url=${L1_ETH_URL}
+      - --parent-chain.blob-client.beacon-url=${L1_ETH_BEACON_URL}
+      - --node.feed.input.url=${FEED_URL}
+      - --node.data-availability.enable=true
+      - --node.data-availability.rest-aggregator.enable=true
+      - --node.data-availability.rest-aggregator.urls=${REST_AGGREGATOR_URL}
+      - --execution.forwarding-target=${FORWARDING_TARGET}
+      - --http.addr=0.0.0.0
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --http.api=${HTTP_API}
+      - --ws.expose-all
+      - --ws.rpcprefix=/
+      - --ws.port=8547
+      - --ws.addr=0.0.0.0
+      - --ws.origins=*
+      - --ws.api=${WS_API}
+      - --node.staker.enable=false
+      - --node.sequencer=false
+      - --execution.caching.state-scheme=${STATE_SCHEME}
+      - --execution.caching.archive
+      - --execution.rpc.tx-fee-cap=${TX_FEE_CAP}
+      - --execution.rpc.gas-cap=${GAS_CAP}
+      - --metrics
+      - --metrics-server.addr=0.0.0.0
+      - --metrics-server.port=6070
+      - --metrics-server.update-interval=5s
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    init: true
