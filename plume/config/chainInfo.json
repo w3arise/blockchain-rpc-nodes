@@ -2,6 +2,7 @@
   {
     "chain-id": 98866,
     "parent-chain-id": 1,
+    "parent-chain-is-arbitrum": false,
     "chain-name": "conduit-orbit-deployer",
     "chain-config": {
       "chainId": 98866,

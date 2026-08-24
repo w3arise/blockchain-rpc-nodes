@@ -10,9 +10,11 @@ WebSocket RPC listens on host `${WS_PORT}` (default `8547`) → container `8547`
 
 ## State retention
 
-Hash-scheme archive: `STATE_SCHEME=hash` (default) plus `--execution.caching.archive` in compose — matches a typical Plume external node and keeps full block/receipt/log history without historical state.
+Hash-scheme archive: `STATE_SCHEME=hash` (default) plus `--execution.caching.archive` in compose. Archive mode retains **full historical state** (past `eth_call`, balances, storage proofs) as well as blocks, receipts, and logs — an archive node prunes nothing by definition. See [Arbitrum glossary — Archive node](https://docs.arbitrum.io/intro/glossary).
 
-**Do not change `STATE_SCHEME` on an existing datadir** — hash and path are incompatible; your node logs show `scheme=hash`. For a fresh PathDB setup instead, use `STATE_SCHEME=path`, add `--execution.caching.state-history=0`, and sync from scratch or a path snapshot. See [AGENTS.md](../AGENTS.md#arbitrum-nitro-pathdb--pbss).
+Without `--execution.caching.archive`, a hash-scheme **full** node still keeps block/receipt/log history but prunes old state (offline, via `--init.prune`). PathDB (`STATE_SCHEME=path`) is an alternative layout with online pruning; use `--execution.caching.state-history=0` with archive on a fresh path datadir.
+
+**Do not change `STATE_SCHEME` on an existing datadir** — hash and path are incompatible. See [AGENTS.md](../AGENTS.md#arbitrum-nitro-pathdb--pbss).
 
 ## Start
 
