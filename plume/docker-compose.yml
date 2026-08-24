@@ -7,7 +7,8 @@ services:
     stop_grace_period: 120s
     env_file: .env
     ports:
-      - ${RPC_BIND_ADDR}:${WS_PORT}:8547
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8547
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8548
       - ${RPC_BIND_ADDR}:${METRICS_PORT}:6070
     volumes:
       - ${HOST_DATADIR:-$HOME/plume-data}:/home/user/.arbitrum
@@ -24,12 +25,13 @@ services:
       - --node.data-availability.rest-aggregator.urls=${REST_AGGREGATOR_URL}
       - --execution.forwarding-target=${FORWARDING_TARGET}
       - --http.addr=0.0.0.0
+      - --http.port=8547
       - --http.corsdomain=*
       - --http.vhosts=*
       - --http.api=${HTTP_API}
       - --ws.expose-all
       - --ws.rpcprefix=/
-      - --ws.port=8547
+      - --ws.port=8548
       - --ws.addr=0.0.0.0
       - --ws.origins=*
       - --ws.api=${WS_API}

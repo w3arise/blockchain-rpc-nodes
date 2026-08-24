@@ -6,7 +6,7 @@ Requires synced **Ethereum** execution + beacon endpoints (`L1_ETH_URL`, `L1_ETH
 
 The `nitro-node` image runs as **`user` (UID 1000, GID 1000)**. Datadir inside the container: `/home/user/.arbitrum`.
 
-WebSocket RPC listens on host `${WS_PORT}` (default `8547`) → container `8547`. Metrics on `${METRICS_PORT}` (default `6070`).
+HTTP RPC listens on host `${HTTP_PORT}` (default `8547`) → container `8547`. WebSocket on `${WS_PORT}` (default `8548`) → container `8548`. Metrics on `${METRICS_PORT}` (default `6070`).
 
 ## State retention
 
