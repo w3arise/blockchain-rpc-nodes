@@ -19,4 +19,4 @@ Set `RONIN_NETWORK=saigon` in `.env`, then swap L1 endpoints (Sepolia), sequence
 docker compose up -d
 ```
 
-Docs: [Conduit Ronin docs](https://docs.conduit.xyz/chains/ronin) · [Ronin docs](https://www.roninchain.com/) · [EigenDA proxy](https://github.com/Layr-Labs/eigenda-proxy)
+Docs: [Conduit Ronin docs](https://docs.conduit.xyz/chains/ronin) · [Conduit Hub](https://hub.conduit.xyz/) · [Ronin docs](https://www.roninchain.com/) · [EigenDA proxy](https://github.com/Layr-Labs/eigenda-proxy)

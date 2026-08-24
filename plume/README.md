@@ -36,4 +36,4 @@ After Plume network upgrades, refresh `config/chainInfo.json` from [assets.plume
 
 Plume Testnet (chain ID 98867) settles on Sepolia. Chain info: [assets.plume.org/testnet/chainInfo.json](https://assets.plume.org/testnet/chainInfo.json). Update `CHAIN_ID`, feed/DA URLs, L1 endpoints, and `FORWARDING_TARGET=https://testnet-rpc.plume.org` in `.env`.
 
-Docs: [How to run a node](https://docs.plume.org/plume/developers/how-to-guides/how-to-run-a-node) · [Network information](https://docs.plume.org/plume/developers/network-information) · [OffchainLabs/nitro](https://github.com/OffchainLabs/nitro)
+Docs: [How to run a node](https://docs.plume.org/plume/developers/how-to-guides/how-to-run-a-node) · [Network information](https://docs.plume.org/plume/developers/network-information) · [Conduit Hub](https://hub.conduit.xyz/) · [OffchainLabs/nitro](https://github.com/OffchainLabs/nitro)

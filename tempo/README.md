@@ -60,4 +60,4 @@ Then `./restore-snapshot.sh` and `docker compose up -d`.
 
 Change `RPC_BIND_ADDR` to `0.0.0.0` only when LAN access to RPC is intentional.
 
-Docs: [RPC nodes](https://docs.tempo.xyz/guide/node/rpc) · [Install](https://docs.tempo.xyz/guide/node/installation) · [tempoxyz/tempo](https://github.com/tempoxyz/tempo)
+Docs: [RPC nodes](https://docs.tempo.xyz/guide/node/rpc) · [Install](https://docs.tempo.xyz/guide/node/installation) · [Conduit Hub](https://hub.conduit.xyz/tempo) · [tempoxyz/tempo](https://github.com/tempoxyz/tempo)

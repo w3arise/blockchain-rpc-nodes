@@ -89,4 +89,4 @@ Chain ID **48898**. Conduit slug **`zircuit-garfield-testnet`**. Refresh `config
 
 When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (op-reth, default **11588**) and `OP_NODE_P2P_PORT` (op-node, default **9228**). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
 
-Docs: [Conduit — Run an OP Stack node](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes) · [Zircuit RPCs](https://docs.zircuit.com/infra/rpcs) · [Conduit Hub](https://hub.conduit.xyz/)
+Docs: [Conduit — Run an OP Stack node](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes) · [Zircuit RPCs](https://docs.zircuit.com/infra/rpcs) · [Conduit Hub](https://hub.conduit.xyz/zircuit-mainnet)
