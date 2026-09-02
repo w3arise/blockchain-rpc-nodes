@@ -236,6 +236,20 @@ The relay limits a single `eth_getLogs` request to 10,000 blocks by default in `
 
 Bootstrap and first-start the importer with the version recorded in `MIRRORNODE_VERSION.gz`. After it starts cleanly and catches up, upgrade `MIRROR_NODE_VERSION` separately so database migrations run from the known-compatible schema. Do not point a newer importer at a fresh older export before the version-matched first start.
 
+Check upstream releases against your pin (and running containers, if up):
+
+```bash
+./check-upgrade.sh
+```
+
+After bumping mirror images, restart the API proxy so nginx picks up new `rest` / `rest-java` container addresses:
+
+```bash
+docker compose restart api-proxy
+```
+
+Relay **0.78+** images use a single `dist/index.js` binary; the WebSocket container sets `RPC_WS_ENABLED=true` (the old `packages/ws-server/dist/index.js` path no longer exists).
+
 **Block streams cutover (2026):** Hedera mainnet is replacing record streams with block streams by September 2026 (consensus node v0.77). Mirror Node operators must be running v0.160.0 or later before that date, or ingestion stops at cutover — see the [block streams announcement](https://hedera.com/blog/block-streams-replace-the-record-stream-by-default-starting-september-2026-action-required-by-mirror-node-operators/). Watch `gs://mirrornode-db-export/MAINNET/` for a `0.160.0`+ export and plan the upgrade well before the deadline.
 
 Docs: [Mirror Node bootstrap](https://github.com/hiero-ledger/hiero-mirror-node/blob/main/docs/database/bootstrap.md) · [Mirror Node GCS setup](https://docs.hedera.com/operators/mirror-node/run-your-own/gcs) · [JSON-RPC Relay](https://github.com/hiero-ledger/hiero-json-rpc-relay)

@@ -185,6 +185,8 @@ services:
     env_file: .env
     environment:
       SERVER_HOST: 0.0.0.0
+      RPC_HTTP_ENABLED: "true"
+      RPC_WS_ENABLED: "false"
       MIRROR_NODE_URL: http://api-proxy:8080
       MIRROR_NODE_URL_WEB3: http://api-proxy:8080
       REDIS_ENABLED: "true"
@@ -204,9 +206,11 @@ services:
     image: ghcr.io/hiero-ledger/hiero-json-rpc-relay:${RELAY_VERSION}
     container_name: hedera-json-rpc-relay-ws
     profiles: ["relay"]
-    command: ["packages/ws-server/dist/index.js"]
+    command: ["dist/index.js"]
     env_file: .env
     environment:
+      RPC_HTTP_ENABLED: "false"
+      RPC_WS_ENABLED: "true"
       WEB_SOCKET_HOST: 0.0.0.0
       HEALTHCHECK_PORT: 8547
       SUBSCRIPTIONS_ENABLED: "true"
