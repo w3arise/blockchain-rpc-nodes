@@ -125,21 +125,23 @@ HTTP RPC is `127.0.0.1:7546`, WebSocket RPC is `127.0.0.1:8546`, and the local M
 
 After the first bootstrap, use Docker Compose for day-to-day stop/start. `./bootstrap.sh` is only for download, init, import, and the first start — not for normal restarts.
 
-Mirror and relay services use Compose **profiles**. Always pass the same profiles you started with; a bare `docker compose up -d` starts only **`db`**.
+Mirror and relay services use Compose **profiles**. A bare `docker compose up -d` starts only **`db`**.
 
-**Mirror + JSON-RPC relay** (typical):
-
-```bash
-docker compose --profile mirror --profile relay down
-docker compose --profile mirror --profile relay up -d
-```
-
-**Mirror only** (no Ethereum RPC):
+**Mirror only** (REST API, no Ethereum RPC):
 
 ```bash
 docker compose --profile mirror down
 docker compose --profile mirror up -d
 ```
+
+**Mirror + JSON-RPC relay** — `relay` also activates the mirror API services the relay depends on (`rest`, `api-proxy`, `importer`, etc.):
+
+```bash
+docker compose --profile relay down
+docker compose --profile relay up -d
+```
+
+Same as `--profile mirror --profile relay` for start/stop.
 
 Data stays on the host (`$HOME/hedera-postgres-data`, Redis dirs, etc.). The importer resumes catch-up after restart. Let `down` finish — Postgres has a 2-minute graceful shutdown.
 

@@ -225,7 +225,7 @@ if [[ "${UPGRADES_AVAILABLE}" -eq 1 ]]; then
   echo "Suggested upgrade (after importer is healthy on the current schema):"
   echo "  1. Edit .env: MIRROR_NODE_VERSION=${LATEST_MIRROR}, RELAY_VERSION=${LATEST_RELAY}"
   echo "  2. ./configure.sh"
-  echo "  3. docker compose --profile mirror --profile relay up -d"
+  echo "  3. docker compose --profile relay up -d"
   echo "  4. docker compose logs -f importer   # watch Flyway migrations"
   echo
   echo "Compare releases since your pin:"

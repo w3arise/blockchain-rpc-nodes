@@ -392,7 +392,7 @@ case "${command_name}" in
       require_value OPERATOR_ID_MAIN
       require_value OPERATOR_KEY_MAIN
     fi
-    docker compose --profile mirror --profile relay up -d
+    docker compose --profile relay up -d
     ;;
 
   help|--help|-h)

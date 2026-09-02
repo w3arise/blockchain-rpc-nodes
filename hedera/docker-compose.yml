@@ -48,7 +48,7 @@ services:
   mirror-redis:
     image: ${MIRROR_REDIS_IMAGE}
     container_name: hedera-mirror-redis
-    profiles: ["mirror"]
+    profiles: ["mirror", "relay"]
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - ${HOST_MIRROR_REDIS_DATADIR:-$HOME/hedera-mirror-redis-data}:/data
@@ -65,7 +65,7 @@ services:
   importer:
     image: gcr.io/mirrornode/hedera-mirror-importer:${MIRROR_NODE_VERSION}
     container_name: hedera-mirror-importer
-    profiles: ["mirror"]
+    profiles: ["mirror", "relay"]
     environment:
       HIERO_MIRROR_IMPORTER_DB_HOST: db
       HIERO_MIRROR_IMPORTER_DB_OWNERPASSWORD: ${OWNER_PASSWORD}
@@ -92,7 +92,7 @@ services:
   rest:
     image: gcr.io/mirrornode/hedera-mirror-rest:${MIRROR_NODE_VERSION}
     container_name: hedera-mirror-rest
-    profiles: ["mirror"]
+    profiles: ["mirror", "relay"]
     environment:
       CONFIG_PATH: /usr/etc/hiero/
       HIERO_MIRROR_REST_DB_HOST: db
@@ -113,7 +113,7 @@ services:
   rest-java:
     image: gcr.io/mirrornode/hedera-mirror-rest-java:${MIRROR_NODE_VERSION}
     container_name: hedera-mirror-rest-java
-    profiles: ["mirror"]
+    profiles: ["mirror", "relay"]
     environment:
       HIERO_MIRROR_RESTJAVA_DB_HOST: db
       HIERO_MIRROR_RESTJAVA_DB_PASSWORD: ${REST_JAVA_PASSWORD}
@@ -131,7 +131,7 @@ services:
   web3:
     image: gcr.io/mirrornode/hedera-mirror-web3:${MIRROR_NODE_VERSION}
     container_name: hedera-mirror-web3
-    profiles: ["mirror"]
+    profiles: ["mirror", "relay"]
     environment:
       HIERO_MIRROR_WEB3_DB_HOST: db
       HIERO_MIRROR_WEB3_DB_PASSWORD: ${WEB3_PASSWORD}
@@ -149,7 +149,7 @@ services:
   api-proxy:
     image: ${MIRROR_PROXY_IMAGE}
     container_name: hedera-mirror-api
-    profiles: ["mirror"]
+    profiles: ["mirror", "relay"]
     volumes:
       - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
