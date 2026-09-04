@@ -233,12 +233,6 @@ services:
         condition: service_started
       relay-redis:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:8547/health/liveness || exit 1"]
-      interval: 10s
-      timeout: 2s
-      retries: 3
-      start_period: 25s
     restart: unless-stopped
     networks:
       - hedera
