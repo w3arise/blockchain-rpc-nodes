@@ -44,14 +44,20 @@ else
   SEQ=$((CURRENT_SEQ + 1))
 fi
 
+# Current CLI (v0.15+/v0.16+): --ip + --tcp-port (+ optional --udp-port), not --address.
 OUTPUT="$(monad-sign-name-record \
-  --address "${EXT_IP}:${P2P_PORT}" \
+  --ip "${EXT_IP}" \
+  --tcp-port "${P2P_PORT}" \
+  --udp-port "${P2P_PORT}" \
   --authenticated-udp-port "${P2P_AUTH_PORT}" \
   --keystore-path "${KEYSTORE}" \
   --password "${KEYSTORE_PASSWORD}" \
   --self-record-seq-num "${SEQ}")"
 
-SIG="$(echo "${OUTPUT}" | grep -oE '[0-9a-f]{128,}' | head -n 1 || true)"
+SIG="$(echo "${OUTPUT}" | sed -n 's/^self_name_record_sig[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+if [[ -z "${SIG}" ]]; then
+  SIG="$(echo "${OUTPUT}" | grep -oE '[0-9a-f]{128,}' | head -n 1 || true)"
+fi
 if [[ -z "${SIG}" ]]; then
   echo "ERROR: could not parse name record signature — update node.toml manually:" >&2
   echo "${OUTPUT}" >&2
