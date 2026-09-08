@@ -11,20 +11,22 @@ Mainnet OP Stack L2 (Conduit / Agglayer CDK). Chain data: `$HOME/katana-op-reth-
 docker compose up -d
 ```
 
+Before upgrading an existing node, run `./check-genesis.sh` and refresh images/config from [network-configs](https://github.com/katana-network/network-configs) when upstream changes.
+
 ## Snapshot
 
-Conduit archive snapshots (requester-pays GCS). Restore into `$HOME/katana-op-reth-data`, then start as above (genesis init is automatic via `--chain`):
+Official archive snapshots (op-reth layout). Restore into `$HOME/katana-op-reth-data`, then start as above (genesis init is automatic via `--chain`):
 
 ```bash
-gcloud storage cp --billing-project="${GCP_PROJECT}" \
-  "gs://conduit-networks-snapshots/katana/latest.tar" .
-# extract into $HOME/katana-op-reth-data (op-reth layout — no mnt/geth/ path)
+curl -L -o katana-latest.tar \
+  "https://pub-1d729d824bda40459735d97aca47bc6f.r2.dev/katana/latest.tar"
+# extract into $HOME/katana-op-reth-data
 ```
 
-See [Conduit OP Stack nodes](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes).
+Source: [network-configs snapshots](https://github.com/katana-network/network-configs).
 
 ## Testnet (Bokuto)
 
-Replace `config/genesis.json` and `config/rollup.json` with [bokuto/op-reth](https://github.com/katana-network/network-configs/tree/main/bokuto/op-reth), set L1 to Sepolia, and refresh P2P from Conduit slug `katana-bokuto`. Snapshot: `gs://conduit-networks-snapshots/katana-bokuto/latest.tar`.
+Replace `config/genesis.json` and `config/rollup.json` with [bokuto/op-reth](https://github.com/katana-network/network-configs/tree/main/bokuto/op-reth), set L1 to Sepolia, and refresh P2P from Conduit slug `katana-bokuto`. Snapshot: `https://pub-1d729d824bda40459735d97aca47bc6f.r2.dev/katana-bokuto/latest.tar`.
 
 Docs: [Katana network info](https://docs.katana.network/katana/technical-reference/network-information/) · [network-configs](https://github.com/katana-network/network-configs) · [Conduit Hub](https://hub.conduit.xyz/katana)

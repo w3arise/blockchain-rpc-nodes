@@ -31,6 +31,7 @@
   "granite_time": 0,
   "holocene_time": 0,
   "isthmus_time": 1746806401,
+  "karst_time": 1790179201,
   "batch_inbox_address": "0x000d4411cdeb152378626b5c5e33fd5d6808939a",
   "deposit_contract_address": "0x250d30c523104bf0a06825e7eade4dc46edfe40e",
   "l1_system_config_address": "0xb6e1f8b589a14b79ddd3ad7f0589ab548c70c174",

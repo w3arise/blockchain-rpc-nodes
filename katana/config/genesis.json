@@ -43,7 +43,8 @@
       "eip1559Elasticity": 6,
       "eip1559Denominator": 50,
       "eip1559DenominatorCanyon": 250
-    }
+    },
+    "karstTime": 1790179201
   },
   "nonce": "0x0",
   "timestamp": "0x681d2e1b",
