@@ -48,7 +48,7 @@ docker compose up -d
 
 When L1 runs on the Docker host, `host.docker.internal` works for L1 URLs (compose sets `extra_hosts`).
 
-After Conduit network upgrades, refresh `config/rollup.json` from the [Conduit API](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes) (slug **`zircuit-mainnet`**) and re-apply **`bedrockBlock: 32956468`** in `genesis.json` if the download resets it.
+After Conduit network upgrades, run `./check-genesis.sh` (or refresh from the [Conduit API](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes), slug **`zircuit-mainnet`**) and re-apply **`bedrockBlock: 32956468`** if the download resets it. `./check-genesis.sh` also prints `OP_NODE_OVERRIDE_*` hints from Conduit `forkTimestamps` — copy those into `.env` when they change. Restart op-node + op-reth after genesis or override changes (no resync).
 
 ## Snapshot
 

@@ -91,6 +91,8 @@ Include:
 
 Do not duplicate `env.template` comments or long troubleshooting guides.
 
+Do not put **ephemeral dates** in chain READMEs — upcoming fork activations, upgrade deadlines, "as of YYYY-MM-DD" version notes, or similar time-bound content goes stale quickly. Pin fork timestamps, image tags, and other values that change on a schedule in **`env.template`**, **`config/`**, or helper scripts (e.g. `check-genesis.sh` printing `OP_NODE_OVERRIDE_*` from Conduit). READMEs may describe *how* to refresh (run the script, check the API) without calendar dates.
+
 If the compose setup includes **Prometheus and/or Grafana**, add a **first-start ownership** step in **Start** (see [Prometheus and Grafana](#prometheus-and-grafana-optional-monitoring) below).
 
 ## Prometheus and Grafana (optional monitoring)
