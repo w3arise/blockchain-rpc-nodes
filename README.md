@@ -106,4 +106,5 @@ Repo-wide reminders:
 ## Related docs
 
 - [AGENTS.md](AGENTS.md) — conventions for adding and maintaining chains
+- [CLIENT_UPDATES.md](CLIENT_UPDATES.md) — how to audit and bump client version pins
 
