@@ -11,7 +11,13 @@ Mainnet rollup node. Chain data: `$HOME/worldchain-op-reth-data`, `$HOME/worldch
 docker compose up -d
 ```
 
+RPC: `http://127.0.0.1:8341` · WS: `ws://127.0.0.1:8342`
+
 Same-series Superchain patches (`op-reth v2.4.*` / `op-node v1.19.*` while those are the pins) are **tag-only**: `./scripts/apply-tag-only.sh worldchain`. This setup stays on stock OP Labs images (`--chain=worldchain`), not `ghcr.io/worldcoin/world-chain`.
+
+## Host ports
+
+RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`). Change to `0.0.0.0` only if you need LAN access. Inbound P2P: `RETH_PORT` (default `10301`, TCP + UDP).
 
 ## Testnet
 
