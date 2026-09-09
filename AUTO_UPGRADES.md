@@ -13,6 +13,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Berachain | `bera-reth:v1.4.4` | tag-only | **yes** — same-series `v1.4.*`. beacon-kit stays `needs-review` | `./scripts/apply-tag-only.sh berachain` |
 | Bob | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: bob`) | `./scripts/apply-tag-only.sh bob` |
 | Core | `GETH_VERSION=v1.0.26` | tag-only | **yes** — same-series `v1.0.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh core` |
+| Gnosis Chain | `reth_gnosis` + `lighthouse` | tag-only | **yes** — same-series (`apply_group: gnosis`) | `./scripts/apply-tag-only.sh gnosis` |
 | Katana | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: katana`) | `./scripts/apply-tag-only.sh katana` |
 | Lisk | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: lisk`) | `./scripts/apply-tag-only.sh lisk` |
 | Mode | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: mode`) | `./scripts/apply-tag-only.sh mode` |
@@ -192,7 +193,7 @@ Machine-readable source of truth: [`scripts/auto-upgrade.yaml`](scripts/auto-upg
 
 Adding a chain is one YAML object (id, pin file/var, image prefix, GitHub repo, tag prefix, compose dir, optional health URL, optional `image_tag_from: release_body` when the docker tag is not the git tag, optional `strip_git_prefix` when git tags include a component prefix, optional `apply_group` when two pins share a compose dir). Auto only follows tags that share major.minor with **whatever is currently pinned**.
 
-v1 allowlist: **Aptos**, **Arbitrum**, **Robinhood**, Superchain OP Stack (**Bob**, **Lisk**, **Mode**, **Optimism**, **Worldchain**), Conduit (**Katana**, **Plume**, **Ronin**, **Zircuit**), plus **Berachain** (bera-reth only), **Core**, **Neo X**, **Sei**, and **Tempo**. OP Stack rows are one pin each (`*-op-reth` / `*-op-node`) with a shared `apply_group` so hosts run `./scripts/apply-tag-only.sh katana` once. OP Labs git tags are `op-reth/v*` / `op-node/v*`; `strip_git_prefix` maps those to docker tags `v*`. Tempo strips the git `v` (`v1.14.0` → GHCR `1.14.0`). Conduit execution uses `conduitxyz/conduit-op-reth` tags `v*`. Plume is Nitro `image_tag_from: release_body` with `image_tag_suffix: -validator`. Core and Neo X set `compose_build: true` (version-only `GETH_VERSION`; apply rebuilds the local image). Auto only follows tags that share major.minor with **whatever is currently pinned**.
+v1 allowlist: **Aptos**, **Arbitrum**, **Robinhood**, Superchain OP Stack (**Bob**, **Lisk**, **Mode**, **Optimism**, **Worldchain**), Conduit (**Katana**, **Plume**, **Ronin**, **Zircuit**), plus **Berachain** (bera-reth only), **Core**, **Gnosis Chain** (reth_gnosis + lighthouse), **Neo X**, **Sei**, and **Tempo**. OP Stack rows are one pin each (`*-op-reth` / `*-op-node`) with a shared `apply_group` so hosts run `./scripts/apply-tag-only.sh katana` once. OP Labs git tags are `op-reth/v*` / `op-node/v*`; `strip_git_prefix` maps those to docker tags `v*`. Tempo strips the git `v` (`v1.14.0` → GHCR `1.14.0`). Conduit execution uses `conduitxyz/conduit-op-reth` tags `v*`. Plume is Nitro `image_tag_from: release_body` with `image_tag_suffix: -validator`. Core and Neo X set `compose_build: true` (version-only `GETH_VERSION`; apply rebuilds the local image). Auto only follows tags that share major.minor with **whatever is currently pinned**.
 
 ## Git layer (detect + PR)
 
@@ -303,7 +304,7 @@ flowchart TD
 
 - Requires an existing `.env` (first start is still `./configure.sh` or `cp env.template .env`).
 - Syncs **only** the YAML pin var (e.g. `APTOS_IMAGE`, `NITRO_IMAGE`).
-- Aptos health: GET `http://127.0.0.1:${HTTP_PORT}/v1`. Nitro (Arbitrum, Plume, Robinhood), Sei, Tempo, and OP Stack op-reth pins use `health_mode: block_time` (`eth_getBlockByNumber`, latest block ≤10s old); chains without YAML health config skip the check after compose up.
+- Aptos health: GET `http://127.0.0.1:${HTTP_PORT}/v1`. Nitro (Arbitrum, Plume, Robinhood), Gnosis `reth_gnosis`, Sei, Tempo, and OP Stack op-reth pins use `health_mode: block_time` (`eth_getBlockByNumber`, latest block ≤10s old); chains without YAML health config skip the check after compose up.
 - OP Stack: pass the **apply group** (`katana`, `zircuit`, `ronin`, `bob`, `mode`, `lisk`, `optimism`, `worldchain`) to sync both execution and op-node pins in one compose up. Pin ids (`katana-op-reth`) still work for a single var.
 - Core / Neo X: `compose_build: true` — apply runs `docker compose up -d --build` (the binary is baked from `GETH_VERSION`, not pulled).
 - Optional: `SKIP_PULL=1`, `SKIP_COMPOSE=1`, `HEALTH_TIMEOUT=180`.

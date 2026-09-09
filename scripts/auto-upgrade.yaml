@@ -99,6 +99,34 @@ chains:
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
     compose_build: true
 
+  - id: gnosis-reth
+    class: tag-only
+    env_file: gnosis/env.template
+    var: GNOSIS_RETH_IMAGE
+    image_prefix: "ghcr.io/gnosischain/reth_gnosis:"
+    compose_dir: gnosis
+    apply_group: gnosis
+    chain_links: false
+    source_type: github_releases
+    source_repo: gnosischain/reth_gnosis
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
+
+  - id: gnosis-lighthouse
+    class: tag-only
+    env_file: gnosis/env.template
+    var: LIGHTHOUSE_IMAGE
+    image_prefix: "sigp/lighthouse:"
+    compose_dir: gnosis
+    apply_group: gnosis
+    chain_links: false
+    source_type: github_releases
+    source_repo: sigp/lighthouse
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+
   - id: katana-op-reth
     class: tag-only
     env_file: katana/env.template

@@ -12,12 +12,9 @@ docker compose up -d
 
 ## Upgrade
 
-Copy `GNOSIS_RETH_IMAGE` and `LIGHTHOUSE_IMAGE` from `env.template` into `.env`, then:
+After a merged pin PR (tag-only): `./scripts/apply-tag-only.sh gnosis` from the repo root (syncs both image pins, pull, up, block_time health on execution RPC).
 
-```bash
-docker compose pull
-docker compose up -d
-```
+Manual: copy `GNOSIS_RETH_IMAGE` and `LIGHTHOUSE_IMAGE` from `env.template` into `.env`, then `docker compose pull && docker compose up -d`.
 
 Lighthouse `v8.2.2` is an image swap (no DB migration). `reth_gnosis` `v2.1.0` is a regular upstream reth bump; existing storage-v1 datadirs keep working.
 

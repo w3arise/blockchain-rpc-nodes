@@ -61,7 +61,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | Cronos | `CRONOS_VERSION` | `crypto-org-chain/cronos` | needs-review |
 | Etherlink | `EVM_IMAGE` | GitLab `tezos/tezos` tags `octez-evm-node-v*`; Docker Hub `tezos/tezos-bare` | needs-review |
 | Fantom (FTM) | `SONIC_VERSION` | Legacy Opera. Live chain is `sonic/` | needs-review |
-| Gnosis Chain | `GNOSIS_RETH_IMAGE`, `LIGHTHOUSE_IMAGE` | `gnosischain/reth_gnosis`, `sigp/lighthouse` | needs-review |
+| Gnosis Chain | `GNOSIS_RETH_IMAGE`, `LIGHTHOUSE_IMAGE` | `gnosischain/reth_gnosis`, `sigp/lighthouse` | tag-only |
 | HashKey Chain | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | `HashKeyChain/fullnode-sync` README required `NODE_IMAGE` — **not** generic Superchain op-node | needs-review |
 | Hedera | `MIRROR_NODE_VERSION`, `RELAY_VERSION` | `hiero-ledger/hiero-mirror-node`, `hiero-ledger/hiero-json-rpc-relay`. Run `hedera/check-upgrade.sh` when present | needs-review |
 | Hemi | `OP_GETH_IMAGE`, `OP_NODE_IMAGE`, `BSSD_IMAGE` | `hemilabs/hemi-node` `mainnet/docker-compose.yml` (SHA tags). `hemilabs/heminetwork` GitHub `v2` may not match compose | needs-review |
