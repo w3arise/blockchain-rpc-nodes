@@ -337,6 +337,8 @@ chains:
     tag_prefix: op-reth/v
     strip_git_prefix: "op-reth/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: worldchain-op-node
     class: tag-only
