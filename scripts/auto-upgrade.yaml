@@ -305,6 +305,8 @@ chains:
     source_repo: sei-protocol/sei-chain
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   # GHCR tags omit the git "v" prefix (tempo:1.14.0 from tag v1.14.0).
   - id: tempo
