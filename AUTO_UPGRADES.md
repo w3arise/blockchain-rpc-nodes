@@ -303,7 +303,7 @@ flowchart TD
 
 - Requires an existing `.env` (first start is still `./configure.sh` or `cp env.template .env`).
 - Syncs **only** the YAML pin var (e.g. `APTOS_IMAGE`, `NITRO_IMAGE`).
-- Aptos health: GET `http://127.0.0.1:${HTTP_PORT}/v1`. OP Stack op-reth pins use `health_mode: block_time` (`eth_getBlockByNumber`, latest block ≤60s old); chains without YAML health config skip the check after compose up.
+- Aptos health: GET `http://127.0.0.1:${HTTP_PORT}/v1`. OP Stack op-reth pins use `health_mode: block_time` (`eth_getBlockByNumber`, latest block ≤10s old); chains without YAML health config skip the check after compose up.
 - OP Stack: pass the **apply group** (`katana`, `zircuit`, `ronin`, `bob`, `mode`, `lisk`, `optimism`, `worldchain`) to sync both execution and op-node pins in one compose up. Pin ids (`katana-op-reth`) still work for a single var.
 - Core / Neo X: `compose_build: true` — apply runs `docker compose up -d --build` (the binary is baked from `GETH_VERSION`, not pulled).
 - Optional: `SKIP_PULL=1`, `SKIP_COMPOSE=1`, `HEALTH_TIMEOUT=180`.
