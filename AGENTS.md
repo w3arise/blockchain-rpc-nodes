@@ -58,6 +58,32 @@ When researching a new chain, list viable options (Reth A–B and/or Geth A–E)
 
 Unless a chain’s docs or operator requirements say otherwise, set the execution client’s RPC gas cap to **`600000000`** (600M) via env (typically `GAS_CAP`) and wire it to the client flag (e.g. `--rpc.gascap=${GAS_CAP}`). This matches the BSC / DRPC default used elsewhere in the repo. Prefer making it env-configurable rather than hardcoding.
 
+## RPC host bind and HTTP port
+
+Every compose deployment that publishes JSON-RPC (or an equivalent HTTP API) must use env-configurable **host bind** and **host HTTP port**. Do not hardcode `127.0.0.1:8341:8545` (or any host IP / host port) in `docker-compose.yml`.
+
+In `env.template` under `### Ports ###`:
+
+| Variable | Default | Role |
+| --- | --- | --- |
+| `RPC_BIND_ADDR` | `127.0.0.1` | Host bind for HTTP / WS / admin RPC. Change to `0.0.0.0` only when LAN access is intentional. |
+| `HTTP_PORT` | chain-specific | Host port mapped to the client’s in-container HTTP listen port. |
+| `WS_PORT` | chain-specific | Same for WebSocket, when the client exposes it. |
+
+Compose mapping — host side from env, container side **fixed** at the client default (e.g. `8545` / `8546`):
+
+```yaml
+ports:
+  - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+  - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+```
+
+Do not make both sides the same env var unless the client requires it.
+
+New setups use these names. Family-specific aliases (`EN_HTTP_PORT` / `EN_WS_PORT` for ZK Stack, `OP_GETH_HTTP_PORT` on some OP Geth nodes) are fine when they already exist — still pair them with `RPC_BIND_ADDR`. Tag-only apply health checks (`health_mode: block_time` / `health_path`) read `HTTP_PORT` and `RPC_BIND_ADDR`; see [`AUTO_UPGRADES.md`](AUTO_UPGRADES.md).
+
+P2P (public TCP + UDP) and OP Stack extra ports: [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2).
+
 ## Chain links (`CHAIN_LINKS.md`)
 
 When adding or updating a chain setup, add its **official** documentation and repositories to [`CHAIN_LINKS.md`](CHAIN_LINKS.md). Include links you rely on during setup (node run guides, network specs, client repos/releases).
@@ -86,7 +112,7 @@ Include:
 - **Snapshot** — restore path and which init steps to skip. When adding a chain, **prefer finding an official or community snapshot source** (chain docs, client repo, explorer/provider pages). Document the source URL and restore steps in the README; if none exists, state that explicitly and sync from genesis/P2P. Note whether recovery uses a tarball, genesis prime file, or both.
 - **Pruning Mode** or **State retention** — when the client has archive/pruning flags or init-time choices; see [Archive and state retention (general)](#archive-and-state-retention-general).
 - **Testnet** — only if the setup supports it
-- **Host ports** — when running a public replica, document inbound P2P ports; see [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2)
+- **Host ports** — document RPC (`RPC_BIND_ADDR`, `HTTP_PORT`) and inbound P2P ports; see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) and [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2)
 - Link to official run docs
 
 Do not duplicate `env.template` comments or long troubleshooting guides.
@@ -196,11 +222,9 @@ All **L2** setups (OP Stack, Nitro, ZK Stack external nodes, etc.) must follow t
 
 ### General rules
 
-1. **Define ports in `env.template`** under a `### Ports ###` group — do not hardcode host ports in `docker-compose.yml`.
-2. **RPC / WebSocket / op-node admin RPC** bind to **`RPC_BIND_ADDR`** on the host (default **`127.0.0.1`**). Change to `0.0.0.0` only when LAN access is intentional.
-3. **P2P ports** bind on **all interfaces** (no `127.0.0.1` prefix) — peers must reach them from the internet when the node advertises P2P.
-4. **Host vs container for execution-client RPC:** host port is **configurable**; in-container listen port is **fixed** at the client default (e.g. op-reth `8545` / `8546`). Do not make both sides the same env var unless the client requires it.
-5. **P2P needs TCP and UDP** on the same host port — two compose mappings are required, not redundant:
+1. Follow [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) — `RPC_BIND_ADDR` + `HTTP_PORT` (+ `WS_PORT`) in `### Ports ###`. Never hardcode host RPC IP or port in compose. op-node admin RPC uses the same bind (`RPC_BIND_ADDR` + `OP_NODE_RPC_PORT`).
+2. **P2P ports** bind on **all interfaces** (no `127.0.0.1` prefix) — peers must reach them from the internet when the node advertises P2P.
+3. **P2P needs TCP and UDP** on the same host port — two compose mappings are required, not redundant:
    ```yaml
    - ${P2P_PORT}:${P2P_PORT}
    - ${P2P_PORT}:${P2P_PORT}/udp
@@ -311,7 +335,7 @@ Some Conduit bootnodes (e.g. `bootnode.conduit.xyz`) are shared across chains; t
 
 ### Other L2 stacks
 
-Apply the same split: **localhost + configurable host port** for JSON-RPC/admin APIs; **public + configurable host port** for P2P (TCP + UDP). Nitro uses `HTTP_PORT` / `WS_PORT` with fixed in-container ports; ZK Stack external nodes use `EN_HTTP_PORT` / `EN_WS_PORT` with `RPC_BIND_ADDR`. Name vars per chain, keep the pattern.
+Apply the same split: [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) for JSON-RPC/admin APIs; **public + configurable host port** for P2P (TCP + UDP). Nitro uses `HTTP_PORT` / `WS_PORT` with fixed in-container ports; ZK Stack external nodes use `EN_HTTP_PORT` / `EN_WS_PORT` with `RPC_BIND_ADDR`. Name vars per chain, keep the pattern.
 
 ## Standard layout per chain directory
 
@@ -334,7 +358,7 @@ chain/
 
 ### env.template and configure.sh
 
-- **`env.template`** — setup steps in header comments; group vars (`### Network ###`, `### Ports ###`, `### RPC ###`, etc.); pin client versions; set `GAS_CAP=600000000` unless the chain requires otherwise. Port layout and public IP vars: [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2).
+- **`env.template`** — setup steps in header comments; group vars (`### Network ###`, `### Ports ###`, `### RPC ###`, etc.); pin client versions; set `GAS_CAP=600000000` unless the chain requires otherwise. Host RPC bind/port: [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). P2P and public IP vars: [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2).
 - **`configure.sh`** — optional; creates `.env` from `env.template` and sets public IP. See [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2). Do not embed secrets.
 - **`docker-compose.yml`** — load `.env` with `env_file: .env` on services that need runtime vars (typically op-node); keep runtime services only (no init-container chown hacks). Set **`stop_grace_period: 120s`** (minimum) on every **execution client** service — geth, reth, op-geth, op-reth, Nitro, external-node, besu, nethermind, erigon, etc. Longer values (e.g. `5m`) are fine when the client needs more shutdown time. Does **not** apply to op-node, postgres, or monitoring sidecars.
 
@@ -535,7 +559,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 2. **Pick client + retention mode** using [Client selection (historical receipts & logs)](#client-selection-historical-receipts--logs). Present viable Reth A–B / Geth A–E options (receipts/logs vs state, snapshots, HW); **prefer Reth when both families work, but wait for the user to choose** before scaffolding. Avoid reth `--full` and short-pruned geth snapshots for historical log RPC.
 3. Pin client versions in `env.template` (image tags, release versions, etc.). Add a lookup row to [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) (source of truth for *where* to check — not a “latest” snapshot). If the pin is a same-series image swap with no compose/datadir work, also add a `tag-only` row to [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml).
 4. Store datadirs under `$HOME`.
-5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap).
+5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap). Wire **`RPC_BIND_ADDR`** (default `127.0.0.1`) and **`HTTP_PORT`** in `env.template` / compose — see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). Do not hardcode host RPC IP or port.
 6. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists. Match snapshot scheme (path vs hash) to the chosen mode. For Tendermint/Cosmos chains, prefer official **`full`** (block/log/receipt history) first, then **archive** (full state); use [Polkachu](https://www.polkachu.com/tendermint_snapshots) only as a **pruned last resort** — see [Snapshot source preference (Tendermint / Cosmos SDK)](#snapshot-source-preference-tendermint--cosmos-sdk). Download/extract staging must follow [Snapshot downloads (temp space)](#snapshot-downloads-temp-space) — never default large tarballs to `/tmp`.
 7. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above); include **Pruning Mode** / **State retention** when applicable (receipts/logs vs state).
 8. **Update** root `README.md` — **Ready** and **Planned** tables (type, execution client); remove from Planned when the chain is ready. Keep both tables sorted alphabetically by **Chain** (case-insensitive).
@@ -552,7 +576,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 13. Use `OP_NODE_L1_*` env vars in a single `.env`.
 14. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
 15. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
-16. Follow [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2): `RPC_BIND_ADDR`, configurable host RPC ports, public P2P (TCP + UDP), op-node admin RPC on localhost, `configure.sh` for `EXT_IP` / `OP_NODE_P2P_ADVERTISE_IP`. Wire `OP_NODE_P2P_LISTEN_TCP_PORT` / `OP_NODE_P2P_LISTEN_UDP_PORT` from `${OP_NODE_P2P_PORT}` in compose — do not duplicate listen ports in `env.template`.
+16. Follow [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) and [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2): `RPC_BIND_ADDR` + `HTTP_PORT` / `WS_PORT`, public P2P (TCP + UDP), op-node admin RPC on localhost, `configure.sh` for `EXT_IP` / `OP_NODE_P2P_ADVERTISE_IP`. Wire `OP_NODE_P2P_LISTEN_TCP_PORT` / `OP_NODE_P2P_LISTEN_UDP_PORT` from `${OP_NODE_P2P_PORT}` in compose — do not duplicate listen ports in `env.template`.
 
 ### Conduit OP Stack (additional)
 
