@@ -13,6 +13,8 @@ When adding a chain, add a row to [Sources](#sources). Pin values live in `env.t
 
 Optional: dump the audit table to a Cursor canvas. Do not commit a living “pinned vs latest” markdown.
 
+Local cache (gitignored): [`scripts/.client-audit-cache.json`](scripts/.client-audit-cache.json). It stores the last notes-check table plus `checked_at`. Agents may reuse it for the overview table when it is within `fresh_hours` (default 24) **and** each row’s `pinned` still matches `env.template`. Re-read pins from git every time (cheap). Re-fetch GitHub/compose only for stale/drifted rows, or when the user asks for a fresh audit. Same-series YAML tags can still be checked with `./scripts/check-auto-upgrades.sh` (no notes). After a full audit, rewrite the cache and bump `checked_at`.
+
 ## Comparison policy
 
 - **Chain-official wins.** If the project publishes its own compose, image tags, or required `NODE_IMAGE`, that is the comparison target — even when generic OP Labs / Nitro / Matter Labs is newer.

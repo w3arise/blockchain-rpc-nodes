@@ -21,6 +21,9 @@ logs/
 **/__pycache__/
 *.pyc
 
+# Local “pinned vs latest” audit cache (timestamps + notes). Not source of truth.
+scripts/.client-audit-cache.json
+
 # Planned chain configs (uncommitted for now)
 0g/
 hyperliquid/
