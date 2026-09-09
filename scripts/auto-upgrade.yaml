@@ -109,6 +109,8 @@ chains:
     source_repo: conduitxyz/conduit-op-reth
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: katana-op-node
     class: tag-only
@@ -137,6 +139,8 @@ chains:
     tag_prefix: op-reth/v
     strip_git_prefix: "op-reth/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: lisk-op-node
     class: tag-only
@@ -165,6 +169,8 @@ chains:
     tag_prefix: op-reth/v
     strip_git_prefix: "op-reth/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: mode-op-node
     class: tag-only
@@ -207,6 +213,8 @@ chains:
     tag_prefix: op-reth/v
     strip_git_prefix: "op-reth/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: optimism-op-node
     class: tag-only
@@ -263,6 +271,8 @@ chains:
     source_repo: conduitxyz/conduit-op-reth
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: RONIN_RETH_HTTP_PORT
 
   - id: ronin-op-node
     class: tag-only
@@ -344,6 +354,8 @@ chains:
     source_repo: conduitxyz/conduit-op-reth
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: zircuit-op-node
     class: tag-only

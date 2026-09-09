@@ -35,6 +35,7 @@ fi
 SKIP_PULL="${SKIP_PULL:-0}"
 SKIP_COMPOSE="${SKIP_COMPOSE:-0}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-180}"
+HEALTH_MAX_AGE="${HEALTH_MAX_AGE:-60}"
 
 cd "${REPO_ROOT}"
 
@@ -111,14 +112,17 @@ sync_pin() {
   mv "${tmp}" "${file}"
 }
 
+HEALTH_MODE=""
 HEALTH_BIND_VAR=""
 HEALTH_PORT_VAR=""
 HEALTH_PATH=""
+HEALTH_MAX_AGE_PIN=""
 
 COMPOSE_BUILD=0
 for pin_id in "${TARGET_IDS[@]}"; do
   unset AUTO_IMAGE_TAG_FROM AUTO_CHAIN_LINKS AUTO_EXCLUDE \
     AUTO_HEALTH_PATH AUTO_HEALTH_PORT_VAR AUTO_HEALTH_BIND_VAR \
+    AUTO_HEALTH_MODE AUTO_HEALTH_MAX_AGE \
     AUTO_STRIP_GIT_PREFIX AUTO_APPLY_GROUP AUTO_IMAGE_TAG_SUFFIX \
     AUTO_COMPOSE_BUILD
   # shellcheck disable=SC1090
@@ -135,10 +139,12 @@ for pin_id in "${TARGET_IDS[@]}"; do
   echo "  was: ${OLD_PIN:-<unset>}"
   echo "  now: ${NEW_PIN}"
 
-  if [[ -n "${AUTO_HEALTH_PATH:-}" && -z "${HEALTH_PATH}" ]]; then
-    HEALTH_PATH="${AUTO_HEALTH_PATH}"
+  if [[ -n "${AUTO_HEALTH_MODE:-}${AUTO_HEALTH_PATH:-}" && -z "${HEALTH_MODE}${HEALTH_PATH}" ]]; then
+    HEALTH_MODE="${AUTO_HEALTH_MODE:-http_get}"
     HEALTH_PORT_VAR="${AUTO_HEALTH_PORT_VAR:-}"
     HEALTH_BIND_VAR="${AUTO_HEALTH_BIND_VAR:-RPC_BIND_ADDR}"
+    HEALTH_PATH="${AUTO_HEALTH_PATH:-}"
+    HEALTH_MAX_AGE_PIN="${AUTO_HEALTH_MAX_AGE:-}"
   fi
 done
 
@@ -166,7 +172,7 @@ fi
   fi
 )
 
-if [[ -z "${HEALTH_PATH}" || -z "${HEALTH_PORT_VAR}" ]]; then
+if [[ -z "${HEALTH_MODE}${HEALTH_PATH}" || -z "${HEALTH_PORT_VAR}" ]]; then
   echo "No health check configured for ${CHAIN_ID}."
   exit 0
 fi
@@ -183,7 +189,43 @@ if [[ "${health_bind}" == "0.0.0.0" || -z "${health_bind}" ]]; then
   health_bind="127.0.0.1"
 fi
 
-url="http://${health_bind}:${health_port}${HEALTH_PATH}"
+url="http://${health_bind}:${health_port}"
+
+# block_time: healthy when the latest block timestamp is fresh. Catches a node
+# that is up but stalled (broken L1 / Engine API / op-node) — its latest block
+# time goes stale even though the HTTP port still answers.
+if [[ "${HEALTH_MODE}" == "block_time" ]]; then
+  max_age="${HEALTH_MAX_AGE_PIN:-${HEALTH_MAX_AGE}}"
+  echo "Waiting for a fresh latest block at ${url} (max age ${max_age}s, timeout ${HEALTH_TIMEOUT}s)"
+  deadline=$((SECONDS + HEALTH_TIMEOUT))
+  while (( SECONDS < deadline )); do
+    block_ts="$(curl -fsS --connect-timeout 2 --max-time 5 -X POST \
+      -H 'Content-Type: application/json' \
+      -d '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["latest",false],"id":1}' \
+      "${url}" 2>/dev/null \
+      | python3 -c 'import sys,json
+try:
+    r = json.load(sys.stdin)
+    print(int((r.get("result") or {}).get("timestamp") or "0", 16))
+except Exception:
+    print(0)' 2>/dev/null || echo 0)"
+    if [[ -n "${block_ts}" ]] && (( block_ts > 0 )); then
+      age=$(( $(date +%s) - block_ts ))
+      if (( age <= max_age )); then
+        echo "Healthy: latest block ${block_ts} (${age}s old) at ${url}"
+        exit 0
+      fi
+      echo "  latest block ${age}s old (need <= ${max_age}s); retrying"
+    else
+      echo "  latest block not yet available; retrying"
+    fi
+    sleep 5
+  done
+  echo "ERROR: ${CHAIN_ID} latest block not fresh (<= ${max_age}s) at ${url} within ${HEALTH_TIMEOUT}s" >&2
+  exit 1
+fi
+
+url="${url}${HEALTH_PATH}"
 echo "Waiting for ${url} (timeout ${HEALTH_TIMEOUT}s)"
 
 deadline=$((SECONDS + HEALTH_TIMEOUT))

@@ -27,6 +27,8 @@ ALLOWED_KEYS = {
     "health_path",
     "health_port_var",
     "health_bind_var",
+    "health_mode",
+    "health_max_age",
     "image_tag_from",
     "image_tag_suffix",
     "compose_build",
