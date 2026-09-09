@@ -321,6 +321,8 @@ chains:
     tag_prefix: v
     strip_git_prefix: "v"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: worldchain-op-reth
     class: tag-only
