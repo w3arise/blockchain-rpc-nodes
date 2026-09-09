@@ -17,6 +17,10 @@
 logs/
 *.log
 
+# Python bytecode from scripts/lib
+**/__pycache__/
+*.pyc
+
 # Planned chain configs (uncommitted for now)
 0g/
 hyperliquid/
