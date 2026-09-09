@@ -11,6 +11,8 @@ Mainnet rollup node. Chain data: `$HOME/optimism-op-reth-data`, `$HOME/optimism-
 docker compose up -d
 ```
 
+Same-series Superchain patches (`op-reth v2.4.*` / `op-node v1.19.*` while those are the pins) are **tag-only**: `./scripts/apply-tag-only.sh optimism`
+
 ## Snapshot
 
 Archive nodes benefit from a pre-synced op-reth datadir. See [Optimism snapshots](https://docs.optimism.io/node-operators/guides/management/snapshots). Restore into `$HOME/optimism-op-reth-data`, then start as above (skip fresh sync).

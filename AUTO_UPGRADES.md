@@ -10,6 +10,21 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | --- | --- | --- | --- | --- |
 | Aptos | `aptos-node-v1.48.7-hotfix` | tag-only | **yes** — same-series `v1.48.*` | `./scripts/apply-tag-only.sh aptos` |
 | Arbitrum | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (docker tag from the GitHub release body, not the bare git tag) | `./scripts/apply-tag-only.sh arbitrum` |
+| Berachain | `bera-reth:v1.4.4` | tag-only | **yes** — same-series `v1.4.*`. beacon-kit stays `needs-review` | `./scripts/apply-tag-only.sh berachain` |
+| Bob | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: bob`) | `./scripts/apply-tag-only.sh bob` |
+| Core | `GETH_VERSION=v1.0.26` | tag-only | **yes** — same-series `v1.0.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh core` |
+| Katana | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: katana`) | `./scripts/apply-tag-only.sh katana` |
+| Lisk | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: lisk`) | `./scripts/apply-tag-only.sh lisk` |
+| Mode | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: mode`) | `./scripts/apply-tag-only.sh mode` |
+| Neo X | `GETH_VERSION=v0.6.2` | tag-only | **yes** — same-series `v0.6.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh neox` |
+| Optimism | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: optimism`) | `./scripts/apply-tag-only.sh optimism` |
+| Plume | `nitro-node:v3.9.5-*-validator` | tag-only | **yes** — same-series `v3.9.*-validator` (release body) | `./scripts/apply-tag-only.sh plume` |
+| Robinhood | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (release body, like Arbitrum) | `./scripts/apply-tag-only.sh robinhood` |
+| Ronin | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: ronin`). EigenDA stays `needs-review` | `./scripts/apply-tag-only.sh ronin` |
+| Sei | `SEID_VERSION=v6.6.3` | tag-only | **yes** — same-series `v6.6.*` | `./scripts/apply-tag-only.sh sei` |
+| Tempo | `tempo:1.14.0` | tag-only | **yes** — same-series `1.14.*` (git tag `v*` → GHCR tag without `v`) | `./scripts/apply-tag-only.sh tempo` |
+| Worldchain | OP Labs `op-reth` + `op-node` | tag-only | **yes** — stock Superchain series (`apply_group: worldchain`) | `./scripts/apply-tag-only.sh worldchain` |
+| Zircuit | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: zircuit`) | `./scripts/apply-tag-only.sh zircuit` |
 | Abstract | stays `needs-review` | never auto across EN majors (`v29`→`v31` needs snapshot wipe) | no | `<chain>/README.md` |
 | Linea feecap / other config | not a client pin | out of this workflow | no | — |
 
@@ -175,9 +190,9 @@ Machine-readable source of truth: [`scripts/auto-upgrade.yaml`](scripts/auto-upg
 - `tag-only` — also a YAML row; CI may open a pin PR. Host apply after a [notes check](#agent-release-notes-check) says pin-only.
 - `needs-review` — agent playbook only; do not bump until a human picks.
 
-Adding a chain is one YAML object (id, pin file/var, image prefix, GitHub repo, tag prefix, compose dir, optional health URL, optional `image_tag_from: release_body` when the docker tag is not the git tag). Auto only follows tags that share major.minor with **whatever is currently pinned**.
+Adding a chain is one YAML object (id, pin file/var, image prefix, GitHub repo, tag prefix, compose dir, optional health URL, optional `image_tag_from: release_body` when the docker tag is not the git tag, optional `strip_git_prefix` when git tags include a component prefix, optional `apply_group` when two pins share a compose dir). Auto only follows tags that share major.minor with **whatever is currently pinned**.
 
-v1 allowlist: **Aptos** (`APTOS_IMAGE`, series `aptos-node-v1.48.*` while that is the pin) and **Arbitrum** (`NITRO_IMAGE`, series `v3.11.*`). Nitro docker tags look like `v3.11.3-beb2108` (semver plus git hash). The YAML row uses `image_prefix: "offchainlabs/nitro-node:"`, `tag_prefix: v` (series `v3.11` from the first `major.minor` in the pin), and `image_tag_from: release_body` so `--write` copies `v3.11.3-beb2108` from the GitHub release, not the bare `v3.11.3` git tag.
+v1 allowlist: **Aptos**, **Arbitrum**, **Robinhood**, Superchain OP Stack (**Bob**, **Lisk**, **Mode**, **Optimism**, **Worldchain**), Conduit (**Katana**, **Plume**, **Ronin**, **Zircuit**), plus **Berachain** (bera-reth only), **Core**, **Neo X**, **Sei**, and **Tempo**. OP Stack rows are one pin each (`*-op-reth` / `*-op-node`) with a shared `apply_group` so hosts run `./scripts/apply-tag-only.sh katana` once. OP Labs git tags are `op-reth/v*` / `op-node/v*`; `strip_git_prefix` maps those to docker tags `v*`. Tempo strips the git `v` (`v1.14.0` → GHCR `1.14.0`). Conduit execution uses `conduitxyz/conduit-op-reth` tags `v*`. Plume is Nitro `image_tag_from: release_body` with `image_tag_suffix: -validator`. Core and Neo X set `compose_build: true` (version-only `GETH_VERSION`; apply rebuilds the local image). Auto only follows tags that share major.minor with **whatever is currently pinned**.
 
 ## Git layer (detect + PR)
 
@@ -240,7 +255,7 @@ Result:
 [Node release v1.48.8-hotfix](https://github.com/aptos-labs/aptos-core/releases/tag/aptos-node-v1.48.8-hotfix)
 ```
 
-If the old tag is not in `CHAIN_LINKS.md`, that file is skipped. No other rows or URLs are *intended* to change; fail-closed aborts if any file besides that chain’s `env.template` and `CHAIN_LINKS.md` became dirty, or if `env.template` changed more than the pin line (`APTOS_IMAGE=` / `NITRO_IMAGE=`).
+If the old tag is not in `CHAIN_LINKS.md`, that file is skipped. No other rows or URLs are *intended* to change; fail-closed aborts if any file besides that chain’s `env.template` and `CHAIN_LINKS.md` became dirty, or if `env.template` changed more than the allowlisted pin line(s) for that file (one var, or both `OP_RETH_IMAGE` / `OP_NODE_IMAGE` on a Conduit OP Stack chain).
 
 Arbitrum is the same pin-line write, with `chain_links: false`. GitHub’s latest same-series tag might be `v3.11.4`; the pin written is `offchainlabs/nitro-node:v3.11.4-<hash>` from that release body (not `nitro-node:v3.11.4`).
 
@@ -269,6 +284,7 @@ After the PR is merged, a host with a clean `<chain>/` checkout:
 ```bash
 ./scripts/apply-tag-only.sh aptos
 ./scripts/apply-tag-only.sh arbitrum
+./scripts/apply-tag-only.sh katana
 ```
 
 ```mermaid
@@ -287,13 +303,15 @@ flowchart TD
 
 - Requires an existing `.env` (first start is still `./configure.sh` or `cp env.template .env`).
 - Syncs **only** the YAML pin var (e.g. `APTOS_IMAGE`, `NITRO_IMAGE`).
-- Aptos health: `http://127.0.0.1:${HTTP_PORT}/v1`. Arbitrum has no GET health URL (JSON-RPC only); apply still recreates the container.
+- Aptos health: `http://127.0.0.1:${HTTP_PORT}/v1`. JSON-RPC-only chains have no GET health URL; apply still recreates the container.
+- OP Stack: pass the **apply group** (`katana`, `zircuit`, `ronin`, `bob`, `mode`, `lisk`, `optimism`, `worldchain`) to sync both execution and op-node pins in one compose up. Pin ids (`katana-op-reth`) still work for a single var.
+- Core / Neo X: `compose_build: true` — apply runs `docker compose up -d --build` (the binary is baked from `GETH_VERSION`, not pulled).
 - Optional: `SKIP_PULL=1`, `SKIP_COMPOSE=1`, `HEALTH_TIMEOUT=180`.
 
 Example timer (Monday 09:00, after the CI PR window):
 
 ```
-0 9 * * 1 cd /path/to/blockchain-rpc-nodes && ./scripts/apply-tag-only.sh aptos && ./scripts/apply-tag-only.sh arbitrum
+0 9 * * 1 cd /path/to/blockchain-rpc-nodes && ./scripts/apply-tag-only.sh aptos && ./scripts/apply-tag-only.sh arbitrum && ./scripts/apply-tag-only.sh katana
 ```
 
 Chain-specific apply notes stay in `<chain>/README.md` (see [aptos/README.md](aptos/README.md)).
@@ -304,4 +322,4 @@ Chain-specific apply notes stay in `<chain>/README.md` (see [aptos/README.md](ap
 - No rewriting per-chain `configure.sh` to merge all template keys
 - The check-client-updates agent skill still handles `needs-review` chains
 
-After Aptos and Arbitrum same-series patches: add other image-only chains as YAML rows if the user asks. Then consider auto-merge for `tag-only` PRs only.
+Conduit OP Stack, Superchain replicas, Nitro (Arbitrum/Robinhood/Plume), Tempo, Sei, Core, Neo X, and Berachain bera-reth same-series patches are allowlisted. Beacon-kit and Ronin EigenDA stay `needs-review`. Then consider auto-merge for `tag-only` PRs only.

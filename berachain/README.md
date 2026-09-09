@@ -10,6 +10,8 @@ cp env.template .env    # set EXT_IP
 docker compose up -d
 ```
 
+Same-series `bera-reth v1.4.*` patches are **tag-only** (`./scripts/apply-tag-only.sh berachain`). beacon-kit stays manual.
+
 ## Snapshot
 
 Restore snapshot data into `$HOME/berachain-beacond-data` and `$HOME/berachain-reth-data`, then skip `init-database.sh`:

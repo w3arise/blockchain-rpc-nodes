@@ -22,6 +22,8 @@ cp env.template .env    # set L1_ETH_URL, L1_ETH_BEACON_URL
 docker compose up -d
 ```
 
+Same-series Nitro `v3.11.*` patches are **tag-only**: `./scripts/apply-tag-only.sh robinhood`
+
 ## Snapshot
 
 No official snapshot URL is published. Sync from genesis via the sequencer feed, or add `--init.url=<SNAPSHOT_URL>` to `docker-compose.yml` for a one-time first start with an empty datadir if you have a snapshot source.

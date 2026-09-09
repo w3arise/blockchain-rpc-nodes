@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #
-# Apply a merged tag-only pin on a live host: sync the allowlisted var from
+# Apply a merged tag-only pin on a live host: sync the allowlisted var(s) from
 # env.template into the existing .env, then compose pull + up.
 #
 # Usage:
 #   ./scripts/apply-tag-only.sh aptos
 #   ./scripts/apply-tag-only.sh arbitrum
+#   ./scripts/apply-tag-only.sh katana          # apply_group: both op-reth + op-node
+#   ./scripts/apply-tag-only.sh katana-op-reth  # one pin only
 #
 # Does not rewrite other .env keys (L1 URLs, passwords). First-start still
 # uses <chain>/configure.sh. Does not run configure.sh.
@@ -24,9 +26,9 @@ YAML_FILE="${SCRIPT_DIR}/auto-upgrade.yaml"
 
 CHAIN_ID="${1:-}"
 if [[ -z "${CHAIN_ID}" || -n "${2:-}" ]]; then
-  echo "Usage: $0 <chain-id>" >&2
+  echo "Usage: $0 <chain-id|apply-group>" >&2
   echo "Allowlist:" >&2
-  python3 "${YAML_PY}" --file "${YAML_FILE}" list >&2
+  python3 "${YAML_PY}" --file "${YAML_FILE}" list-apply >&2
   exit 2
 fi
 
@@ -45,8 +47,14 @@ if ! command -v git >/dev/null 2>&1; then
   exit 1
 fi
 
+mapfile -t TARGET_IDS < <(python3 "${YAML_PY}" --file "${YAML_FILE}" apply-ids "${CHAIN_ID}")
+if [[ ${#TARGET_IDS[@]} -eq 0 ]]; then
+  echo "ERROR: unknown chain id or apply_group: ${CHAIN_ID}" >&2
+  exit 1
+fi
+
 # shellcheck disable=SC1090
-eval "$(python3 "${YAML_PY}" --file "${YAML_FILE}" export "${CHAIN_ID}")"
+eval "$(python3 "${YAML_PY}" --file "${YAML_FILE}" export "${TARGET_IDS[0]}")"
 
 COMPOSE_DIR="${REPO_ROOT}/${AUTO_COMPOSE_DIR}"
 ENV_TEMPLATE="${REPO_ROOT}/${AUTO_ENV_FILE}"
@@ -103,13 +111,36 @@ sync_pin() {
   mv "${tmp}" "${file}"
 }
 
-NEW_PIN="$(read_env_value "${ENV_TEMPLATE}" "${AUTO_VAR}")"
-OLD_PIN="$(grep -E "^${AUTO_VAR}=" "${ENV_FILE}" | tail -n1 | cut -d= -f2- || true)"
-sync_pin "${ENV_FILE}" "${AUTO_VAR}" "${NEW_PIN}"
+HEALTH_BIND_VAR=""
+HEALTH_PORT_VAR=""
+HEALTH_PATH=""
 
-echo "${CHAIN_ID}: ${AUTO_VAR}"
-echo "  was: ${OLD_PIN:-<unset>}"
-echo "  now: ${NEW_PIN}"
+COMPOSE_BUILD=0
+for pin_id in "${TARGET_IDS[@]}"; do
+  unset AUTO_IMAGE_TAG_FROM AUTO_CHAIN_LINKS AUTO_EXCLUDE \
+    AUTO_HEALTH_PATH AUTO_HEALTH_PORT_VAR AUTO_HEALTH_BIND_VAR \
+    AUTO_STRIP_GIT_PREFIX AUTO_APPLY_GROUP AUTO_IMAGE_TAG_SUFFIX \
+    AUTO_COMPOSE_BUILD
+  # shellcheck disable=SC1090
+  eval "$(python3 "${YAML_PY}" --file "${YAML_FILE}" export "${pin_id}")"
+  if [[ "${AUTO_COMPOSE_BUILD:-}" == "true" ]]; then
+    COMPOSE_BUILD=1
+  fi
+
+  NEW_PIN="$(read_env_value "${ENV_TEMPLATE}" "${AUTO_VAR}")"
+  OLD_PIN="$(grep -E "^${AUTO_VAR}=" "${ENV_FILE}" | tail -n1 | cut -d= -f2- || true)"
+  sync_pin "${ENV_FILE}" "${AUTO_VAR}" "${NEW_PIN}"
+
+  echo "${pin_id}: ${AUTO_VAR}"
+  echo "  was: ${OLD_PIN:-<unset>}"
+  echo "  now: ${NEW_PIN}"
+
+  if [[ -n "${AUTO_HEALTH_PATH:-}" && -z "${HEALTH_PATH}" ]]; then
+    HEALTH_PATH="${AUTO_HEALTH_PATH}"
+    HEALTH_PORT_VAR="${AUTO_HEALTH_PORT_VAR:-}"
+    HEALTH_BIND_VAR="${AUTO_HEALTH_BIND_VAR:-RPC_BIND_ADDR}"
+  fi
+done
 
 if [[ "${SKIP_COMPOSE}" == "1" ]]; then
   echo "SKIP_COMPOSE=1 — not running docker compose"
@@ -127,15 +158,23 @@ fi
 
 (
   cd "${COMPOSE_DIR}"
-  docker compose pull
-  docker compose up -d
+  if [[ "${COMPOSE_BUILD}" -eq 1 ]]; then
+    docker compose up -d --build
+  else
+    docker compose pull
+    docker compose up -d
+  fi
 )
 
-health_bind="$(read_env_value "${ENV_FILE}" "${AUTO_HEALTH_BIND_VAR:-RPC_BIND_ADDR}" || true)"
-health_port="$(read_env_value "${ENV_FILE}" "${AUTO_HEALTH_PORT_VAR:-}" || true)"
-health_path="${AUTO_HEALTH_PATH:-}"
+if [[ -z "${HEALTH_PATH}" || -z "${HEALTH_PORT_VAR}" ]]; then
+  echo "No health check configured for ${CHAIN_ID}."
+  exit 0
+fi
 
-if [[ -z "${health_path}" || -z "${health_port}" ]]; then
+health_bind="$(read_env_value "${ENV_FILE}" "${HEALTH_BIND_VAR}" || true)"
+health_port="$(read_env_value "${ENV_FILE}" "${HEALTH_PORT_VAR}" || true)"
+
+if [[ -z "${health_port}" ]]; then
   echo "No health check configured for ${CHAIN_ID}."
   exit 0
 fi
@@ -144,7 +183,7 @@ if [[ "${health_bind}" == "0.0.0.0" || -z "${health_bind}" ]]; then
   health_bind="127.0.0.1"
 fi
 
-url="http://${health_bind}:${health_port}${health_path}"
+url="http://${health_bind}:${health_port}${HEALTH_PATH}"
 echo "Waiting for ${url} (timeout ${HEALTH_TIMEOUT}s)"
 
 deadline=$((SECONDS + HEALTH_TIMEOUT))

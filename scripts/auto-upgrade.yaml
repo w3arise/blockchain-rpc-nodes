@@ -39,3 +39,322 @@ chains:
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
     image_tag_from: release_body
+
+  - id: berachain
+    class: tag-only
+    env_file: berachain/env.template
+    var: BERA_RETH_IMAGE
+    image_prefix: "ghcr.io/berachain/bera-reth:"
+    compose_dir: berachain
+    chain_links: false
+    source_type: github_releases
+    source_repo: berachain/bera-reth
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+
+  # Conduit OP Stack: two pins per chain (execution + op-node). Host apply
+  # uses apply_group (e.g. ./scripts/apply-tag-only.sh katana). Git tags
+  # op-reth/v* and op-node/v* map to docker tags v* via strip_git_prefix.
+  - id: bob-op-reth
+    class: tag-only
+    env_file: bob/env.template
+    var: OP_RETH_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
+    compose_dir: bob
+    apply_group: bob
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-reth/v
+    strip_git_prefix: "op-reth/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+
+  - id: bob-op-node
+    class: tag-only
+    env_file: bob/env.template
+    var: OP_NODE_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
+    compose_dir: bob
+    apply_group: bob
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-node/v
+    strip_git_prefix: "op-node/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
+
+  # Version-only pin; local image core-geth:${GETH_VERSION} is built on apply.
+  - id: core
+    class: tag-only
+    env_file: core/env.template
+    var: GETH_VERSION
+    image_prefix: ""
+    compose_dir: core
+    chain_links: false
+    source_type: github_releases
+    source_repo: coredao-org/core-chain
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    compose_build: true
+
+  - id: katana-op-reth
+    class: tag-only
+    env_file: katana/env.template
+    var: OP_RETH_IMAGE
+    image_prefix: "ghcr.io/conduitxyz/conduit-op-reth:"
+    compose_dir: katana
+    apply_group: katana
+    chain_links: false
+    source_type: github_releases
+    source_repo: conduitxyz/conduit-op-reth
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+
+  - id: katana-op-node
+    class: tag-only
+    env_file: katana/env.template
+    var: OP_NODE_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
+    compose_dir: katana
+    apply_group: katana
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-node/v
+    strip_git_prefix: "op-node/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
+
+  - id: lisk-op-reth
+    class: tag-only
+    env_file: lisk/env.template
+    var: OP_RETH_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
+    compose_dir: lisk
+    apply_group: lisk
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-reth/v
+    strip_git_prefix: "op-reth/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+
+  - id: lisk-op-node
+    class: tag-only
+    env_file: lisk/env.template
+    var: OP_NODE_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
+    compose_dir: lisk
+    apply_group: lisk
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-node/v
+    strip_git_prefix: "op-node/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
+
+  - id: mode-op-reth
+    class: tag-only
+    env_file: mode/env.template
+    var: OP_RETH_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
+    compose_dir: mode
+    apply_group: mode
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-reth/v
+    strip_git_prefix: "op-reth/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+
+  - id: mode-op-node
+    class: tag-only
+    env_file: mode/env.template
+    var: OP_NODE_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
+    compose_dir: mode
+    apply_group: mode
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-node/v
+    strip_git_prefix: "op-node/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
+
+  # Version-only pin; local image neox-geth:${GETH_VERSION} is built on apply.
+  - id: neox
+    class: tag-only
+    env_file: neox/env.template
+    var: GETH_VERSION
+    image_prefix: ""
+    compose_dir: neox
+    chain_links: false
+    source_type: github_releases
+    source_repo: bane-labs/go-ethereum
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    compose_build: true
+
+  - id: optimism-op-reth
+    class: tag-only
+    env_file: optimism/env.template
+    var: OP_RETH_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
+    compose_dir: optimism
+    apply_group: optimism
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-reth/v
+    strip_git_prefix: "op-reth/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+
+  - id: optimism-op-node
+    class: tag-only
+    env_file: optimism/env.template
+    var: OP_NODE_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
+    compose_dir: optimism
+    apply_group: optimism
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-node/v
+    strip_git_prefix: "op-node/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
+
+  # Conduit Orbit. Same Nitro release-body lookup as Arbitrum, but the
+  # -validator image (required for most Orbit validators / AnyTrust).
+  - id: plume
+    class: tag-only
+    env_file: plume/env.template
+    var: NITRO_IMAGE
+    image_prefix: "offchainlabs/nitro-node:"
+    compose_dir: plume
+    chain_links: false
+    source_type: github_releases
+    source_repo: OffchainLabs/nitro
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    image_tag_from: release_body
+    image_tag_suffix: "-validator"
+
+  - id: robinhood
+    class: tag-only
+    env_file: robinhood/env.template
+    var: NITRO_IMAGE
+    image_prefix: "offchainlabs/nitro-node:"
+    compose_dir: robinhood
+    chain_links: false
+    source_type: github_releases
+    source_repo: OffchainLabs/nitro
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    image_tag_from: release_body
+
+  - id: ronin-op-reth
+    class: tag-only
+    env_file: ronin/env.template
+    var: RONIN_RETH_IMAGE
+    image_prefix: "ghcr.io/conduitxyz/conduit-op-reth:"
+    compose_dir: ronin
+    apply_group: ronin
+    chain_links: false
+    source_type: github_releases
+    source_repo: conduitxyz/conduit-op-reth
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+
+  - id: ronin-op-node
+    class: tag-only
+    env_file: ronin/env.template
+    var: OP_NODE_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
+    compose_dir: ronin
+    apply_group: ronin
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-node/v
+    strip_git_prefix: "op-node/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
+
+  - id: sei
+    class: tag-only
+    env_file: sei/env.template
+    var: SEID_VERSION
+    image_prefix: ""
+    compose_dir: sei
+    chain_links: false
+    source_type: github_releases
+    source_repo: sei-protocol/sei-chain
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+
+  # GHCR tags omit the git "v" prefix (tempo:1.14.0 from tag v1.14.0).
+  - id: tempo
+    class: tag-only
+    env_file: tempo/env.template
+    var: TEMPO_IMAGE
+    image_prefix: "ghcr.io/tempoxyz/tempo:"
+    compose_dir: tempo
+    chain_links: false
+    source_type: github_releases
+    source_repo: tempoxyz/tempo
+    tag_prefix: v
+    strip_git_prefix: "v"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+
+  - id: worldchain-op-reth
+    class: tag-only
+    env_file: worldchain/env.template
+    var: OP_RETH_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
+    compose_dir: worldchain
+    apply_group: worldchain
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-reth/v
+    strip_git_prefix: "op-reth/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+
+  - id: worldchain-op-node
+    class: tag-only
+    env_file: worldchain/env.template
+    var: OP_NODE_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
+    compose_dir: worldchain
+    apply_group: worldchain
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-node/v
+    strip_git_prefix: "op-node/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
+
+  - id: zircuit-op-reth
+    class: tag-only
+    env_file: zircuit/env.template
+    var: OP_RETH_IMAGE
+    image_prefix: "ghcr.io/conduitxyz/conduit-op-reth:"
+    compose_dir: zircuit
+    apply_group: zircuit
+    chain_links: false
+    source_type: github_releases
+    source_repo: conduitxyz/conduit-op-reth
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+
+  - id: zircuit-op-node
+    class: tag-only
+    env_file: zircuit/env.template
+    var: OP_NODE_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
+    compose_dir: zircuit
+    apply_group: zircuit
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-node/v
+    strip_git_prefix: "op-node/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"

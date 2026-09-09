@@ -11,6 +11,12 @@ docker compose build
 docker compose up -d
 ```
 
+Same-series `v1.0.*` binaries are **tag-only**. After a pin PR merges, apply rebuilds the local image (do not re-run `configure.sh` just to pick up `GETH_VERSION`):
+
+```bash
+./scripts/apply-tag-only.sh core
+```
+
 ## Snapshot
 
 Official **pruned (state)** mainnet tarball from [core-snapshots](https://github.com/coredao-org/core-snapshots) (~136 GB download; plan **≥2 TB** disk). `./restore-snapshot.sh` downloads it (URL/MD5 in `.env`). Skip `init-database.sh` after restore.

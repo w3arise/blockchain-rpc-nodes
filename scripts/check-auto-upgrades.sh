@@ -100,15 +100,16 @@ fetch_release_body() {
 
 resolve_pin_tag() {
   local git_tag="$1"
-  if [[ "${AUTO_IMAGE_TAG_FROM:-}" != "release_body" ]]; then
-    printf '%s' "${git_tag}"
+  if [[ "${AUTO_IMAGE_TAG_FROM:-}" == "release_body" ]]; then
+    require_command curl
+    local body
+    body="$(fetch_release_body "${AUTO_SOURCE_REPO}" "${git_tag}")" || return 1
+    printf '%s' "${body}" | python3 "${YAML_PY}" docker-tag-from-body \
+      --image-prefix "${AUTO_IMAGE_PREFIX}" --git-tag "${git_tag}" \
+      --suffix="${AUTO_IMAGE_TAG_SUFFIX:-}"
     return 0
   fi
-  require_command curl
-  local body
-  body="$(fetch_release_body "${AUTO_SOURCE_REPO}" "${git_tag}")" || return 1
-  printf '%s' "${body}" | python3 "${YAML_PY}" docker-tag-from-body \
-    --image-prefix "${AUTO_IMAGE_PREFIX}" --git-tag "${git_tag}"
+  python3 "${YAML_PY}" pin-form "${git_tag}" --strip-prefix "${AUTO_STRIP_GIT_PREFIX:-}"
 }
 
 version_lt() {
@@ -176,6 +177,14 @@ fail_closed() {
     return 1
   fi
 
+  local -a pin_vars=()
+  mapfile -t pin_vars < <(python3 "${YAML_PY}" --file "${YAML_FILE}" pin-vars --env-file "${env_file}")
+  if [[ ${#pin_vars[@]} -eq 0 ]]; then
+    pin_vars=("${var}")
+  fi
+  local pin_re
+  pin_re="$(IFS='|'; printf '%s' "${pin_vars[*]}")"
+
   if git diff --name-only -- "${env_file}" | grep -q .; then
     local env_diff
     env_diff="$(git diff -U0 -- "${env_file}" | grep -E '^[-+]' | grep -vE '^[-+]{3}' || true)"
@@ -184,8 +193,8 @@ fail_closed() {
       restore_write "${env_file}" "${chain_links_enabled}"
       return 1
     fi
-    if grep -vE "^[-+]${var}=" <<< "${env_diff}" | grep -q .; then
-      echo "ERROR: fail closed — ${env_file} changed more than ${var}" >&2
+    if grep -vE "^[-+](${pin_re})=" <<< "${env_diff}" | grep -q .; then
+      echo "ERROR: fail closed — ${env_file} changed more than pin var(s) ${pin_re}" >&2
       echo "${env_diff}" >&2
       restore_write "${env_file}" "${chain_links_enabled}"
       return 1
@@ -218,7 +227,9 @@ echo
 
 for chain_id in "${CHAIN_IDS[@]}"; do
   unset AUTO_IMAGE_TAG_FROM AUTO_CHAIN_LINKS AUTO_EXCLUDE \
-    AUTO_HEALTH_PATH AUTO_HEALTH_PORT_VAR AUTO_HEALTH_BIND_VAR
+    AUTO_HEALTH_PATH AUTO_HEALTH_PORT_VAR AUTO_HEALTH_BIND_VAR \
+    AUTO_STRIP_GIT_PREFIX AUTO_APPLY_GROUP AUTO_IMAGE_TAG_SUFFIX \
+    AUTO_COMPOSE_BUILD
   # shellcheck disable=SC1090
   eval "$(python3 "${YAML_PY}" --file "${YAML_FILE}" export "${chain_id}")"
 
@@ -242,7 +253,8 @@ for chain_id in "${CHAIN_IDS[@]}"; do
   }
   mapfile -t tags < <(
     printf '%s\n' "${tags_raw}" \
-      | python3 "${YAML_PY}" filter-series --current "${current_tag}" --exclude="${AUTO_EXCLUDE:-}" \
+      | python3 "${YAML_PY}" filter-series --current "${current_tag}" \
+        --exclude="${AUTO_EXCLUDE:-}" --strip-prefix "${AUTO_STRIP_GIT_PREFIX:-}" \
       | sort -V
   )
   if [[ "${#tags[@]}" -eq 0 ]]; then

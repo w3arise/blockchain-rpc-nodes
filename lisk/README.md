@@ -24,6 +24,13 @@ docker compose up -d
 
 Skip a fresh genesis sync after restore. Snap sync without a snapshot: keep `OP_NODE_SYNCMODE=execution-layer` and `OP_RETH_BOOTNODES` (default in `env.template`).
 
+Same-series Superchain patches (`op-reth v2.4.*` / `op-node v1.19.*` while those are the pins) are **tag-only**. After a pin PR merges, apply on the host (do not re-run `configure.sh` just to pick up the images):
+
+```bash
+# from the repo root
+./scripts/apply-tag-only.sh lisk
+```
+
 ## Host ports
 
 When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (op-reth, default `10411`) and `OP_NODE_P2P_PORT` (op-node, default `9222`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
