@@ -24,3 +24,18 @@ chains:
     health_path: /v1
     health_port_var: HTTP_PORT
     health_bind_var: RPC_BIND_ADDR
+
+  # Nitro docker tags are vX.Y.Z-<hash> (not the bare git tag). CI still lists
+  # OffchainLabs/nitro git tags; --write copies the image named in the release body.
+  - id: arbitrum
+    class: tag-only
+    env_file: arbitrum/env.template
+    var: NITRO_IMAGE
+    image_prefix: "offchainlabs/nitro-node:"
+    compose_dir: arbitrum
+    chain_links: false
+    source_type: github_releases
+    source_repo: OffchainLabs/nitro
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    image_tag_from: release_body

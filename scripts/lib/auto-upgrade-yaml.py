@@ -25,6 +25,7 @@ ALLOWED_KEYS = {
     "health_path",
     "health_port_var",
     "health_bind_var",
+    "image_tag_from",
 }
 
 REQUIRED_KEYS = {
@@ -83,6 +84,11 @@ def load_chains(path: Path) -> list[dict]:
             raise SystemExit(f"{chain.get('id', '?')}: missing keys: {sorted(missing)}")
         if chain["class"] != "tag-only":
             raise SystemExit(f"{chain['id']}: class must be tag-only (got {chain['class']})")
+        tag_from = chain.get("image_tag_from")
+        if tag_from is not None and tag_from != "release_body":
+            raise SystemExit(
+                f"{chain['id']}: image_tag_from must be release_body (got {tag_from})"
+            )
     return chains
 
 
@@ -100,6 +106,21 @@ def same_series(tag: str, series: str) -> bool:
 def excluded(tag: str, exclude: str) -> bool:
     parts = [p for p in exclude.split(",") if p]
     return any(part in tag for part in parts)
+
+
+def docker_tag_from_release_body(body: str, image_prefix: str, git_tag: str) -> str:
+    """Nitro-style pin: git tag v3.11.3, docker tag v3.11.3-<hash> (not -validator)."""
+    pattern = re.compile(
+        re.escape(image_prefix) + r"(v\d+\.\d+\.\d+-[0-9a-f]+)(?![\w-])"
+    )
+    found = sorted(
+        {tag for tag in pattern.findall(body) if tag.startswith(git_tag + "-")}
+    )
+    if len(found) != 1:
+        raise SystemExit(
+            f"expected one docker tag for {git_tag} in release body, found {found!r}"
+        )
+    return found[0]
 
 
 def dump_export(chain: dict) -> None:
@@ -130,11 +151,21 @@ def main() -> int:
     filter_p = sub.add_parser("filter-series")
     filter_p.add_argument("--current", required=True)
     filter_p.add_argument("--exclude", default="")
+    body_p = sub.add_parser("docker-tag-from-body")
+    body_p.add_argument("--image-prefix", required=True)
+    body_p.add_argument("--git-tag", required=True)
 
     args = parser.parse_args()
     path = Path(args.file)
     if args.cmd == "series":
         print(series_from_tag(args.tag))
+        return 0
+    if args.cmd == "docker-tag-from-body":
+        print(
+            docker_tag_from_release_body(
+                sys.stdin.read(), args.image_prefix, args.git_tag
+            )
+        )
         return 0
     if args.cmd == "filter-series":
         series = series_from_tag(args.current)

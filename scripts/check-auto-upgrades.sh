@@ -82,6 +82,35 @@ fetch_tags() {
     | sed 's/\^{}$//'
 }
 
+fetch_release_body() {
+  local repo="$1"
+  local tag="$2"
+  local url="https://api.github.com/repos/${repo}/releases/tags/${tag}"
+  local -a curl_opts=(-fsSL --max-time 30 -H "Accept: application/vnd.github+json")
+  if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+    curl_opts+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+  fi
+  local json
+  json="$(curl "${curl_opts[@]}" "${url}")" || {
+    echo "ERROR: failed to fetch ${url}" >&2
+    return 1
+  }
+  python3 -c 'import json,sys; print(json.load(sys.stdin).get("body") or "")' <<<"${json}"
+}
+
+resolve_pin_tag() {
+  local git_tag="$1"
+  if [[ "${AUTO_IMAGE_TAG_FROM:-}" != "release_body" ]]; then
+    printf '%s' "${git_tag}"
+    return 0
+  fi
+  require_command curl
+  local body
+  body="$(fetch_release_body "${AUTO_SOURCE_REPO}" "${git_tag}")" || return 1
+  printf '%s' "${body}" | python3 "${YAML_PY}" docker-tag-from-body \
+    --image-prefix "${AUTO_IMAGE_PREFIX}" --git-tag "${git_tag}"
+}
+
 version_lt() {
   local left="$1"
   local right="$2"
@@ -188,6 +217,8 @@ echo "Tag-only auto-upgrade check (same-series only)"
 echo
 
 for chain_id in "${CHAIN_IDS[@]}"; do
+  unset AUTO_IMAGE_TAG_FROM AUTO_CHAIN_LINKS AUTO_EXCLUDE \
+    AUTO_HEALTH_PATH AUTO_HEALTH_PORT_VAR AUTO_HEALTH_BIND_VAR
   # shellcheck disable=SC1090
   eval "$(python3 "${YAML_PY}" --file "${YAML_FILE}" export "${chain_id}")"
 
@@ -219,7 +250,11 @@ for chain_id in "${CHAIN_IDS[@]}"; do
     exit 1
   fi
 
-  latest_tag="${tags[-1]}"
+  latest_git_tag="${tags[-1]}"
+  latest_tag="$(resolve_pin_tag "${latest_git_tag}")" || {
+    echo "ERROR: failed to resolve pin tag for ${chain_id} from ${latest_git_tag}" >&2
+    exit 1
+  }
   latest_image="${AUTO_IMAGE_PREFIX}${latest_tag}"
 
   if [[ "${current_tag}" == "${latest_tag}" ]]; then

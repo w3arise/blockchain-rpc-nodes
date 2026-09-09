@@ -47,7 +47,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | Abstract | `EN_VERSION` | `Abstract-Foundation/abstract-node` `docker/.env.mainnet` (not generic EN latest unless Abstract moved) | needs-review |
 | ApeChain | `NITRO_IMAGE` | `ConstellationCrypto/replica-guide-apechain-mainnet` compose (`apechain-v*` on Caldera ECR) | needs-review |
 | Aptos | `APTOS_IMAGE` | `aptos-labs/aptos-core` tags `aptos-node-v*` (ignore `aptos-cli-v*`) | tag-only |
-| Arbitrum | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) | needs-review |
+| Arbitrum | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) | tag-only |
 | Berachain | `BERA_RETH_IMAGE`, `BEACON_KIT_IMAGE` | `berachain/bera-reth`, `berachain/beacon-kit` — bump as a pair | needs-review |
 | Bitlayer | `GETH_VERSION` | `bitlayer-org/bitlayer-l2` | needs-review |
 | B² Network | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | [B² rollup node docs](https://docs.bsquared.network/for-developers/running_rollup_node) / `b2network/docs` — **not** generic OP Labs | needs-review |
@@ -105,7 +105,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 - **Nitro Orbit** (ApeChain, Plume) may require a vendor tag (`apechain-v*`, `*-validator`).
 - **Monad** APT `MONAD_VERSION`; 0.16.1+ will not start without a page-encoded TrieDB (MIP-8 Phase A or post-fork snapshot). See `monad/README.md`.
 - **op-node v1.19.2** is below the Mode/Metal/Zora Karst gas-config floor (`v1.19.3+`) for built-in `--network` configs.
-- **Nitro 3.8 / 3.10** one-way datadir (cannot open with 3.7.x / 3.9.x). Arbitrum One replica is pinned at `v3.11.3`; still `needs-review` until allowlisted for `v3.11.*` patches. See `arbitrum/README.md`.
+- **Nitro 3.8 / 3.10** one-way datadir (cannot open with 3.7.x / 3.9.x). Arbitrum One replica is pinned at `v3.11.3` and allowlisted for **`v3.11.*` patches** (`image_tag_from: release_body`). A `v3.12` series jump stays `needs-review`. See `arbitrum/README.md`.
 
 ## After an upgrade (code)
 

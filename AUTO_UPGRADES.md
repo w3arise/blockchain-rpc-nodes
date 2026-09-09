@@ -9,7 +9,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Chain | Git pin | Upgrade class | Allowlist (`auto-upgrade.yaml`) | Host apply |
 | --- | --- | --- | --- | --- |
 | Aptos | `aptos-node-v1.48.7-hotfix` | tag-only | **yes** — same-series `v1.48.*` | `./scripts/apply-tag-only.sh aptos` |
-| Arbitrum | `nitro-node:v3.11.3-beb2108` | needs-review | **no** — 3.7→3.11 was a one-way datadir jump; do not add YAML until the user asks, then **`v3.11.*` patches only** | Manual `.env` pin + compose; see [arbitrum/README.md](arbitrum/README.md) |
+| Arbitrum | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (docker tag from the GitHub release body, not the bare git tag) | `./scripts/apply-tag-only.sh arbitrum` |
 | Abstract | stays `needs-review` | never auto across EN majors (`v29`→`v31` needs snapshot wipe) | no | `<chain>/README.md` |
 | Linea feecap / other config | not a client pin | out of this workflow | no | — |
 
@@ -95,7 +95,7 @@ Examples:
 - Aptos `aptos-node-v1.48.5-hotfix` → `v1.48.7-hotfix` — tag-only (allowlisted).
 - Aptos `v1.48` → `v1.49` — human bump onto the new series first; then auto can follow `v1.49.*`.
 - Abstract `v29` → `v31` — never auto (snapshot wipe).
-- Arbitrum Nitro `3.7` → `3.11` — done as needs-review (one-way DB). Pin is now `v3.11.3`; still **not** allowlisted. Same-series `v3.11.*` patches may join the YAML later if the user asks.
+- Arbitrum Nitro `3.7` → `3.11` — done as needs-review (one-way DB). Pin is `v3.11.3`; allowlisted for **`v3.11.*` patches only**. A `v3.12` git tag is ignored until a human bumps the pin onto that series.
 
 ## Agent release-notes check
 
@@ -162,7 +162,7 @@ flowchart TB
 `apply-tag-only.sh` will refuse unknown chain ids. After a human pin bump is merged:
 
 1. Notes check already said needs-config (or needs-review + user picked). Follow `<chain>/README.md`.
-2. On the host: `git pull --ff-only`. Copy **only** the pin var from `env.template` into existing `.env` (do not `cp env.template .env` — that wipes L1 URLs). Chains without `configure.sh` (e.g. Arbitrum) are the same: edit one line.
+2. On the host: `git pull --ff-only`. Copy **only** the pin var from `env.template` into existing `.env` (do not `cp env.template .env` — that wipes L1 URLs). Chains without `configure.sh` are the same: edit one line.
 3. If notes said one-way DB / cannot downgrade: stop the client and cold-copy the datadir first.
 4. `docker compose pull && docker compose up -d` in the chain directory.
 
@@ -175,9 +175,9 @@ Machine-readable source of truth: [`scripts/auto-upgrade.yaml`](scripts/auto-upg
 - `tag-only` — also a YAML row; CI may open a pin PR. Host apply after a [notes check](#agent-release-notes-check) says pin-only.
 - `needs-review` — agent playbook only; do not bump until a human picks.
 
-Adding a chain is one YAML object (id, pin file/var, image prefix, GitHub repo, tag prefix, compose dir, optional health URL). Auto only follows tags that share major.minor with **whatever is currently pinned**.
+Adding a chain is one YAML object (id, pin file/var, image prefix, GitHub repo, tag prefix, compose dir, optional health URL, optional `image_tag_from: release_body` when the docker tag is not the git tag). Auto only follows tags that share major.minor with **whatever is currently pinned**.
 
-v1 allowlist: **Aptos** only (`APTOS_IMAGE`, series `aptos-node-v1.48.*` while that is the pin). Nitro docker tags look like `v3.11.3-beb2108` (semver plus git hash); a future Arbitrum YAML row must use `image_prefix: "offchainlabs/nitro-node:"` and `tag_prefix` that still yields series `v3.11` via the first `major.minor` in the tag.
+v1 allowlist: **Aptos** (`APTOS_IMAGE`, series `aptos-node-v1.48.*` while that is the pin) and **Arbitrum** (`NITRO_IMAGE`, series `v3.11.*`). Nitro docker tags look like `v3.11.3-beb2108` (semver plus git hash). The YAML row uses `image_prefix: "offchainlabs/nitro-node:"`, `tag_prefix: v` (series `v3.11` from the first `major.minor` in the pin), and `image_tag_from: release_body` so `--write` copies `v3.11.3-beb2108` from the GitHub release, not the bare `v3.11.3` git tag.
 
 ## Git layer (detect + PR)
 
@@ -199,7 +199,7 @@ flowchart TD
 
 Pieces:
 
-- [`scripts/check-auto-upgrades.sh`](scripts/check-auto-upgrades.sh) — reads each YAML row, lists GitHub tags, keeps same-series stable tags (drops `-rc`, `-alpha`, …), writes the pin if upstream is newer.
+- [`scripts/check-auto-upgrades.sh`](scripts/check-auto-upgrades.sh) — reads each YAML row, lists GitHub tags, keeps same-series stable tags (drops `-rc`, `-alpha`, …), writes the pin if upstream is newer. When `image_tag_from: release_body` (Arbitrum), the pin is the docker tag named in that git tag’s release body.
 - [`.github/workflows/auto-upgrade.yml`](.github/workflows/auto-upgrade.yml) — weekly + manual; **no auto-merge**. Before merge, run the [agent notes check](#agent-release-notes-check) (or read the notes yourself).
 - Fail closed: if `--write` touches anything other than the pin line and the CHAIN_LINKS version URL, it restores and exits.
 
@@ -240,7 +240,9 @@ Result:
 [Node release v1.48.8-hotfix](https://github.com/aptos-labs/aptos-core/releases/tag/aptos-node-v1.48.8-hotfix)
 ```
 
-If the old tag is not in `CHAIN_LINKS.md`, that file is skipped. No other rows or URLs are *intended* to change; fail-closed aborts if any file besides `aptos/env.template` and `CHAIN_LINKS.md` became dirty, or if `env.template` changed more than the `APTOS_IMAGE=` line.
+If the old tag is not in `CHAIN_LINKS.md`, that file is skipped. No other rows or URLs are *intended* to change; fail-closed aborts if any file besides that chain’s `env.template` and `CHAIN_LINKS.md` became dirty, or if `env.template` changed more than the pin line (`APTOS_IMAGE=` / `NITRO_IMAGE=`).
+
+Arbitrum is the same pin-line write, with `chain_links: false`. GitHub’s latest same-series tag might be `v3.11.4`; the pin written is `offchainlabs/nitro-node:v3.11.4-<hash>` from that release body (not `nitro-node:v3.11.4`).
 
 Local check without writing:
 
@@ -266,6 +268,7 @@ After the PR is merged, a host with a clean `<chain>/` checkout:
 
 ```bash
 ./scripts/apply-tag-only.sh aptos
+./scripts/apply-tag-only.sh arbitrum
 ```
 
 ```mermaid
@@ -282,15 +285,15 @@ flowchart TD
   clean -->|yes| pull --> sync --> up --> health --> done
 ```
 
-- Requires an existing `.env` (first start is still `./configure.sh`).
-- Syncs **only** the YAML pin var (e.g. `APTOS_IMAGE`).
-- Aptos health: `http://127.0.0.1:${HTTP_PORT}/v1`.
+- Requires an existing `.env` (first start is still `./configure.sh` or `cp env.template .env`).
+- Syncs **only** the YAML pin var (e.g. `APTOS_IMAGE`, `NITRO_IMAGE`).
+- Aptos health: `http://127.0.0.1:${HTTP_PORT}/v1`. Arbitrum has no GET health URL (JSON-RPC only); apply still recreates the container.
 - Optional: `SKIP_PULL=1`, `SKIP_COMPOSE=1`, `HEALTH_TIMEOUT=180`.
 
 Example timer (Monday 09:00, after the CI PR window):
 
 ```
-0 9 * * 1 cd /path/to/blockchain-rpc-nodes && ./scripts/apply-tag-only.sh aptos
+0 9 * * 1 cd /path/to/blockchain-rpc-nodes && ./scripts/apply-tag-only.sh aptos && ./scripts/apply-tag-only.sh arbitrum
 ```
 
 Chain-specific apply notes stay in `<chain>/README.md` (see [aptos/README.md](aptos/README.md)).
@@ -301,4 +304,4 @@ Chain-specific apply notes stay in `<chain>/README.md` (see [aptos/README.md](ap
 - No rewriting per-chain `configure.sh` to merge all template keys
 - The check-client-updates agent skill still handles `needs-review` chains
 
-After Aptos is proven: add other image-only chains as YAML rows if the user asks (Arbitrum **`v3.11.*` only**, pin is already `v3.11.3`). Then consider auto-merge for `tag-only` PRs only.
+After Aptos and Arbitrum same-series patches: add other image-only chains as YAML rows if the user asks. Then consider auto-merge for `tag-only` PRs only.

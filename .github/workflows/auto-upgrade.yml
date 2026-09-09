@@ -37,8 +37,5 @@ jobs:
 
             Merge is the human gate that the series is still tag-only. This workflow does not auto-merge.
 
-            After merge, hosts apply with:
-
-            ```bash
-            ./scripts/apply-tag-only.sh aptos
-            ```
+            After merge, hosts apply with `./scripts/apply-tag-only.sh <id>`
+            for each bumped chain (`scripts/auto-upgrade.yaml`).

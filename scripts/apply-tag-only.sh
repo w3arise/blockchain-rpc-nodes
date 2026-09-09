@@ -5,6 +5,7 @@
 #
 # Usage:
 #   ./scripts/apply-tag-only.sh aptos
+#   ./scripts/apply-tag-only.sh arbitrum
 #
 # Does not rewrite other .env keys (L1 URLs, passwords). First-start still
 # uses <chain>/configure.sh. Does not run configure.sh.
@@ -60,7 +61,7 @@ if [[ ! -f "${ENV_TEMPLATE}" ]]; then
   exit 1
 fi
 if [[ ! -f "${ENV_FILE}" ]]; then
-  echo "ERROR: ${ENV_FILE} does not exist — run ${AUTO_COMPOSE_DIR}/configure.sh first" >&2
+  echo "ERROR: ${ENV_FILE} does not exist — copy env.template to .env first" >&2
   exit 1
 fi
 
