@@ -89,12 +89,18 @@ read_env_value() {
   local file="$1"
   local name="$2"
   local value
-  value="$(grep -E "^${name}=" "${file}" | tail -n1 | cut -d= -f2- || true)"
+  value="$(read_env_value_optional "${file}" "${name}")"
   if [[ -z "${value}" ]]; then
     echo "ERROR: ${name} not set in ${file}" >&2
     return 1
   fi
   printf '%s' "${value}"
+}
+
+read_env_value_optional() {
+  local file="$1"
+  local name="$2"
+  grep -E "^${name}=" "${file}" | tail -n1 | cut -d= -f2- || true
 }
 
 sync_pin() {
@@ -177,8 +183,8 @@ if [[ -z "${HEALTH_MODE}${HEALTH_PATH}" || -z "${HEALTH_PORT_VAR}" ]]; then
   exit 0
 fi
 
-health_bind="$(read_env_value "${ENV_FILE}" "${HEALTH_BIND_VAR}" || true)"
-health_port="$(read_env_value "${ENV_FILE}" "${HEALTH_PORT_VAR}" || true)"
+health_bind="$(read_env_value_optional "${ENV_FILE}" "${HEALTH_BIND_VAR}")"
+health_port="$(read_env_value_optional "${ENV_FILE}" "${HEALTH_PORT_VAR}")"
 
 if [[ -z "${health_port}" ]]; then
   echo "No health check configured for ${CHAIN_ID}."
@@ -199,17 +205,21 @@ if [[ "${HEALTH_MODE}" == "block_time" ]]; then
   echo "Waiting for a fresh latest block at ${url} (max age ${max_age}s, timeout ${HEALTH_TIMEOUT}s)"
   deadline=$((SECONDS + HEALTH_TIMEOUT))
   while (( SECONDS < deadline )); do
-    block_ts="$(curl -fsS --connect-timeout 2 --max-time 5 -X POST \
-      -H 'Content-Type: application/json' \
-      -d '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["latest",false],"id":1}' \
-      "${url}" 2>/dev/null \
+    # curl may fail while RPC is still starting; do not fail the pipe (pipefail).
+    block_ts="$(
+      (curl -fsS --connect-timeout 2 --max-time 5 -X POST \
+        -H 'Content-Type: application/json' \
+        -d '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["latest",false],"id":1}' \
+        "${url}" 2>/dev/null || true) \
       | python3 -c 'import sys,json
 try:
     r = json.load(sys.stdin)
-    print(int((r.get("result") or {}).get("timestamp") or "0", 16))
+    ts = (r.get("result") or {}).get("timestamp")
+    if ts:
+        print(int(ts, 16))
 except Exception:
-    print(0)' 2>/dev/null || echo 0)"
-    if [[ -n "${block_ts}" ]] && (( block_ts > 0 )); then
+    pass' 2>/dev/null | head -n1 || true)"
+    if [[ "${block_ts}" =~ ^[0-9]+$ ]] && (( block_ts > 0 )); then
       age=$(( $(date +%s) - block_ts ))
       if (( age <= max_age )); then
         echo "Healthy: latest block ${block_ts} (${age}s old) at ${url}"
