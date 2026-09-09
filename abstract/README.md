@@ -35,6 +35,12 @@ Grafana: `http://127.0.0.1:8300` · External-node metrics: `http://127.0.0.1:332
 docker compose up -d
 ```
 
+## Upgrade
+
+Pin is Abstract helm `image.tag` + `image.digest` (not `.env.mainnet`, not Docker Hub latest). Copy `EN_VERSION` and `EN_DIGEST` into an existing `.env` — do not recopy the whole template.
+
+Same-series SHA bumps on an already-v31 datadir: `docker compose pull && docker compose up -d`. Protocol-major jumps (EN v29 → v31) need a Reset first.
+
 ## Reset
 
 ```bash

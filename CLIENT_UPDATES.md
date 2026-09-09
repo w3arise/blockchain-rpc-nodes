@@ -29,7 +29,7 @@ Optional: dump the audit table to a Cursor canvas. Do not commit a living “pin
 | Conduit op-reth | `conduitxyz/conduit-op-reth` releases; `ghcr.io/conduitxyz/conduit-op-reth` |
 | Nitro | `OffchainLabs/nitro` releases; `offchainlabs/nitro-node`. Orbit/Caldera chains may pin a fork tag — compare to **that** image, not mainline Nitro, unless the chain docs say otherwise. |
 | EigenDA proxy | `Layr-Labs/eigenda` (proxy lives in the monorepo; `Layr-Labs/eigenda-proxy` is archived). Image `ghcr.io/layr-labs/eigenda-proxy`. Celo compose may lag the monorepo — Celo-official wins for `celo/`. |
-| ZK Stack EN | Docker Hub `matterlabs/external-node`. Chain-official compose (`Abstract-Foundation/abstract-node`, `lens-protocol/lens-chain-node`) wins over generic Matter Labs tags. |
+| ZK Stack EN | Docker Hub `matterlabs/external-node`. Abstract: helm `charts/abstract-node/values.yaml` (`image.tag` + `image.digest`). Lens: `lens-protocol/lens-chain-node` compose. Never generic Matter Labs latest. |
 
 Need `gh` / GitHub API (`full_network`). Docker Hub: `https://hub.docker.com/v2/repositories/<ns>/<name>/tags?page_size=20`.
 
@@ -44,7 +44,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | Chain | Pin | Compare against | Upgrade class |
 | --- | --- | --- | --- |
 | AB Core | `GETH_VERSION` | `ABFoundationGlobal/abcore` releases | needs-review |
-| Abstract | `EN_VERSION` | `Abstract-Foundation/abstract-node` `docker/.env.mainnet` (not generic EN latest unless Abstract moved) | needs-review |
+| Abstract | `EN_VERSION`, `EN_DIGEST` | `Abstract-Foundation/abstract-node` helm `charts/abstract-node/values.yaml` (`image.tag` + `image.digest`). Same pin in `docker/external-node.yml`. Ignore `.env.mainnet` and generic EN latest. | needs-review |
 | ApeChain | `NITRO_IMAGE` | `ConstellationCrypto/replica-guide-apechain-mainnet` compose (`apechain-v*` on Caldera ECR) | needs-review |
 | Aptos | `APTOS_IMAGE` | `aptos-labs/aptos-core` tags `aptos-node-v*` (ignore `aptos-cli-v*`) | tag-only |
 | Arbitrum | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) | tag-only |
@@ -100,7 +100,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 - **Aptos** release feed mixes node, CLI, and `-rc` tags — filter `aptos-node-v*` and skip `-rc` unless asked.
 - **Morph geth** GitHub tags are `morph-v2.2.x`; compose/GHCR often `2.2.x` without the prefix.
 - **Hemi** pins git SHAs with digests; `heminetwork` GitHub `v2.0.0` is not automatically the compose `bssd` tag.
-- **Abstract vs Lens** can pin different `matterlabs/external-node` tags; never copy one onto the other.
+- **Abstract vs Lens** can pin different `matterlabs/external-node` tags; never copy one onto the other. Abstract `.env.mainnet` `EN_VERSION` can lag helm; follow helm tag+digest.
 - **EigenDA v2** releases are on `Layr-Labs/eigenda`, not the archived proxy repo.
 - **Nitro Orbit** (ApeChain, Plume) may require a vendor tag (`apechain-v*`, `*-validator`).
 - **Monad** APT `MONAD_VERSION`; 0.16.1+ will not start without a page-encoded TrieDB (MIP-8 Phase A or post-fork snapshot). See `monad/README.md`.

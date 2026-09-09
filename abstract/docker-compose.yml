@@ -70,7 +70,7 @@ services:
       - abstract-network
 
   generate-secrets:
-    image: matterlabs/external-node:${EN_VERSION}
+    image: matterlabs/external-node:${EN_VERSION}@${EN_DIGEST}
     container_name: abstract-generate-secrets
     entrypoint:
       - /configs/generate_secrets.sh
@@ -81,7 +81,7 @@ services:
       - abstract-network
 
   external-node:
-    image: matterlabs/external-node:${EN_VERSION}
+    image: matterlabs/external-node:${EN_VERSION}@${EN_DIGEST}
     container_name: abstract-external-node
     entrypoint:
       - /usr/bin/entrypoint.sh
