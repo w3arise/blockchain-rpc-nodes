@@ -13,7 +13,21 @@ Mainnet `config/genesis.blob` and `config/waypoint.txt` are committed (from [apt
 
 REST API: `http://127.0.0.1:8080/v1` · Metrics: `http://127.0.0.1:9101/metrics`
 
-Pin the node version with `APTOS_IMAGE` in `.env` (see [releases](https://github.com/aptos-labs/aptos-core/releases)).
+Pin the node version with `APTOS_IMAGE` in `.env` (see [releases](https://github.com/aptos-labs/aptos-core/releases)). Same-series patch tags (`aptos-node-v1.48.*` while that is the pin) are **tag-only** — see [AUTO_UPGRADES.md](../AUTO_UPGRADES.md). CI may open a pin PR; after merge, apply on the host (do not re-run `configure.sh` just to pick up the image):
+
+```bash
+# from the repo root (hosts: clean aptos/ checkout)
+./scripts/apply-tag-only.sh aptos
+```
+
+Example weekly timer (Monday 09:00, after the CI PR window):
+
+```
+0 9 * * 1 cd /path/to/blockchain-rpc-nodes && ./scripts/apply-tag-only.sh aptos
+```
+
+
+Minor/major jumps and genesis/waypoint refreshes stay manual.
 
 ## Snapshot
 

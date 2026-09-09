@@ -107,4 +107,5 @@ Repo-wide reminders:
 
 - [AGENTS.md](AGENTS.md) — conventions for adding and maintaining chains
 - [CLIENT_UPDATES.md](CLIENT_UPDATES.md) — how to audit and bump client version pins
+- [AUTO_UPGRADES.md](AUTO_UPGRADES.md) — tag-only auto-upgrade architecture (git PRs + host apply)
 

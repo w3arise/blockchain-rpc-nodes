@@ -1,0 +1,26 @@
+# Tag-only auto-upgrade allowlist.
+#
+# Lookup rules stay in CLIENT_UPDATES.md. This file is the machine-readable
+# subset: chains that may auto-PR and host-apply a same-series pin swap.
+# Do not store “latest” tags here — scripts re-check upstream each run.
+#
+# Add a chain only when compose, genesis, JWT, and datadir layout stay the
+# same across patch tags on the currently pinned major.minor series.
+# Crossing a minor/major line is always needs-review (human bump onto the
+# new series, then auto can follow patches on that series).
+
+chains:
+  - id: aptos
+    class: tag-only
+    env_file: aptos/env.template
+    var: APTOS_IMAGE
+    image_prefix: "aptoslabs/validator:"
+    compose_dir: aptos
+    chain_links: true
+    source_type: github_releases
+    source_repo: aptos-labs/aptos-core
+    tag_prefix: aptos-node-v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_path: /v1
+    health_port_var: HTTP_PORT
+    health_bind_var: RPC_BIND_ADDR

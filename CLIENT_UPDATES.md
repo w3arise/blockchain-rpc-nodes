@@ -2,14 +2,14 @@
 
 Playbook for auditing and bumping pinned client versions. **Lookup rules only** — do not store “latest as of …” tags here; re-check upstream each run.
 
-When adding a chain, add a row to [Sources](#sources). Pin values live in `env.template` (or the path in that row).
+When adding a chain, add a row to [Sources](#sources). Pin values live in `env.template` (or the path in that row). Tag-only auto-upgrades (same-series image swap, no config/datadir work) also need a row in [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml) — architecture: [AUTO_UPGRADES.md](AUTO_UPGRADES.md).
 
 ## Procedure
 
 1. Extract pins from `**/env.template*` (`*_IMAGE`, `*_VERSION`, `*_IMAGE_TAG`) and from compose when a chain has no env pin (e.g. `celo-geth/`).
 2. Compare each pin using the [policy](#comparison-policy) and the [Sources](#sources) row — not a generic GitHub “latest” if the chain publishes its own images.
-3. Present findings (chain, client, pinned, latest stable, notes). **Do not bump until the user picks** which chains and components to upgrade.
-4. After a bump: update `env.template` (and README / `CHAIN_LINKS.md` when the upgrade path or official docs change). Follow `<chain>/README.md` for live-node steps (datadir migrations, genesis, JWT).
+3. Present findings (chain, client, pinned, latest stable, **inferred class**, notes). For each bump, read release notes / git compare (pin → latest) and class **pin-only** vs **needs-config** — see [AUTO_UPGRADES.md](AUTO_UPGRADES.md#agent-release-notes-check). **Do not bump `needs-review` or needs-config until the user picks.** YAML `tag-only` chains may also get a CI pin PR (`scripts/check-auto-upgrades.sh`); that script does not read notes.
+4. After a bump: update `env.template` (and README / `CHAIN_LINKS.md` when the upgrade path or official docs change). Follow `<chain>/README.md` for live-node steps (datadir migrations, genesis, JWT). Hosts apply merged tag-only pins with [`scripts/apply-tag-only.sh`](scripts/apply-tag-only.sh).
 
 Optional: dump the audit table to a Cursor canvas. Do not commit a living “pinned vs latest” markdown.
 
@@ -33,57 +33,63 @@ Optional: dump the audit table to a Cursor canvas. Do not commit a living “pin
 
 Need `gh` / GitHub API (`full_network`). Docker Hub: `https://hub.docker.com/v2/repositories/<ns>/<name>/tags?page_size=20`.
 
+## Tag-only auto-upgrades
+
+Architecture, diagrams, host apply, and the GitHub Actions PR permission: **[AUTO_UPGRADES.md](AUTO_UPGRADES.md)**.
+
+Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [Sources](#sources) **Upgrade class** column in sync (`tag-only` vs `needs-review`).
+
 ## Sources
 
-| Chain | Pin | Compare against |
-| --- | --- | --- |
-| AB Core | `GETH_VERSION` | `ABFoundationGlobal/abcore` releases |
-| Abstract | `EN_VERSION` | `Abstract-Foundation/abstract-node` `docker/.env.mainnet` (not generic EN latest unless Abstract moved) |
-| ApeChain | `NITRO_IMAGE` | `ConstellationCrypto/replica-guide-apechain-mainnet` compose (`apechain-v*` on Caldera ECR) |
-| Aptos | `APTOS_IMAGE` | `aptos-labs/aptos-core` tags `aptos-node-v*` (ignore `aptos-cli-v*`) |
-| Arbitrum | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) |
-| Berachain | `BERA_RETH_IMAGE`, `BEACON_KIT_IMAGE` | `berachain/bera-reth`, `berachain/beacon-kit` — bump as a pair |
-| Bitlayer | `GETH_VERSION` | `bitlayer-org/bitlayer-l2` |
-| B² Network | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | [B² rollup node docs](https://docs.bsquared.network/for-developers/running_rollup_node) / `b2network/docs` — **not** generic OP Labs |
-| Bob | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain (OP Labs) |
-| BSC | `BSC_IMAGE` | `bnb-chain/bsc` (`ghcr.io/bnb-chain/bsc`) |
-| Celo | `OP_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | `celo-org/celo-l2-node-docker-compose` (`celo-v*` on Celo registry). EigenDA: Celo compose, not monorepo latest |
-| Celo (op-geth) | `celo-geth/docker-compose.yml` | Deprecated stack — prefer `celo/` |
-| Core | `GETH_VERSION` | `coredao-org/core-chain` |
-| Cronos | `CRONOS_VERSION` | `crypto-org-chain/cronos` |
-| Etherlink | `EVM_IMAGE` | GitLab `tezos/tezos` tags `octez-evm-node-v*`; Docker Hub `tezos/tezos-bare` |
-| Fantom (FTM) | `SONIC_VERSION` | Legacy Opera. Live chain is `sonic/` |
-| Gnosis Chain | `GNOSIS_RETH_IMAGE`, `LIGHTHOUSE_IMAGE` | `gnosischain/reth_gnosis`, `sigp/lighthouse` |
-| HashKey Chain | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | `HashKeyChain/fullnode-sync` README required `NODE_IMAGE` — **not** generic Superchain op-node |
-| Hedera | `MIRROR_NODE_VERSION`, `RELAY_VERSION` | `hiero-ledger/hiero-mirror-node`, `hiero-ledger/hiero-json-rpc-relay`. Run `hedera/check-upgrade.sh` when present |
-| Hemi | `OP_GETH_IMAGE`, `OP_NODE_IMAGE`, `BSSD_IMAGE` | `hemilabs/hemi-node` `mainnet/docker-compose.yml` (SHA tags). `hemilabs/heminetwork` GitHub `v2` may not match compose |
-| Kaia | `KAIA_IMAGE` | `kaiachain/kaia` |
-| Katana | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Conduit op-reth + OP Labs op-node |
-| Lens | `EN_VERSION` | `lens-protocol/lens-chain-node` `mainnet-external-node.yml` (often older than Matter Labs Docker) |
-| Linea | `BESU_IMAGE`, `MARU_IMAGE`, `NETHERMIND_VERSION` | `Consensys/linea-monorepo` getting-started compose + `linea-besu-package` releases. Besu tags are `N.N.N-YYYYMMDD-sha`, not the old `beta-v4.4-rc*` scheme. Nethermind: Linea-recommended, not generic `NethermindEth/nethermind` |
-| Lisk | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain (this repo uses op-reth; `LiskHQ/lisk-node` may still pin op-geth) |
-| Mode | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain. `op-node` v1.19.3+ required for Mode `--network` Karst gas configs |
-| Monad | `MONAD_VERSION` | `category-labs/monad` + [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions). APT pin; 0.16.1+ needs a page-encoded TrieDB |
-| Morph | `GETH_IMAGE`, `NODE_IMAGE` | `morph-l2/go-ethereum` (`morph-v*` tags vs compose `2.2.x`), `morph-l2/morph` |
-| Neo X | `GETH_VERSION` | `bane-labs/go-ethereum` |
-| opBNB | `OP_GETH_IMAGE_TAG`, `OP_NODE_IMAGE_TAG` | `bnb-chain/op-geth`, `bnb-chain/opbnb` |
-| Optimism | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain |
-| Pharos | `PHAROS_IMAGE` | `PharosNetwork/resources` + image tag `pharos_community_v*` |
-| Plume | `NITRO_IMAGE` | Conduit/Plume docs first; mainline Nitro only if they track it (`*-validator` suffix) |
-| Polygon PoS | `BOR_IMAGE` in `polygon-bor/env.template.mainnet` (and `.amoy`) | `0xPolygon/bor` |
-| Robinhood Chain | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) |
-| Ronin | `RONIN_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | Conduit op-reth + OP Labs op-node + EigenDA monorepo |
-| Sei | `SEID_VERSION` | `sei-protocol/sei-chain` |
-| Soneium | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain |
-| Sonic | `SONIC_VERSION` | `0xsoniclabs/sonic` |
-| Tac | `TACCHAIN_VERSION` | `TacBuild/tacchain` (ignore `-beta` / `-manual` unless requested) |
-| Tempo | `TEMPO_IMAGE` | `tempoxyz/tempo` releases; `ghcr.io/tempoxyz/tempo` |
-| Worldchain | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | `worldcoin-foundation/simple-worldchain-node` — official EL is `ghcr.io/worldcoin/world-chain`, not stock op-reth |
-| XDC | `XDC_VERSION` | `XinFinOrg/XDPoSChain` (ignore `*-testnet`) |
-| XLayer | `OP_STACK_IMAGE_TAG`, `OP_GETH_IMAGE_TAG`, `ERIGON_VERSION` | Docker Hub `xlayer/op-node`, `xlayer/op-geth`. `okx/xlayer-erigon` may be private |
-| XLayer (op-reth) | `OP_STACK_IMAGE_TAG`, `OP_RETH_IMAGE_TAG` | Docker Hub `xlayer/op-node`, `xlayer/xlayer-reth`; `okx/xlayer-reth` (treat `v0.0.7` as pre until a non-pre release) |
-| Zircuit | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Conduit op-reth + OP Labs op-node |
-| Zircuit (legacy) | `L2_GETH_IMAGE` | Docker Hub `zircuit1/l2-geth`. Historical only; live chain is `zircuit/` |
+| Chain | Pin | Compare against | Upgrade class |
+| --- | --- | --- | --- |
+| AB Core | `GETH_VERSION` | `ABFoundationGlobal/abcore` releases | needs-review |
+| Abstract | `EN_VERSION` | `Abstract-Foundation/abstract-node` `docker/.env.mainnet` (not generic EN latest unless Abstract moved) | needs-review |
+| ApeChain | `NITRO_IMAGE` | `ConstellationCrypto/replica-guide-apechain-mainnet` compose (`apechain-v*` on Caldera ECR) | needs-review |
+| Aptos | `APTOS_IMAGE` | `aptos-labs/aptos-core` tags `aptos-node-v*` (ignore `aptos-cli-v*`) | tag-only |
+| Arbitrum | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) | needs-review |
+| Berachain | `BERA_RETH_IMAGE`, `BEACON_KIT_IMAGE` | `berachain/bera-reth`, `berachain/beacon-kit` — bump as a pair | needs-review |
+| Bitlayer | `GETH_VERSION` | `bitlayer-org/bitlayer-l2` | needs-review |
+| B² Network | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | [B² rollup node docs](https://docs.bsquared.network/for-developers/running_rollup_node) / `b2network/docs` — **not** generic OP Labs | needs-review |
+| Bob | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain (OP Labs) | needs-review |
+| BSC | `BSC_IMAGE` | `bnb-chain/bsc` (`ghcr.io/bnb-chain/bsc`) | needs-review |
+| Celo | `OP_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | `celo-org/celo-l2-node-docker-compose` (`celo-v*` on Celo registry). EigenDA: Celo compose, not monorepo latest | needs-review |
+| Celo (op-geth) | `celo-geth/docker-compose.yml` | Deprecated stack — prefer `celo/` | needs-review |
+| Core | `GETH_VERSION` | `coredao-org/core-chain` | needs-review |
+| Cronos | `CRONOS_VERSION` | `crypto-org-chain/cronos` | needs-review |
+| Etherlink | `EVM_IMAGE` | GitLab `tezos/tezos` tags `octez-evm-node-v*`; Docker Hub `tezos/tezos-bare` | needs-review |
+| Fantom (FTM) | `SONIC_VERSION` | Legacy Opera. Live chain is `sonic/` | needs-review |
+| Gnosis Chain | `GNOSIS_RETH_IMAGE`, `LIGHTHOUSE_IMAGE` | `gnosischain/reth_gnosis`, `sigp/lighthouse` | needs-review |
+| HashKey Chain | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | `HashKeyChain/fullnode-sync` README required `NODE_IMAGE` — **not** generic Superchain op-node | needs-review |
+| Hedera | `MIRROR_NODE_VERSION`, `RELAY_VERSION` | `hiero-ledger/hiero-mirror-node`, `hiero-ledger/hiero-json-rpc-relay`. Run `hedera/check-upgrade.sh` when present | needs-review |
+| Hemi | `OP_GETH_IMAGE`, `OP_NODE_IMAGE`, `BSSD_IMAGE` | `hemilabs/hemi-node` `mainnet/docker-compose.yml` (SHA tags). `hemilabs/heminetwork` GitHub `v2` may not match compose | needs-review |
+| Kaia | `KAIA_IMAGE` | `kaiachain/kaia` | needs-review |
+| Katana | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Conduit op-reth + OP Labs op-node | needs-review |
+| Lens | `EN_VERSION` | `lens-protocol/lens-chain-node` `mainnet-external-node.yml` (often older than Matter Labs Docker) | needs-review |
+| Linea | `BESU_IMAGE`, `MARU_IMAGE`, `NETHERMIND_VERSION` | `Consensys/linea-monorepo` getting-started compose + `linea-besu-package` releases. Besu tags are `N.N.N-YYYYMMDD-sha`, not the old `beta-v4.4-rc*` scheme. Nethermind: Linea-recommended, not generic `NethermindEth/nethermind` | needs-review |
+| Lisk | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain (this repo uses op-reth; `LiskHQ/lisk-node` may still pin op-geth) | needs-review |
+| Mode | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain. `op-node` v1.19.3+ required for Mode `--network` Karst gas configs | needs-review |
+| Monad | `MONAD_VERSION` | `category-labs/monad` + [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions). APT pin; 0.16.1+ needs a page-encoded TrieDB | needs-review |
+| Morph | `GETH_IMAGE`, `NODE_IMAGE` | `morph-l2/go-ethereum` (`morph-v*` tags vs compose `2.2.x`), `morph-l2/morph` | needs-review |
+| Neo X | `GETH_VERSION` | `bane-labs/go-ethereum` | needs-review |
+| opBNB | `OP_GETH_IMAGE_TAG`, `OP_NODE_IMAGE_TAG` | `bnb-chain/op-geth`, `bnb-chain/opbnb` | needs-review |
+| Optimism | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain | needs-review |
+| Pharos | `PHAROS_IMAGE` | `PharosNetwork/resources` + image tag `pharos_community_v*` | needs-review |
+| Plume | `NITRO_IMAGE` | Conduit/Plume docs first; mainline Nitro only if they track it (`*-validator` suffix) | needs-review |
+| Polygon PoS | `BOR_IMAGE` in `polygon-bor/env.template.mainnet` (and `.amoy`) | `0xPolygon/bor` | needs-review |
+| Robinhood Chain | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) | needs-review |
+| Ronin | `RONIN_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | Conduit op-reth + OP Labs op-node + EigenDA monorepo | needs-review |
+| Sei | `SEID_VERSION` | `sei-protocol/sei-chain` | needs-review |
+| Soneium | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain | needs-review |
+| Sonic | `SONIC_VERSION` | `0xsoniclabs/sonic` | needs-review |
+| Tac | `TACCHAIN_VERSION` | `TacBuild/tacchain` (ignore `-beta` / `-manual` unless requested) | needs-review |
+| Tempo | `TEMPO_IMAGE` | `tempoxyz/tempo` releases; `ghcr.io/tempoxyz/tempo` | needs-review |
+| Worldchain | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | `worldcoin-foundation/simple-worldchain-node` — official EL is `ghcr.io/worldcoin/world-chain`, not stock op-reth | needs-review |
+| XDC | `XDC_VERSION` | `XinFinOrg/XDPoSChain` (ignore `*-testnet`) | needs-review |
+| XLayer | `OP_STACK_IMAGE_TAG`, `OP_GETH_IMAGE_TAG`, `ERIGON_VERSION` | Docker Hub `xlayer/op-node`, `xlayer/op-geth`. `okx/xlayer-erigon` may be private | needs-review |
+| XLayer (op-reth) | `OP_STACK_IMAGE_TAG`, `OP_RETH_IMAGE_TAG` | Docker Hub `xlayer/op-node`, `xlayer/xlayer-reth`; `okx/xlayer-reth` (treat `v0.0.7` as pre until a non-pre release) | needs-review |
+| Zircuit | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Conduit op-reth + OP Labs op-node | needs-review |
+| Zircuit (legacy) | `L2_GETH_IMAGE` | Docker Hub `zircuit1/l2-geth`. Historical only; live chain is `zircuit/` | needs-review |
 
 ## Gotchas
 
@@ -106,3 +112,4 @@ Need `gh` / GitHub API (`full_network`). Docker Hub: `https://hub.docker.com/v2/
 - OP Stack: bump op-reth and op-node together when release notes require it; refresh Conduit genesis/rollup/bootnodes if the chain is Conduit.
 - Nitro: PathDB archive defaults unchanged (`STATE_SCHEME=path`, `STATE_HISTORY=0` + archive flag) unless the user asked for pruned.
 - Do not mix `--chain=<preset>` vs genesis file on an existing op-reth datadir (`AGENTS.md`).
+- Tag-only pins: land the bump in git, then hosts run `./scripts/apply-tag-only.sh <chain>` (do not re-run `configure.sh` to pick up the pin).

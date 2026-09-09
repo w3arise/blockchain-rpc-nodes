@@ -523,7 +523,7 @@ curl -s http://127.0.0.1:<op-node-rpc> -H 'Content-Type: application/json' \
 
 ## Version pins
 
-Pin client images in `env.template` (op-reth, op-node, etc.) and bump them together when upgrading. When the user asks to check or bump client versions, read [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) first.
+Pin client images in `env.template` (op-reth, op-node, etc.) and bump them together when upgrading. When the user asks to check or bump client versions, read [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) first. Tag-only automation: [`AUTO_UPGRADES.md`](AUTO_UPGRADES.md).
 
 ## Checklist for new chain
 
@@ -533,7 +533,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 
 1. Create `<chain>/` with `docker-compose.yml`, `env.template`, and any needed setup scripts.
 2. **Pick client + retention mode** using [Client selection (historical receipts & logs)](#client-selection-historical-receipts--logs). Present viable Reth A–B / Geth A–E options (receipts/logs vs state, snapshots, HW); **prefer Reth when both families work, but wait for the user to choose** before scaffolding. Avoid reth `--full` and short-pruned geth snapshots for historical log RPC.
-3. Pin client versions in `env.template` (image tags, release versions, etc.). Add a lookup row to [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) (source of truth for *where* to check — not a “latest” snapshot).
+3. Pin client versions in `env.template` (image tags, release versions, etc.). Add a lookup row to [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) (source of truth for *where* to check — not a “latest” snapshot). If the pin is a same-series image swap with no compose/datadir work, also add a `tag-only` row to [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml).
 4. Store datadirs under `$HOME`.
 5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap).
 6. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists. Match snapshot scheme (path vs hash) to the chosen mode. For Tendermint/Cosmos chains, prefer official **`full`** (block/log/receipt history) first, then **archive** (full state); use [Polkachu](https://www.polkachu.com/tendermint_snapshots) only as a **pruned last resort** — see [Snapshot source preference (Tendermint / Cosmos SDK)](#snapshot-source-preference-tendermint--cosmos-sdk). Download/extract staging must follow [Snapshot downloads (temp space)](#snapshot-downloads-temp-space) — never default large tarballs to `/tmp`.

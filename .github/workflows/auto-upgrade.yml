@@ -1,0 +1,44 @@
+name: Tag-only auto-upgrade
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check and write same-series pin bumps
+        run: ./scripts/check-auto-upgrades.sh --write
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: auto-upgrade/tag-only
+          delete-branch: true
+          add-paths: |
+            **/env.template
+            CHAIN_LINKS.md
+          title: Bump tag-only client pins
+          commit-message: |
+            Bump tag-only client pins.
+
+            Same-series image tags only (scripts/auto-upgrade.yaml).
+          body: |
+            Same-series tag-only pin bump from `scripts/auto-upgrade.yaml`.
+
+            Merge is the human gate that the series is still tag-only. This workflow does not auto-merge.
+
+            After merge, hosts apply with:
+
+            ```bash
+            ./scripts/apply-tag-only.sh aptos
+            ```
