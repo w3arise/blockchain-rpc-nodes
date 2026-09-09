@@ -1,6 +1,6 @@
 ---
 name: check-client-updates
-description: Audits and bumps pinned blockchain client versions in this repo. Use when the user asks to check for updates, upgrade a chain, bump image tags or MONAD_VERSION, compare env.template pins to upstream, audit client/release versions, infer pin-only vs needs-config, or apply a pin on a host.
+description: Audits and bumps pinned blockchain client versions in this repo. Use when the user asks to check for updates, upgrade a chain, bump image tags or MONAD_VERSION, compare env.template pins to upstream or host evidence, audit client/release versions, infer pin-only vs needs-config, or apply a pin on a host.
 ---
 
 # Check client updates
@@ -11,7 +11,10 @@ description: Audits and bumps pinned blockchain client versions in this repo. Us
    - **pin-only** — image/binary swap; no compose flags, genesis/waypoint, JWT, snapshot wipe, or datadir/schema migration (including one-way DB: cannot open with the old tag).
    - **needs-config** — new/removed flags, genesis, snapshot recovery, schema/Flyway, paired-component bump, “breaking / operator action required,” or a **major.minor series jump** (Aptos `1.48`→`1.49`, Nitro `3.7`→`3.11`, EN `v29`→`v31`) even if the notes look like a hotfix.
    Missing or unclear notes → **needs-config**. Quote evidence. Crossing series is never pin-only.
-4. Present findings (chain, client, pinned, latest stable, YAML allowlist yes/no, inferred class, evidence). Prefer a canvas for a full-repo audit. YAML [`scripts/auto-upgrade.yaml`](../../../scripts/auto-upgrade.yaml) is a prior human guess for the *series*; this notes check is the per-bump override:
+4. Present findings (chain, client, pinned, latest stable, YAML allowlist yes/no, inferred class, evidence). **Reuse the local canvases** — do not create a second copy and **never commit them** (this repo is public). In the Cursor workspace `canvases/` directory (not the git tree):
+   - `host-vs-repo-pins.canvas.tsx` — operator host sheet vs `env.template` vs recommended. Update rows when the user corrects a host version or a pin lands.
+   - `client-release-audit.canvas.tsx` — full-repo pin vs upstream latest (notes-check table).
+   Host evidence, IPs, and live `.env` values stay in those files only. YAML [`scripts/auto-upgrade.yaml`](../../../scripts/auto-upgrade.yaml) is a prior human guess for the *series*; this notes check is the per-bump override:
    - Allowlisted + pin-only → CI may already have a pin PR; **still wait for the user** before merge/bump. Then hosts: `./scripts/apply-tag-only.sh <id>`.
    - Allowlisted + needs-config → not tag-only; do not merge the auto-PR; recommend pausing/dropping the YAML row.
    - `needs-review` + pin-only → wait for the user; you may *recommend* a YAML row after this series is pinned (do not add it unless they ask).

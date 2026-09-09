@@ -24,6 +24,11 @@ logs/
 # Local “pinned vs latest” audit cache (timestamps + notes). Not source of truth.
 scripts/.client-audit-cache.json
 
+# Cursor canvases (host evidence / audit tables). Local only — never commit.
+**/*.canvas.tsx
+**/*.canvas.data.json
+**/*.canvas.status.json
+
 # Planned chain configs (uncommitted for now)
 0g/
 hyperliquid/

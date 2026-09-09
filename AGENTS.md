@@ -2,6 +2,8 @@
 
 Conventions for adding and maintaining chain nodes in this repo (L1, L2, OP Stack, ZK Stack, and others). OP Stack / Conduit-specific notes are in their own sections below.
 
+This repository is **public**. Do not commit or write secrets, live `.env` values, JWT keys, credentialed RPC URLs, operator IPs/hostnames, or a living host-vs-pin table. Placeholders in `env.template` stay empty. Host evidence and audit canvases stay **local** (Cursor `canvases/`, gitignored `scripts/.client-audit-cache.json`) — see [CLIENT_UPDATES.md](CLIENT_UPDATES.md).
+
 Nodes in this repo are meant to run on **Linux hosts**. Do not target macOS for deployment scripts.
 
 ## Client selection (historical receipts & logs)

@@ -236,7 +236,7 @@ The relay limits a single `eth_getLogs` request to 10,000 blocks by default in `
 
 ## Upgrade
 
-Bootstrap and first-start the importer with the version recorded in `MIRRORNODE_VERSION.gz`. After it starts cleanly and catches up, upgrade `MIRROR_NODE_VERSION` separately so database migrations run from the known-compatible schema. Do not point a newer importer at a fresh older export before the version-matched first start.
+Bootstrap and first-start the importer with the version recorded in `MIRRORNODE_VERSION.gz` (published minimal export is still **0.156.0** — sizes below). After it starts cleanly and catches up, set `MIRROR_NODE_VERSION=0.162.0` so database migrations run from the known-compatible schema. Do not point a newer importer at a fresh older export before the version-matched first start. The env.template pin is the **live** importer (`0.162.0`); for a new datadir, temporarily set it to the export version, bootstrap, then bump.
 
 Check upstream releases against your pin (and running containers, if up):
 

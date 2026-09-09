@@ -1,0 +1,16 @@
+---
+description: This git repo is public — never commit or write private operator data
+alwaysApply: true
+---
+
+# Public repository
+
+This tree is **public**. Treat every edit, commit, and PR as world-readable.
+
+**Never** put in git (or in files that get committed): `.env` values, JWT/hex keys, GCP/cloud credentials, RPC URLs with tokens, operator public IPs, hostnames, Discord/webhook secrets, unpublished snapshot URLs with auth, or a living host-evidence / pinned-vs-latest table.
+
+**Local only** (already gitignored or outside the repo): `.env`, `jwt.hex`, `scripts/.client-audit-cache.json`, Cursor canvases (`host-vs-repo-pins.canvas.tsx` and siblings). Do not copy those into the repo.
+
+`env.template` may use empty placeholders (`EXT_IP=`, `L1_RPC=`). Do not fill them with real endpoints. Commit messages and PR bodies stay as generic as the code.
+
+Host version sheets belong in the local canvas, not in `CLIENT_UPDATES.md` or chain READMEs.
