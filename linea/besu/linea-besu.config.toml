@@ -31,6 +31,7 @@ rpc-http-port=38545
 rpc-http-api=["ADMIN","DEBUG","NET","ETH","CLIQUE","MINER","WEB3","TRACE"]
 rpc-http-cors-origins=["*"]
 rpc-http-max-active-connections=20000
+rpc-tx-feecap=10000000000000000000
 
 # ws
 rpc-ws-enabled=true

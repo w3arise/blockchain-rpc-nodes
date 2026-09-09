@@ -56,6 +56,7 @@ set_besu_config_value rpc-http-port "${HTTP_PORT}"
 set_besu_config_value rpc-ws-port "${WS_PORT}"
 set_besu_config_value p2p-port "${P2P_PORT}"
 set_besu_config_value metrics-port "${METRICS_PORT}"
+set_besu_config_value rpc-tx-feecap "${RPC_TX_FEECAP}"
 
 CURRENT_MARU_IP="$(grep -E '^ip-address' "${MARU_CONFIG}" | sed -E 's/.*"([^"]+)".*/\1/')"
 if [[ "${CURRENT_MARU_IP}" != "${PUBLIC_IP}" ]]; then
