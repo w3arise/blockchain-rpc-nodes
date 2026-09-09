@@ -39,6 +39,8 @@ chains:
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
     image_tag_from: release_body
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: berachain
     class: tag-only
@@ -245,6 +247,8 @@ chains:
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
     image_tag_from: release_body
     image_tag_suffix: "-validator"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: robinhood
     class: tag-only
@@ -258,6 +262,8 @@ chains:
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
     image_tag_from: release_body
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: ronin-op-reth
     class: tag-only
