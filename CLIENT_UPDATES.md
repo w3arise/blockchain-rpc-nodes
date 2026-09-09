@@ -105,6 +105,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 - **Nitro Orbit** (ApeChain, Plume) may require a vendor tag (`apechain-v*`, `*-validator`).
 - **Monad** APT `MONAD_VERSION`; 0.16.1+ will not start without a page-encoded TrieDB (MIP-8 Phase A or post-fork snapshot). See `monad/README.md`.
 - **op-node v1.19.2** is below the Mode/Metal/Zora Karst gas-config floor (`v1.19.3+`) for built-in `--network` configs.
+- **Nitro 3.8 / 3.10** one-way datadir (cannot open with 3.7.x / 3.9.x). Arbitrum One replica is pinned at `v3.11.3`; still `needs-review` until allowlisted for `v3.11.*` patches. See `arbitrum/README.md`.
 
 ## After an upgrade (code)
 

@@ -4,6 +4,17 @@ Architecture for bumping client **image tags** when nothing else has to change: 
 
 Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](CLIENT_UPDATES.md). This file is *how* the automated path works.
 
+## Current status (v1)
+
+| Chain | Git pin | Upgrade class | Allowlist (`auto-upgrade.yaml`) | Host apply |
+| --- | --- | --- | --- | --- |
+| Aptos | `aptos-node-v1.48.7-hotfix` | tag-only | **yes** — same-series `v1.48.*` | `./scripts/apply-tag-only.sh aptos` |
+| Arbitrum | `nitro-node:v3.11.3-beb2108` | needs-review | **no** — 3.7→3.11 was a one-way datadir jump; do not add YAML until the user asks, then **`v3.11.*` patches only** | Manual `.env` pin + compose; see [arbitrum/README.md](arbitrum/README.md) |
+| Abstract | stays `needs-review` | never auto across EN majors (`v29`→`v31` needs snapshot wipe) | no | `<chain>/README.md` |
+| Linea feecap / other config | not a client pin | out of this workflow | no | — |
+
+A new agent picking up “upgrade X”: read this file + CLIENT_UPDATES, run the notes check, **wait for the user to pick** before bumping `needs-review` / needs-config. `apply-tag-only.sh` only works for YAML ids.
+
 ## Two layers
 
 Pins live in git (`env.template`). Running nodes read `.env` on the host. Automation has to move a new tag through **both**.
@@ -84,7 +95,7 @@ Examples:
 - Aptos `aptos-node-v1.48.5-hotfix` → `v1.48.7-hotfix` — tag-only (allowlisted).
 - Aptos `v1.48` → `v1.49` — human bump onto the new series first; then auto can follow `v1.49.*`.
 - Abstract `v29` → `v31` — never auto (snapshot wipe).
-- Arbitrum Nitro `3.7` → `3.11` — series jump; after `3.11.x` is the live pin, patches on `v3.11.*` can join the allowlist.
+- Arbitrum Nitro `3.7` → `3.11` — done as needs-review (one-way DB). Pin is now `v3.11.3`; still **not** allowlisted. Same-series `v3.11.*` patches may join the YAML later if the user asks.
 
 ## Agent release-notes check
 
@@ -146,6 +157,15 @@ flowchart TB
 
 `apply-tag-only.sh` never re-runs `configure.sh` and never rewrites other `.env` keys.
 
+### Needs-review host apply (no YAML row)
+
+`apply-tag-only.sh` will refuse unknown chain ids. After a human pin bump is merged:
+
+1. Notes check already said needs-config (or needs-review + user picked). Follow `<chain>/README.md`.
+2. On the host: `git pull --ff-only`. Copy **only** the pin var from `env.template` into existing `.env` (do not `cp env.template .env` — that wipes L1 URLs). Chains without `configure.sh` (e.g. Arbitrum) are the same: edit one line.
+3. If notes said one-way DB / cannot downgrade: stop the client and cold-copy the datadir first.
+4. `docker compose pull && docker compose up -d` in the chain directory.
+
 ## Allowlist
 
 Machine-readable source of truth: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Do not parse the markdown tables.
@@ -157,7 +177,7 @@ Machine-readable source of truth: [`scripts/auto-upgrade.yaml`](scripts/auto-upg
 
 Adding a chain is one YAML object (id, pin file/var, image prefix, GitHub repo, tag prefix, compose dir, optional health URL). Auto only follows tags that share major.minor with **whatever is currently pinned**.
 
-v1 allowlist: **Aptos** only (`APTOS_IMAGE`, series `aptos-node-v1.48.*` while that is the pin).
+v1 allowlist: **Aptos** only (`APTOS_IMAGE`, series `aptos-node-v1.48.*` while that is the pin). Nitro docker tags look like `v3.11.3-beb2108` (semver plus git hash); a future Arbitrum YAML row must use `image_prefix: "offchainlabs/nitro-node:"` and `tag_prefix` that still yields series `v3.11` via the first `major.minor` in the tag.
 
 ## Git layer (detect + PR)
 
@@ -277,8 +297,8 @@ Chain-specific apply notes stay in `<chain>/README.md` (see [aptos/README.md](ap
 
 ## Non-goals (v1)
 
-- No Abstract, no Arbitrum series jumps, no config-only changes (e.g. Linea feecap)
+- No Abstract EN major jumps, no Arbitrum series jumps, no config-only changes (e.g. Linea feecap)
 - No rewriting per-chain `configure.sh` to merge all template keys
 - The check-client-updates agent skill still handles `needs-review` chains
 
-After Aptos is proven: add other image-only chains as YAML rows (e.g. Nitro `v3.11.*` once that is the live pin), then consider auto-merge for `tag-only` PRs only.
+After Aptos is proven: add other image-only chains as YAML rows if the user asks (Arbitrum **`v3.11.*` only**, pin is already `v3.11.3`). Then consider auto-merge for `tag-only` PRs only.
