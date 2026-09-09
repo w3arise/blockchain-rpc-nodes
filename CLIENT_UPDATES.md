@@ -47,7 +47,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | --- | --- | --- | --- |
 | AB Core | `GETH_VERSION` | `ABFoundationGlobal/abcore` releases | needs-review |
 | Abstract | `EN_VERSION`, `EN_DIGEST` | `Abstract-Foundation/abstract-node` helm `charts/abstract-node/values.yaml` (`image.tag` + `image.digest`). Same pin in `docker/external-node.yml`. Ignore `.env.mainnet` and generic EN latest. | needs-review |
-| ApeChain | `NITRO_IMAGE` | `ConstellationCrypto/replica-guide-apechain-mainnet` compose (`apechain-v*` on Caldera ECR) | needs-review |
+| ApeChain | `NITRO_IMAGE` | [ApeChain run-node docs](https://docs.apechain.com/run-node) image `apechain-3.9.9` (Caldera ECR). GitHub replica-guide may lag. | needs-review |
 | Aptos | `APTOS_IMAGE` | `aptos-labs/aptos-core` tags `aptos-node-v*` (ignore `aptos-cli-v*`) | tag-only |
 | Arbitrum | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) | tag-only |
 | Berachain | `BERA_RETH_IMAGE`, `BEACON_KIT_IMAGE` | `berachain/bera-reth`, `berachain/beacon-kit` — bera-reth is tag-only; beacon-kit stays needs-review | tag-only |
@@ -104,7 +104,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 - **Hemi** pins git SHAs with digests; `heminetwork` GitHub `v2.0.0` is not automatically the compose `bssd` tag.
 - **Abstract vs Lens** can pin different `matterlabs/external-node` tags; never copy one onto the other. Abstract `.env.mainnet` `EN_VERSION` can lag helm; follow helm tag+digest.
 - **EigenDA v2** releases are on `Layr-Labs/eigenda`, not the archived proxy repo.
-- **Nitro Orbit** (ApeChain, Plume) may require a vendor tag (`apechain-v*`, `*-validator`).
+- **Nitro Orbit** (ApeChain, Plume) may require a vendor tag (`apechain-3.9.9` / older `apechain-v*`, `*-validator`).
 - **Monad** APT `MONAD_VERSION`; 0.16.1+ will not start without a page-encoded TrieDB (MIP-8 Phase A or post-fork snapshot). See `monad/README.md`.
 - **op-node v1.19.2** is below the Mode/Metal/Zora Karst gas-config floor (`v1.19.3+`) for built-in `--network` configs.
 - **Nitro 3.8 / 3.10** one-way datadir (cannot open with 3.7.x / 3.9.x). Arbitrum One replica is pinned at `v3.11.3` and allowlisted for **`v3.11.*` patches** (`image_tag_from: release_body`). A `v3.12` series jump stays `needs-review`. See `arbitrum/README.md`.

@@ -46,7 +46,7 @@ docker compose up -d
 
 ## Snapshot
 
-Official snapshot (Sep 22, 2025): [Caldera S3](https://caldera-chain-data-snapshots.s3.us-west-2.amazonaws.com/exported-snapshots/nitro-apechain/nitro-apechain-2025-Sep-22.tar)
+Official snapshot ([ApeChain run-node docs](https://docs.apechain.com/run-node)): [Caldera S3](https://caldera-chain-data-snapshots.s3.us-west-2.amazonaws.com/exported-snapshots/nitro-apechain/nitro-apechain-2026-Jul-30.tar.zst) (`tar.zst`, unpacks to `nitro/`).
 
 Restore into `$HOME/apechain-data/apechain/nitro/`, then start compose. Verify the URL is reachable from your host before downloading.
 
