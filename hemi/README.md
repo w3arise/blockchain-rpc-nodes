@@ -21,6 +21,12 @@ RPC bind address and ports: set `RPC_BIND_ADDR`, `OP_GETH_HTTP_PORT`, `OP_GETH_W
 
 Snap sync with external L1s is typically ~2 business days.
 
+## Upgrade
+
+Pins follow official [`hemi-node` mainnet compose](https://github.com/hemilabs/hemi-node/blob/main/mainnet/docker-compose.yml). Copy `OP_GETH_IMAGE` (and `OP_NODE_IMAGE` / `BSSD_IMAGE` if those moved) into an existing `.env` — do not recopy the whole template. Then `docker compose pull && docker compose up -d`.
+
+The current official op-geth image defaults `--tbc.blocksanity` on. Leave that default unless you have a reason to disable it.
+
 ## Snapshot
 
 No official datadir snapshot. Initial sync uses op-geth `--syncmode=snap` (do not switch to full unless you have historical EIP-4844 blobs).
