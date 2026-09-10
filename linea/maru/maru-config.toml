@@ -4,6 +4,7 @@
 # l1-eth-api = { endpoint = "please provide an L1 RPC endpoint here" }
 # l1-polling-interval = "6 seconds"
 # l1-highest-block-tag = "finalized"
+# l2-eth-api-endpoint = { endpoint = "please provide an L2 RPC endpoint here" }
 
 [persistence]
 data-path = "/opt/maru/data"
@@ -25,9 +26,8 @@ static-peers = [
 reconnect-delay = "500ms"
 
 [payload-validator]
-# Besu and Geth node as execution layer client
+# Besu on host network (besu-compose.yml). Engine JWT matches Besu --engine-jwt-secret.
 engine-api-endpoint = { endpoint = "http://127.0.0.1:8550", jwt-secret-path = "/opt/consensys/maru/configs/jwt" }
-eth-api-endpoint = { endpoint = "http://127.0.0.1:8545" }
 payload-validation-enabled = false
 
 [observability]

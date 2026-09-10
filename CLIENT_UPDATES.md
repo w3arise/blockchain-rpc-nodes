@@ -95,7 +95,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 
 ## Gotchas
 
-- **Linea Besu** moved from `beta-v4.4-rc*` to `consensys/linea-besu-package:<semver>-<date>-<sha>`.
+- **Linea Besu** tags are `consensys/linea-besu-package:<semver>-<date>-<sha>`. Follow the getting-started compose pin (`2.0.0-…`), not Hub `2.2.0` until that compose moves. Start with `--profile=advanced-mainnet`.
 - **Worldchain** official compose uses `world-chain`, not stock `op-reth`.
 - **HashKey / B²** freeze OP Labs tags in their own docs; bumping generic Superchain will desync from their genesis/rollup.
 - **Celo** images are `celo-v*` on `us-west1-docker.pkg.dev/devopsre/celo-blockchain-public/`, not OP Labs.

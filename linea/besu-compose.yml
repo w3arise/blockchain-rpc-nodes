@@ -6,6 +6,7 @@ services:
     image: ${BESU_IMAGE}
     platform: linux/amd64
     restart: unless-stopped
+    stop_grace_period: 120s
     network_mode: host
     # ports:
     #   - 127.0.0.1:${HTTP_PORT}:8545 #http
@@ -17,7 +18,9 @@ services:
       - JAVA_OPTS=-Xmx2g
       - LOG4J_CONFIGURATION_FILE=/var/lib/besu/log4j.xml
     command:
-      - --config-file=/var/lib/besu/linea-besu.config.toml
+      - --profile=advanced-mainnet
+      - --engine-jwt-disabled=false
+      - --engine-jwt-secret=/var/lib/besu/jwt
       - --Xdns-enabled=true
       - --Xdns-update-enabled=true
       - --Xrpc-ipc-enabled=true
@@ -26,15 +29,19 @@ services:
       - --bonsai-historical-block-limit=${BONSAI_HISTORICAL_BLOCK_LIMIT}
       - --auto-log-bloom-caching-enabled=true
       - --cache-last-blocks=2048
-      - --cache-last-block-headers=50000
-      - --bonsai-parallel-tx-processing-enabled=true
       - --p2p-enabled=true
       - --p2p-host=${EXT_IP}
       - --p2p-interface=0.0.0.0
       - --p2p-port=${P2P_PORT}
       - --bootnodes=${BOOTNODES}
+      - --rpc-http-host=${HTTP_ADDR}
+      - --rpc-http-port=${HTTP_PORT}
+      - --rpc-ws-host=${WS_ADDR}
+      - --rpc-ws-port=${WS_PORT}
+      - --metrics-port=${METRICS_PORT}
+      - --rpc-gas-cap=${GAS_CAP:-600000000}
+      - --rpc-tx-feecap=${RPC_TX_FEECAP}
     volumes:
-      - ./besu/linea-besu.config.toml:/var/lib/besu/linea-besu.config.toml:ro
       - ./besu/log4j.xml:/var/lib/besu/log4j.xml
       - ./execution-layer-static-nodes.json:/var/lib/besu/static-nodes.json:ro
       - ./engine-jwt:/var/lib/besu/jwt:ro
