@@ -34,6 +34,10 @@ dockerfile: Dockerfile.source   # build from source (default)
 
 RPC: `http://127.0.0.1:8545` · WS: `ws://127.0.0.1:8546`
 
+## Upgrade (v1.6.3)
+
+On a live 1.6.2 host, wait for the chain to halt (`UPGRADE "v1.6.3" NEEDED` at height **25308500**) before applying this pin. Then copy `TACCHAIN_VERSION` into `.env`, rebuild the image, and recreate the container. No `app.toml` change.
+
 ## Snapshot
 
 Prefer official Ankr **full**, then **archive**. Staging uses `$HOME/tac-snapshot-tmp` (not `/tmp`).
