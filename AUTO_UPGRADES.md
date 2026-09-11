@@ -313,7 +313,9 @@ Chain-specific apply notes stay in `<chain>/README.md` (see [aptos/README.md](ap
 
 ### Automatic host apply (pull-based)
 
-[`scripts/auto-apply-if-merged.sh`](scripts/auto-apply-if-merged.sh) automates the host layer: it fetches `origin/main`, detects which allowlisted chains have merged `env.template` bumps, pulls, and runs `apply-tag-only.sh` for each.
+[`scripts/auto-apply-if-merged.sh`](scripts/auto-apply-if-merged.sh) automates the host layer: it fetches `origin/main`, detects which allowlisted chains have merged `env.template` bumps, and runs `apply-tag-only.sh` for each.
+
+**Key feature:** The script auto-detects which chains are running locally by checking Docker containers. It only upgrades chains that are actually running on the host — safe for multi-chain bare metal servers.
 
 ```mermaid
 flowchart TD
@@ -321,34 +323,101 @@ flowchart TD
   fetch[git fetch origin main]
   behind{Local behind remote?}
   changed{Any env.template changed?}
+  running{Chain running locally?}
   pull[git pull --ff-only]
-  apply[apply-tag-only.sh per chain]
-  done[Nodes upgraded]
-  skip[No action]
+  apply[apply-tag-only.sh]
+  done[Node upgraded]
+  skip[Skip chain]
 
   cron --> fetch --> behind
   behind -->|no| skip
   behind -->|yes| changed
-  changed -->|no| pull --> skip
-  changed -->|yes| pull --> apply --> done
+  changed -->|no| pull
+  changed -->|yes| running
+  running -->|no| skip
+  running -->|yes| pull --> apply --> done
 ```
 
-**Setup on each host:**
+## Bare metal multi-user setup
 
-1. Clone or ensure the repo checkout exists (e.g. `/opt/blockchain-rpc-nodes`).
-2. First-start each chain normally (`./configure.sh`, `docker compose up -d`).
-3. Add a cron job (as the user that owns the checkout and can run Docker):
+For production hosts where each chain runs under a different Linux user (e.g., `aptos`, `arbitrum`, `katana`), there are two deployment options:
+
+### Option A: Per-user cron (recommended)
+
+Each chain user has their own repo checkout and cron job. The script auto-detects what's running.
+
+**Setup for each user:**
 
 ```bash
-# Run every 5 minutes
+# As the chain user (e.g., su - aptos)
+cd ~
+git clone https://github.com/your-org/blockchain-rpc-nodes.git
+cd blockchain-rpc-nodes
+
+# First-time setup for the chain
+cd aptos
+./configure.sh
+docker compose up -d
+cd ..
+
+# Add cron (as this user)
 crontab -e
 ```
 
-```
-*/5 * * * * /opt/blockchain-rpc-nodes/scripts/auto-apply-if-merged.sh >> /var/log/auto-upgrade.log 2>&1
+```cron
+*/5 * * * * /home/aptos/blockchain-rpc-nodes/scripts/auto-apply-if-merged.sh >> /home/aptos/auto-upgrade.log 2>&1
 ```
 
-**Options:**
+The script will:
+1. Fetch `origin/main`
+2. Detect Aptos containers are running (via Docker)
+3. If `aptos/env.template` changed, pull and apply
+4. Skip any other chains (not running under this user)
+
+**Multiple chains per user:**
+
+If one user runs multiple chains (e.g., `opstack` user runs Bob, Mode, Katana):
+
+```cron
+*/5 * * * * /home/opstack/blockchain-rpc-nodes/scripts/auto-apply-if-merged.sh >> /home/opstack/auto-upgrade.log 2>&1
+```
+
+The script auto-detects all running chains and upgrades each one that has changes.
+
+### Option B: System dispatcher (centralized)
+
+For centralized management, [`scripts/auto-apply-dispatcher.sh`](scripts/auto-apply-dispatcher.sh) runs as root and triggers per-user upgrades.
+
+**Config file** (`/etc/blockchain-nodes.conf`):
+
+```conf
+# Format: chain_or_group:username:repo_path
+aptos:aptos:/home/aptos/blockchain-rpc-nodes
+arbitrum:arbitrum:/home/arbitrum/blockchain-rpc-nodes
+katana:opstack:/home/opstack/blockchain-rpc-nodes
+bob:opstack:/home/opstack/blockchain-rpc-nodes
+mode:opstack:/home/opstack/blockchain-rpc-nodes
+```
+
+**Root cron:**
+
+```cron
+*/5 * * * * /opt/blockchain-rpc-nodes/scripts/auto-apply-dispatcher.sh >> /var/log/blockchain-auto-upgrade.log 2>&1
+```
+
+The dispatcher:
+1. Fetches once from a shared repo
+2. Groups chains by user
+3. Runs `su - <user> -c './scripts/auto-apply-if-merged.sh <chains>'` for each user
+
+**Auto-discovery mode:**
+
+Without a config file, the dispatcher auto-discovers by:
+1. Scanning running Docker containers
+2. Finding the compose project working directory
+3. Determining the repo path and owner
+
+### Environment variables
 
 | Variable | Default | Effect |
 | --- | --- | --- |
@@ -356,26 +425,38 @@ crontab -e
 | `REMOTE` | `origin` | Git remote to fetch |
 | `BRANCH` | `main` | Branch to track |
 | `DRY_RUN=1` | off | Print what would be applied without running |
-| `SKIP_FETCH=1` | off | Skip fetch (use existing local vs remote refs) |
+| `SKIP_FETCH=1` | off | Skip git fetch |
+| `SKIP_DETECT=1` | off | Skip auto-detection, apply all changed chains |
+| `FORCE_APPLY=1` | off | Apply even if containers not detected |
 
-**Filter specific chains:**
+### Commands
 
 ```bash
-# Apply only aptos and katana if they changed
+# List chains detected as running locally
+./scripts/auto-apply-if-merged.sh --list-local
+
+# Dry run — see what would be upgraded
+DRY_RUN=1 ./scripts/auto-apply-if-merged.sh
+
+# Filter to specific chains only
 ./scripts/auto-apply-if-merged.sh aptos katana
+
+# Skip detection (apply all changed, regardless of running state)
+SKIP_DETECT=1 ./scripts/auto-apply-if-merged.sh
 ```
 
-**Logging:**
+### Logging
 
-The script is idempotent and logs each run. Typical output:
+The script is idempotent. Typical output when up to date:
 
 ```
 Already up to date (a1b2c3d4).
 ```
 
-Or when upgrades are applied:
+When upgrades are applied:
 
 ```
+Skipped (not running locally): arbitrum robinhood
 Pulling origin/main (a1b2c3d4 → e5f6g7h8)...
 Applying tag-only upgrades for: aptos katana
 
@@ -387,16 +468,24 @@ Waiting for http://127.0.0.1:8080/v1 (timeout 180s)
 Healthy: http://127.0.0.1:8080/v1
 
 === katana ===
-...
+katana-op-reth: OP_RETH_IMAGE
+  was: ghcr.io/conduitxyz/conduit-op-reth:v1.2.0
+  now: ghcr.io/conduitxyz/conduit-op-reth:v1.2.1
+katana-op-node: OP_NODE_IMAGE
+  was: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:v1.10.0
+  now: us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:v1.10.1
+Waiting for a fresh latest block at http://127.0.0.1:8545 (max age 10s, timeout 180s)
+Healthy: latest block 1694000000 (3s old) at http://127.0.0.1:8545
 
 Done. Applied 2 upgrade(s).
 ```
 
-**Requirements:**
+### Requirements
 
 - Git, Python 3, Docker, curl on the host
 - The checkout must be on `main` (or whatever `BRANCH` is set to)
-- No uncommitted changes in chain directories (same as manual `apply-tag-only.sh`)
+- No uncommitted changes in chain directories
+- User must have Docker access (docker group or rootless)
 
 ## Non-goals (v1)
 
