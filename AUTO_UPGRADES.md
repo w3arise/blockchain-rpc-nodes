@@ -309,13 +309,94 @@ flowchart TD
 - Core / Neo X: `compose_build: true` — apply runs `docker compose up -d --build` (the binary is baked from `GETH_VERSION`, not pulled).
 - Optional: `SKIP_PULL=1`, `SKIP_COMPOSE=1`, `HEALTH_TIMEOUT=180`.
 
-Example timer (Monday 09:00, after the CI PR window):
-
-```
-0 9 * * 1 cd /path/to/blockchain-rpc-nodes && ./scripts/apply-tag-only.sh aptos && ./scripts/apply-tag-only.sh arbitrum && ./scripts/apply-tag-only.sh katana
-```
-
 Chain-specific apply notes stay in `<chain>/README.md` (see [aptos/README.md](aptos/README.md)).
+
+### Automatic host apply (pull-based)
+
+[`scripts/auto-apply-if-merged.sh`](scripts/auto-apply-if-merged.sh) automates the host layer: it fetches `origin/main`, detects which allowlisted chains have merged `env.template` bumps, pulls, and runs `apply-tag-only.sh` for each.
+
+```mermaid
+flowchart TD
+  cron[Cron every 5 min]
+  fetch[git fetch origin main]
+  behind{Local behind remote?}
+  changed{Any env.template changed?}
+  pull[git pull --ff-only]
+  apply[apply-tag-only.sh per chain]
+  done[Nodes upgraded]
+  skip[No action]
+
+  cron --> fetch --> behind
+  behind -->|no| skip
+  behind -->|yes| changed
+  changed -->|no| pull --> skip
+  changed -->|yes| pull --> apply --> done
+```
+
+**Setup on each host:**
+
+1. Clone or ensure the repo checkout exists (e.g. `/opt/blockchain-rpc-nodes`).
+2. First-start each chain normally (`./configure.sh`, `docker compose up -d`).
+3. Add a cron job (as the user that owns the checkout and can run Docker):
+
+```bash
+# Run every 5 minutes
+crontab -e
+```
+
+```
+*/5 * * * * /opt/blockchain-rpc-nodes/scripts/auto-apply-if-merged.sh >> /var/log/auto-upgrade.log 2>&1
+```
+
+**Options:**
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `REPO_DIR` | Script's parent | Path to the repo checkout |
+| `REMOTE` | `origin` | Git remote to fetch |
+| `BRANCH` | `main` | Branch to track |
+| `DRY_RUN=1` | off | Print what would be applied without running |
+| `SKIP_FETCH=1` | off | Skip fetch (use existing local vs remote refs) |
+
+**Filter specific chains:**
+
+```bash
+# Apply only aptos and katana if they changed
+./scripts/auto-apply-if-merged.sh aptos katana
+```
+
+**Logging:**
+
+The script is idempotent and logs each run. Typical output:
+
+```
+Already up to date (a1b2c3d4).
+```
+
+Or when upgrades are applied:
+
+```
+Pulling origin/main (a1b2c3d4 → e5f6g7h8)...
+Applying tag-only upgrades for: aptos katana
+
+=== aptos ===
+aptos: APTOS_IMAGE
+  was: aptoslabs/validator:aptos-node-v1.48.7-hotfix
+  now: aptoslabs/validator:aptos-node-v1.48.8-hotfix
+Waiting for http://127.0.0.1:8080/v1 (timeout 180s)
+Healthy: http://127.0.0.1:8080/v1
+
+=== katana ===
+...
+
+Done. Applied 2 upgrade(s).
+```
+
+**Requirements:**
+
+- Git, Python 3, Docker, curl on the host
+- The checkout must be on `main` (or whatever `BRANCH` is set to)
+- No uncommitted changes in chain directories (same as manual `apply-tag-only.sh`)
 
 ## Non-goals (v1)
 
