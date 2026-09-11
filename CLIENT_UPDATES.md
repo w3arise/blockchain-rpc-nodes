@@ -82,7 +82,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | Robinhood Chain | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) | tag-only |
 | Ronin | `RONIN_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | Conduit op-reth + OP Labs op-node + EigenDA monorepo. Reth/op-node are tag-only; EigenDA stays needs-review | tag-only |
 | Sei | `SEID_VERSION` | `sei-protocol/sei-chain` | tag-only |
-| Soneium | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain | needs-review |
+| Soneium | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain | tag-only |
 | Sonic | `SONIC_VERSION` | `0xsoniclabs/sonic` | needs-review |
 | Tac | `TACCHAIN_VERSION` | `TacBuild/tacchain` (ignore `-beta` / `-manual` unless requested) | needs-review |
 | Tempo | `TEMPO_IMAGE` | `tempoxyz/tempo` releases; `ghcr.io/tempoxyz/tempo` (image tag omits git `v`) | tag-only |
