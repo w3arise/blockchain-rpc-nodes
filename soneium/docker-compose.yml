@@ -21,17 +21,19 @@ services:
       - --authrpc.addr=0.0.0.0
       - --authrpc.port=9551
       - --authrpc.jwtsecret=/config/jwt.hex
+      - --rpc.gascap=${GAS_CAP}
       - --nat=extip:${EXT_IP}
-      - --port=${RETH_PORT}
+      - --port=${P2P_PORT}
+      - --discovery.port=${P2P_PORT}
       - --metrics=127.0.0.1:9001
     volumes:
       - $HOME/soneium-op-reth-data:/data
       - ./config:/config
     ports:
-      - 127.0.0.1:8241:8545
-      - 127.0.0.1:8242:8546
-      - ${RETH_PORT}:${RETH_PORT}
-      - ${RETH_PORT}:${RETH_PORT}/udp
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
     restart: unless-stopped
     stop_grace_period: 120s
     networks:
