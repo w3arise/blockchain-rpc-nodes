@@ -14,6 +14,8 @@ if ! command -v openssl >/dev/null 2>&1; then
 fi
 
 mkdir -p "$(dirname "${JWT_FILE}")"
+# Container processes often run as non-root and need to traverse/read bind-mounted config.
+chmod a+rX "$(dirname "${JWT_FILE}")"
 
 if [[ -f "${JWT_FILE}" ]]; then
   echo "JWT already exists at ${JWT_FILE} (skipping)"
