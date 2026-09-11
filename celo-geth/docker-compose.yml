@@ -47,7 +47,7 @@ services:
       - ${PORT__OP_GETH_P2P:-39393}:${PORT__OP_GETH_P2P:-39393}/tcp
     extra_hosts:
       - "host.docker.internal:host-gateway"
-  
+
   op-node:
     platform: linux/amd64
     image: *op-node_image
