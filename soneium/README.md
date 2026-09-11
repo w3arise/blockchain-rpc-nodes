@@ -15,6 +15,10 @@ docker compose up -d
 
 Restore op-reth data from a third-party snapshot to skip initial sync. See [Alchemy Soneium snapshots](https://www.alchemy.com/docs/snapshots/soneium). After restore, skip a fresh sync and run `docker compose up -d`.
 
+## Host ports
+
+When running a public replica, allow inbound P2P (TCP + UDP): `RETH_PORT` (op-reth, default `10201`). RPC stays localhost-only by default.
+
 ## Testnet
 
 For Minato (Sepolia L1), edit `docker-compose.yml` (`--chain=soneium-minato-sepolia`) and swap the `OP_NODE_*` network/L1 vars in `.env` — see comments in `env.template`.
