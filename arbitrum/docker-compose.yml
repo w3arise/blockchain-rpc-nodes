@@ -5,8 +5,8 @@ services:
     restart: always
     user: "0:0"
     ports:
-      - "127.0.0.1:${HTTP_PORT}:8547"
-      - "127.0.0.1:${WS_PORT}:8548"
+      - "${RPC_BIND_ADDR}:${HTTP_PORT}:8547"
+      - "${RPC_BIND_ADDR}:${WS_PORT}:8548"
     volumes:
       - "${HOME}/arbitrum-data:/root/.arbitrum"
     command:
