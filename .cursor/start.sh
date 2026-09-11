@@ -19,7 +19,10 @@ if sudo docker info >/dev/null 2>&1; then
   echo "==> Docker daemon already running"
 else
   echo "==> Starting Docker daemon (log: $LOG)"
-  sudo bash -c "nohup dockerd >>'$LOG' 2>&1 &"
+  # setsid detaches dockerd into its own session/process group so it survives
+  # after this start command returns (the VM has no systemd to supervise it,
+  # and a plain background job can be reaped with the start command's group).
+  sudo bash -c "setsid dockerd >>'$LOG' 2>&1 </dev/null &"
 
   # Wait for the daemon socket to come up (up to ~60s).
   for _ in $(seq 1 60); do
