@@ -26,4 +26,8 @@ GCMODE=archive
 
 Also set `SyncMode = "full"` in `config/config.toml`.
 
+## Host ports
+
+When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (default `31031`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+
 Docs: [Compile, Run and Deploy](https://docs.bitlayer.org/docs/Build/GettingStarted/CompileAndRun/) · [bitlayer-org/bitlayer-l2](https://github.com/bitlayer-org/bitlayer-l2)
