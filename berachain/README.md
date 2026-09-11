@@ -23,4 +23,8 @@ cp env.template .env    # set EXT_IP
 docker compose up -d
 ```
 
+## Host ports
+
+When running a public replica, allow inbound P2P: `P2P_PORT` (bera-reth execution, default `6444`, TCP + UDP), `DISCOVERY_V5_PORT` (discv5, default `9200`, UDP), and `BEACON_P2P_PORT` (beacon-kit, default `20656`, TCP + UDP). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+
 Docs: [Node quickstart](https://docs.berachain.com/validators/operations/quickstart) · [berachain/beacon-kit](https://github.com/berachain/beacon-kit) · [berachain/bera-reth](https://github.com/berachain/bera-reth)

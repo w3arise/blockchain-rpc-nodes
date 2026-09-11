@@ -25,4 +25,8 @@ docker compose up -d
 
 Skip genesis sync; the node catches up from the snapshot height.
 
+## Host ports
+
+When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (default `32323`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+
 Docs: [Install Endpoint Nodes](https://docs.kaia.io/nodes/endpoint-node/install-endpoint-nodes/) · [Docker setup](https://docs.kaia.io/nodes/endpoint-node/docker-setup/) · [Chaindata snapshots](https://docs.kaia.io/misc/operation/chaindata-snapshot/) · [kaiachain/kaia](https://github.com/kaiachain/kaia)
