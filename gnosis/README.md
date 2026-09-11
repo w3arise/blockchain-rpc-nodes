@@ -5,7 +5,7 @@ Mainnet full node. Chain data: `$HOME/gnosis-reth-data`, `$HOME/gnosis-lighthous
 ## Start
 
 ```bash
-cp env.template .env    # set EXT_IP, CHECKPOINT_SYNC_URL
+./configure.sh          # create .env, set EXT_IP
 ./create-jwt.sh
 docker compose up -d
 ```
