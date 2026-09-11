@@ -85,7 +85,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Bittensor         | L1                    | —                |
 | Hyperliquid       | L1                    | hl-node (visor)  |
 | Mantle            | L2 (OP Stack)         | mantle-op-geth + mantle-op-node |
-| Mode              | L2 (OP Stack)         | op-reth + op-node |
 | Nexon Henesys     | L2                    | —                |
 | Scroll            | L2 (ZK)               | —                |
 
