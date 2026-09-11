@@ -13,6 +13,7 @@ fi
 MORPH_FLAG=${MORPH_FLAG:-morph}
 GETH_TX_LOOKUP_LIMIT=${GETH_TX_LOOKUP_LIMIT:-0}
 GETH_GCMODE=${GETH_GCMODE:-archive}
+GAS_CAP=${GAS_CAP:-600000000}
 
 set -- "${GETH_BIN}" \
   "--${MORPH_FLAG}" \
@@ -38,7 +39,8 @@ set -- "${GETH_BIN}" \
   "--log.filename=${GETH_DATADIR}/geth.log" \
   --metrics \
   --metrics.addr=0.0.0.0 \
-  "--txlookuplimit=${GETH_TX_LOOKUP_LIMIT}"
+  "--txlookuplimit=${GETH_TX_LOOKUP_LIMIT}" \
+  "--rpc.gascap=${GAS_CAP}"
 
 if [ -n "${GETH_P2P_PORT:-}" ]; then
   set -- "$@" --port="${GETH_P2P_PORT}"

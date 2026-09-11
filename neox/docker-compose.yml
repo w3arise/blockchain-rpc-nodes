@@ -34,14 +34,15 @@ services:
       - --ws.port=${WS_PORT}
       - --ws.api=${WS_API}
       - --ws.origins=*
+      - --rpc.gascap=${GAS_CAP}
       - --verbosity=${VERBOSITY}
     volumes:
       - ${HOST_DATADIR:-$HOME/neox-data}:/data
     ports:
       - "${P2P_PORT}:${P2P_PORT}/tcp"
       - "${P2P_PORT}:${P2P_PORT}/udp"
-      - "127.0.0.1:${HTTP_PORT}:${HTTP_PORT}"
-      - "127.0.0.1:${WS_PORT}:${WS_PORT}"
+      - "${RPC_BIND_ADDR}:${HTTP_PORT}:${HTTP_PORT}"
+      - "${RPC_BIND_ADDR}:${WS_PORT}:${WS_PORT}"
       - "127.0.0.1:${AUTHRPC_PORT}:${AUTHRPC_PORT}"
     logging:
       options:
