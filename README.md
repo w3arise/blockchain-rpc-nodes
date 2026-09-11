@@ -53,6 +53,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Linea               | `linea/`       | L2 (ZK)                             | Besu / Nethermind + Maru                  | [README](linea/README.md)       |
 | Lisk                | `lisk/`        | L2 (OP Stack)                       | op-reth + op-node                         | [README](lisk/README.md)        |
 | Monad               | `monad/`       | L1                                  | monad-bft + monad-execution + monad-rpc   | [README](monad/README.md)       |
+| Mode                | `mode/`        | L2 (OP Stack / Conduit)             | op-reth + op-node                         | [README](mode/README.md)        |
 | Morph               | `morph/`       | L2 (Optimistic + ZK)                | morph-geth + morph-node                   | [README](morph/README.md)       |
 | Neo X               | `neox/`        | L1 (EVM-compatible)                 | bane-labs geth                            | [README](neox/README.md)        |
 | opBNB               | `opbnb/`       | L2 (OP Stack)                       | op-geth + op-node                         | [README](opbnb/README.md)       |
