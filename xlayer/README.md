@@ -7,8 +7,9 @@ Alternative: [`xlayer-reth/`](../xlayer-reth/) (op-reth + op-node). Run one or b
 ## Start
 
 ```bash
+./configure.sh          # create .env, set EXT_IP
 ./create-jwt.sh
-cp env.template .env    # set L1_RPC_URL, L1_BEACON_URL, EXT_IP
+# edit .env — set L1_RPC_URL, L1_BEACON_URL, ZKEVM_L1_RPC_URL
 ./init-database.sh      # from scratch only
 docker compose build    # cdk-erigon image
 docker compose up -d
@@ -19,9 +20,10 @@ docker compose up -d
 Restore op-geth snapshot data into `$HOME/xlayer-op-geth-data`, then skip `init-database.sh`:
 
 ```bash
+./configure.sh          # create .env, set EXT_IP
 ./create-jwt.sh
-cp env.template .env
-docker compose build
+# edit .env — set L1_RPC_URL, L1_BEACON_URL, ZKEVM_L1_RPC_URL
+docker compose build    # cdk-erigon image
 docker compose up -d
 ```
 

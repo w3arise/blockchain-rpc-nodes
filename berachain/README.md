@@ -5,7 +5,7 @@ Mainnet node. Chain data: `$HOME/berachain-beacond-data`, `$HOME/berachain-reth-
 ## Start
 
 ```bash
-cp env.template .env    # set EXT_IP
+./configure.sh          # create .env, set EXT_IP
 ./init-database.sh
 docker compose up -d
 ```
