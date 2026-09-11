@@ -98,7 +98,7 @@ services:
       - --p2p.listen.ip=0.0.0.0
       - --p2p.listen.tcp=${OP_NODE_P2P_PORT}
       - --p2p.listen.udp=${OP_NODE_P2P_PORT}
-      - --p2p.advertise.ip=${EXT_IP}
+      - --p2p.advertise.ip=${OP_NODE_P2P_ADVERTISE_IP}
       - --p2p.static=${OP_NODE_P2P_STATIC}
       - --sequencer.enabled=false
       - --verifier.l1-confs=${OP_NODE_L1_CONFS}
