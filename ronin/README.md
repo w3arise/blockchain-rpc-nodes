@@ -19,4 +19,8 @@ Set `RONIN_NETWORK=saigon` in `.env`, then swap L1 endpoints (Sepolia), sequence
 docker compose up -d
 ```
 
+## Host ports
+
+When running a public replica, allow inbound P2P (TCP + UDP): `OP_NODE_P2P_PORT` (default `9222`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+
 Docs: [Conduit Ronin docs](https://docs.conduit.xyz/chains/ronin) · [Conduit Hub](https://hub.conduit.xyz/) · [Ronin docs](https://www.roninchain.com/) · [EigenDA proxy](https://github.com/Layr-Labs/eigenda-proxy)

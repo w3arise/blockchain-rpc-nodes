@@ -35,4 +35,8 @@ No official datadir snapshot. Initial sync uses op-geth `--syncmode=snap` (do no
 
 Not packaged here. Official testnet files: [hemi-node/testnet](https://github.com/hemilabs/hemi-node/tree/main/testnet).
 
+## Host ports
+
+When running a public replica, allow inbound P2P (TCP + UDP): `OP_GETH_P2P_PORT` (default `30303`) and `OP_NODE_P2P_PORT` (default `9003`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+
 Docs: [NODE_RUNNING.md](https://github.com/hemilabs/hemi-node/blob/main/NODE_RUNNING.md) · [Network details](https://docs.hemi.xyz/discover/network-details)
