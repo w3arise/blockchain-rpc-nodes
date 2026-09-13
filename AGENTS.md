@@ -386,6 +386,7 @@ For `restore-snapshot.sh` (and README snapshot steps that download tarballs):
 - Allow override via **`SNAPSHOT_TMPDIR`** when set.
 - Prefer `aria2c` for large HTTP(S) tarballs when available; fall back to `curl`.
 - **Never delete** the downloaded archive. Use a **stable** staging path (not `mktemp`) so resume works. Do not `trap` `rm -rf` on the tarball. Print a warning with path and size so the operator can remove it themselves. Tiny `mktemp` in `configure.sh` is unchanged.
+- After unpack, **move** the extracted DB into `HOST_DATADIR` (`mv`, same filesystem = rename). Do not `cp`/`rsync` the unpacked tree — that needs a second copy of the DB. Warn if staging and datadir are on different devices (GNU `mv` then copies).
 
 Do not change this for tiny `mktemp` usage in `configure.sh` (sed helpers, etc.).
 

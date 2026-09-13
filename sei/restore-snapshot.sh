@@ -149,6 +149,26 @@ case "${ARCHIVE_NAME}" in
     ;;
 esac
 
+move_into() {
+  local src="$1"
+  local dest="$2"
+  local dest_parent
+  dest_parent="$(dirname "${dest}")"
+  mkdir -p "${dest_parent}"
+  if [[ -d "${dest}" ]]; then
+    if [[ -n "$(ls -A "${dest}" 2>/dev/null)" ]]; then
+      echo "ERROR: ${dest} is not empty; refuse to overwrite" >&2
+      exit 1
+    fi
+    rmdir "${dest}"
+  fi
+  if [[ "$(stat -c '%d' "${src}")" != "$(stat -c '%d' "${dest_parent}")" ]]; then
+    echo "WARNING: ${src} and ${dest} are on different filesystems; move will copy and needs extra space." >&2
+  fi
+  echo "==> Moving ${src} -> ${dest}"
+  mv "${src}" "${dest}"
+}
+
 install_tree() {
   local name="$1"
   local src=""
@@ -172,12 +192,7 @@ install_tree() {
   fi
 
   echo "==> Installing ${name}/ into ${DATA_DIR}/${name}"
-  mkdir -p "${DATA_DIR}/${name}"
-  if command -v rsync >/dev/null 2>&1; then
-    rsync -a "${src}/" "${DATA_DIR}/${name}/"
-  else
-    cp -a "${src}/." "${DATA_DIR}/${name}/"
-  fi
+  move_into "${src}" "${DATA_DIR}/${name}"
   return 0
 }
 

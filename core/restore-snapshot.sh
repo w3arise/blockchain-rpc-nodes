@@ -139,14 +139,28 @@ if [[ -z "${SRC}" ]]; then
   exit 1
 fi
 
+move_into() {
+  local src="$1"
+  local dest="$2"
+  local dest_parent
+  dest_parent="$(dirname "${dest}")"
+  mkdir -p "${dest_parent}"
+  if [[ -d "${dest}" ]]; then
+    if [[ -n "$(ls -A "${dest}" 2>/dev/null)" ]]; then
+      echo "ERROR: ${dest} is not empty; refuse to overwrite" >&2
+      exit 1
+    fi
+    rmdir "${dest}"
+  fi
+  if [[ "$(stat -c '%d' "${src}")" != "$(stat -c '%d' "${dest_parent}")" ]]; then
+    echo "WARNING: ${src} and ${dest} are on different filesystems; move will copy and needs extra space." >&2
+  fi
+  echo "==> Moving ${src} -> ${dest}"
+  mv "${src}" "${dest}"
+}
+
 echo "==> Installing chaindata into ${DATA_DIR}"
-mkdir -p "${DATA_DIR}"
-# Prefer rsync if available (shows progress); else cp
-if command -v rsync >/dev/null 2>&1; then
-  rsync -a "${SRC}/" "${DATA_DIR}/"
-else
-  cp -a "${SRC}/." "${DATA_DIR}/"
-fi
+move_into "${SRC}" "${DATA_DIR}"
 
 echo ""
 echo "==> Snapshot restore complete"

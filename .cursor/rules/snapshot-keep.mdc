@@ -7,9 +7,10 @@ alwaysApply: true
 
 Never delete downloaded snapshot archives (`.tar.zst`, `.tar.gz`, `.tar.lz4`, `.tar`, and siblings such as `.sha256sum`). Do not `trap` `rm -rf` on the staging dir that holds them.
 
-- Stage under `$HOME/<chain>-snapshot-tmp` (or `SNAPSHOT_TMPDIR`), **stable path**, not `mktemp`. aria2c `-c` must be able to resume the same file after a failed run.
+- Stage under `$HOME/<chain>-snapshot-tmp` (or `SNAPSHOT_TMPDIR`), **stable path**, not `mktemp`. aria2c `-c` must be able to resume the same file after a failed run. Put staging on the **same volume** as `HOST_DATADIR`.
 - On start, if the archive already exists, print a warning with **path and size** and reuse it.
 - On success or failure, print the same warning. The operator deletes it when they no longer need it.
+- After unpack, **`mv` the extracted DB** into `HOST_DATADIR`. Do not `cp`/`rsync` it (that doubles disk). Warn if staging and datadir are different filesystems.
 - Tiny `mktemp` in `configure.sh` (sed helpers, not tarballs) is unchanged. Confirmed wipes of a live **datadir** (`HOST_DATADIR`) are unchanged.
 
 ```bash

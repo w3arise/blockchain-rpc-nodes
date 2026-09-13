@@ -153,21 +153,32 @@ if [[ -z "${SRC}" ]]; then
   exit 1
 fi
 
+# Rename the unpacked tree into the datadir (same filesystem = no extra copy).
+move_into() {
+  local src="$1"
+  local dest="$2"
+  local dest_parent
+  dest_parent="$(dirname "${dest}")"
+  mkdir -p "${dest_parent}"
+  if [[ -d "${dest}" ]]; then
+    if [[ -n "$(ls -A "${dest}" 2>/dev/null)" ]]; then
+      echo "ERROR: ${dest} is not empty; refuse to overwrite" >&2
+      exit 1
+    fi
+    rmdir "${dest}"
+  fi
+  if [[ "$(stat -c '%d' "${src}")" != "$(stat -c '%d' "${dest_parent}")" ]]; then
+    echo "WARNING: ${src} and ${dest} are on different filesystems; move will copy and needs extra space." >&2
+  fi
+  echo "moving ${src} -> ${dest}"
+  mv "${src}" "${dest}"
+}
+
 echo "installing chaindata into ${DATA_DIR}"
-mkdir -p "${DATA_DIR}"
 if [[ -d "${SRC}/geth/chaindata" ]]; then
-  if command -v rsync >/dev/null 2>&1; then
-    rsync -a "${SRC}/" "${DATA_DIR}/"
-  else
-    cp -a "${SRC}/." "${DATA_DIR}/"
-  fi
+  move_into "${SRC}" "${DATA_DIR}"
 else
-  mkdir -p "${DATA_DIR}/geth"
-  if command -v rsync >/dev/null 2>&1; then
-    rsync -a "${SRC}/" "${DATA_DIR}/geth/"
-  else
-    cp -a "${SRC}/." "${DATA_DIR}/geth/"
-  fi
+  move_into "${SRC}" "${DATA_DIR}/geth"
 fi
 
 if [[ ! -d "${DATA_DIR}/geth/chaindata" ]]; then
