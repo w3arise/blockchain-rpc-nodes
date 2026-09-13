@@ -27,6 +27,10 @@ Full node with `--history.state=90000` (~75 hours at 3s blocks), matching [ab-de
 
 Set `NETWORK_ID=26888`, `MAX_PEERS=50`, and testnet bootnodes from `ab-deploy` `abcore/testnet/conf/node.toml` in `.env` before starting.
 
+## Host ports
+
+When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (default `33333`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+
 Docs: [AB Core technical info](https://docs.ab.org/docs/) · [Node deployment](https://github.com/ABFoundationGlobal/ab-deploy)
 
 ## Port already in use (33333)
