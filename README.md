@@ -42,7 +42,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Core                | `core/`        | L1                                  | core-chain geth (hash-full)               | [README](core/README.md)        |
 | Cronos              | `cronos/`      | L1 (Ethermint)                      | cronosd                                   | [README](cronos/README.md)      |
 | Etherlink           | `etherlink/`   | L2 (Tezos Smart Rollup)             | octez-evm-node (full)                     | [README](etherlink/README.md)   |
-| Fantom (FTM)        | `ftm/`         | L1                                  | go-opera (Sonic)                          | —                               |
+| Fantom (FTM)        | `ftm/`         | L1                                  | go-opera (Sonic)                          | [README](ftm/README.md)         |
 | Gnosis Chain (xDai) | `gnosis/`      | L1                                  | reth_gnosis + lighthouse                  | [README](gnosis/README.md)      |
 | HashKey Chain       | `hashkey/`     | L2 (OP Stack / CGT)                 | op-geth + op-node                         | [README](hashkey/README.md)     |
 | Hedera              | `hedera/`      | L1 (Hashgraph / EVM)                | JSON-RPC Relay + Mirror Node              | [README](hedera/README.md)      |
