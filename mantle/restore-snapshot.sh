@@ -79,34 +79,52 @@ fi
 
 OBJECT="${DATE}-mainnet-full-chaindata.tar.zst"
 URL="${SNAP_BASE}/${OBJECT}"
+# Official docs publish .sha256sum for archive (*-mainnet-chaindata.tar.zst) only.
+# The full snapshot sidecar is missing; S3 then returns 403 AccessDenied (not 404).
 CHECKSUM_URL="${URL}.sha256sum"
 
 mkdir -p "${DATA_DIR}"
 TMP_BASE="${SNAPSHOT_TMPDIR:-${HOME}/mantle-snapshot-tmp}"
 mkdir -p "${TMP_BASE}"
-TMP_DIR="$(mktemp -d "${TMP_BASE}/XXXXXX")"
-cleanup() { rm -rf "${TMP_DIR}"; }
-trap cleanup EXIT
-echo "using temp dir ${TMP_DIR}"
+ARCHIVE="${TMP_BASE}/${OBJECT}"
+EXTRACT="${TMP_BASE}/extract"
+
+alert_kept_snapshot() {
+  echo "WARNING: snapshot files are never deleted by this script." >&2
+  echo "         archive: ${ARCHIVE}" >&2
+  if [[ -e "${ARCHIVE}" ]]; then
+    echo "         size: $(du -sh "${ARCHIVE}" | awk '{print $1}')" >&2
+  fi
+  echo "         staging: ${TMP_BASE}" >&2
+  echo "         Remove that path yourself when you no longer need the tarball." >&2
+}
+
+if [[ -e "${ARCHIVE}" ]]; then
+  echo "WARNING: existing snapshot archive will be reused (aria2c -c resumes if incomplete)." >&2
+  alert_kept_snapshot
+fi
+echo "using staging dir ${TMP_BASE}"
 
 echo "downloading ${URL} ..."
-download "${URL}" "${TMP_DIR}/${OBJECT}"
-curl -fsSL -o "${TMP_DIR}/${OBJECT}.sha256sum" "${CHECKSUM_URL}"
+download "${URL}" "${ARCHIVE}"
+alert_kept_snapshot
 
-EXPECTED="$(awk '{print $1}' "${TMP_DIR}/${OBJECT}.sha256sum")"
-echo "verifying sha256 (${EXPECTED}) ..."
-(
-  cd "${TMP_DIR}"
-  echo "${EXPECTED}  ${OBJECT}" | sha256sum -c -
-)
-
-EXTRACT="${TMP_DIR}/extract"
+if curl -fsSL -o "${TMP_BASE}/${OBJECT}.sha256sum" "${CHECKSUM_URL}"; then
+  EXPECTED="$(awk '{print $1}' "${TMP_BASE}/${OBJECT}.sha256sum")"
+  echo "verifying sha256 (${EXPECTED}) ..."
+  (
+    cd "${TMP_BASE}"
+    echo "${EXPECTED}  ${OBJECT}" | sha256sum -c -
+  )
+else
+  echo "WARNING: no checksum at ${CHECKSUM_URL} (HTTP 403/404); continuing without verify" >&2
+fi
 mkdir -p "${EXTRACT}"
 echo "extracting into ${EXTRACT} ..."
 if command -v unzstd >/dev/null 2>&1; then
-  tar --use-compress-program=unzstd -xf "${TMP_DIR}/${OBJECT}" -C "${EXTRACT}"
+  tar --use-compress-program=unzstd -xf "${ARCHIVE}" -C "${EXTRACT}"
 else
-  tar --use-compress-program=zstd -xf "${TMP_DIR}/${OBJECT}" -C "${EXTRACT}"
+  tar --use-compress-program=zstd -xf "${ARCHIVE}" -C "${EXTRACT}"
 fi
 
 # Official layout is chaindata at the tarball root (mounted as datadir/geth/).
@@ -159,3 +177,4 @@ fi
 
 echo "restored full snapshot to ${DATA_DIR}"
 echo "Keep GC_MODE=full, then: docker compose up -d"
+alert_kept_snapshot

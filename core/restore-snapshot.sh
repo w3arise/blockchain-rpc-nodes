@@ -65,14 +65,28 @@ mkdir -p "${DATA_DIR}"
 # Keep download/extract off /tmp (usually the small OS partition). Prefer home disk space.
 TMP_BASE="${SNAPSHOT_TMPDIR:-${HOME}/core-snapshot-tmp}"
 mkdir -p "${TMP_BASE}"
-TMP_DIR="$(mktemp -d "${TMP_BASE}/XXXXXX")"
-cleanup() { rm -rf "${TMP_DIR}"; }
-trap cleanup EXIT
-echo "==> Using temp dir ${TMP_DIR}"
+ARCHIVE="${TMP_BASE}/$(basename "${SNAPSHOT_URL}")"
+EXTRACT="${TMP_BASE}/extract"
 
-ARCHIVE="${TMP_DIR}/snapshot.tar.lz4"
+alert_kept_snapshot() {
+  echo "WARNING: snapshot files are never deleted by this script." >&2
+  echo "         archive: ${ARCHIVE}" >&2
+  if [[ -e "${ARCHIVE}" ]]; then
+    echo "         size: $(du -sh "${ARCHIVE}" | awk '{print $1}')" >&2
+  fi
+  echo "         staging: ${TMP_BASE}" >&2
+  echo "         Remove that path yourself when you no longer need the tarball." >&2
+}
+
+if [[ -e "${ARCHIVE}" ]]; then
+  echo "WARNING: existing snapshot archive will be reused (aria2c -c resumes if incomplete)." >&2
+  alert_kept_snapshot
+fi
+echo "==> Using staging dir ${TMP_BASE}"
+
 echo "==> Downloading ${SNAPSHOT_URL}"
 download "${SNAPSHOT_URL}" "${ARCHIVE}"
+alert_kept_snapshot
 
 if [[ -n "${SNAPSHOT_MD5}" ]]; then
   echo "==> Verifying MD5 ${SNAPSHOT_MD5}"
@@ -89,7 +103,7 @@ if [[ -n "${SNAPSHOT_MD5}" ]]; then
   fi
 fi
 
-EXTRACT="${TMP_DIR}/extract"
+EXTRACT="${TMP_BASE}/extract"
 mkdir -p "${EXTRACT}"
 echo "==> Extracting into ${EXTRACT}"
 if command -v lz4 >/dev/null 2>&1; then
@@ -139,3 +153,4 @@ echo "==> Snapshot restore complete"
 echo "    datadir: ${DATA_DIR}"
 echo "Next: docker compose up -d"
 echo "Do not run ./init-database.sh against this datadir."
+alert_kept_snapshot

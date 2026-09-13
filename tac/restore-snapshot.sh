@@ -86,27 +86,40 @@ if [[ -d "${DATA_DIR}/data" ]] && [[ -n "$(ls -A "${DATA_DIR}/data" 2>/dev/null 
 fi
 
 mkdir -p "${DATA_DIR}"
-# Keep download/extract off /tmp (usually the small OS partition).
 TMP_BASE="${SNAPSHOT_TMPDIR:-${HOME}/tac-snapshot-tmp}"
 mkdir -p "${TMP_BASE}"
-TMP_DIR="$(mktemp -d "${TMP_BASE}/XXXXXX")"
-cleanup() { rm -rf "${TMP_DIR}"; }
-trap cleanup EXIT
-echo "==> Using temp dir ${TMP_DIR}"
-
 ARCHIVE_NAME="$(basename "${SNAPSHOT_URL}")"
-ARCHIVE="${TMP_DIR}/${ARCHIVE_NAME}"
+ARCHIVE="${TMP_BASE}/${ARCHIVE_NAME}"
+EXTRACT="${TMP_BASE}/extract"
+
+alert_kept_snapshot() {
+  echo "WARNING: snapshot files are never deleted by this script." >&2
+  echo "         archive: ${ARCHIVE}" >&2
+  if [[ -e "${ARCHIVE}" ]]; then
+    echo "         size: $(du -sh "${ARCHIVE}" | awk '{print $1}')" >&2
+  fi
+  echo "         staging: ${TMP_BASE}" >&2
+  echo "         Remove that path yourself when you no longer need the tarball." >&2
+}
+
+if [[ -e "${ARCHIVE}" ]]; then
+  echo "WARNING: existing snapshot archive will be reused (aria2c -c resumes if incomplete)." >&2
+  alert_kept_snapshot
+fi
+echo "==> Using staging dir ${TMP_BASE}"
+
 echo "==> Downloading ${SNAPSHOT_TYPE} snapshot"
 echo "    ${SNAPSHOT_URL}"
 download "${SNAPSHOT_URL}" "${ARCHIVE}"
+alert_kept_snapshot
 
 # Optional checksum when Ankr publishes a sibling .shasum
 SHA_URL="${SNAPSHOT_URL%.tar.lz4}.shasum"
-SHA_FILE="${TMP_DIR}/$(basename "${SHA_URL}")"
+SHA_FILE="${TMP_BASE}/$(basename "${SHA_URL}")"
 if curl -fsSL -o "${SHA_FILE}" "${SHA_URL}" 2>/dev/null; then
   echo "==> Verifying checksum (${SHA_URL})"
   (
-    cd "${TMP_DIR}"
+    cd "${TMP_BASE}"
     if command -v sha256sum >/dev/null 2>&1 && grep -qE '^[a-fA-F0-9]{64}[[:space:]]' "${SHA_FILE}"; then
       sha256sum -c "$(basename "${SHA_FILE}")"
     else
@@ -118,7 +131,7 @@ else
   echo "==> No .shasum at ${SHA_URL} (continuing without verify)"
 fi
 
-EXTRACT="${TMP_DIR}/extract"
+EXTRACT="${TMP_BASE}/extract"
 mkdir -p "${EXTRACT}"
 echo "==> Extracting into ${EXTRACT}"
 lz4 -dc "${ARCHIVE}" | tar -x -C "${EXTRACT}"
@@ -173,3 +186,4 @@ fi
 echo "Next: ./patch-config.sh"
 echo "      docker compose up -d"
 echo "Do not re-run ./init-database.sh against this datadir."
+alert_kept_snapshot

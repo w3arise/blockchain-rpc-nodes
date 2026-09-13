@@ -20,7 +20,7 @@ Bring **geth up before op-node** (compose waits on the geth healthcheck). When b
 
 ## Snapshot
 
-Official **full** (state-pruned) tarball from [snapshot.mantle.xyz](https://s3.ap-southeast-1.amazonaws.com/snapshot.mantle.xyz/) (`*-mainnet-full-chaindata.tar.zst`). `./restore-snapshot.sh` resolves `current.info`, downloads with aria2c (or curl), verifies sha256, and extracts into `$HOME/mantle-op-geth-data/geth/chaindata`. Staging dir: `$HOME/mantle-snapshot-tmp` (`SNAPSHOT_TMPDIR` override).
+Official **full** (state-pruned) tarball from [snapshot.mantle.xyz](https://s3.ap-southeast-1.amazonaws.com/snapshot.mantle.xyz/) (`*-mainnet-full-chaindata.tar.zst`). `./restore-snapshot.sh` resolves `current.info`, downloads with aria2c (or curl), verifies sha256 when Mantle publishes a sidecar (archive snapshots only; full has none), and extracts into `$HOME/mantle-op-geth-data/geth/chaindata`. Staging dir: `$HOME/mantle-snapshot-tmp` (`SNAPSHOT_TMPDIR` override). The tarball is **kept** (stable path, resume-friendly); the script warns with path and size — delete it yourself when done.
 
 Archive snapshots (`*-mainnet-chaindata.tar.zst`) are a different retention mode — do not restore them onto this hash-full datadir.
 

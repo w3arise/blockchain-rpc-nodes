@@ -1,0 +1,23 @@
+---
+description: Never auto-delete snapshot archives; warn so the operator can remove them
+alwaysApply: true
+---
+
+# Snapshot files stay on disk
+
+Never delete downloaded snapshot archives (`.tar.zst`, `.tar.gz`, `.tar.lz4`, `.tar`, and siblings such as `.sha256sum`). Do not `trap` `rm -rf` on the staging dir that holds them.
+
+- Stage under `$HOME/<chain>-snapshot-tmp` (or `SNAPSHOT_TMPDIR`), **stable path**, not `mktemp`. aria2c `-c` must be able to resume the same file after a failed run.
+- On start, if the archive already exists, print a warning with **path and size** and reuse it.
+- On success or failure, print the same warning. The operator deletes it when they no longer need it.
+- Tiny `mktemp` in `configure.sh` (sed helpers, not tarballs) is unchanged. Confirmed wipes of a live **datadir** (`HOST_DATADIR`) are unchanged.
+
+```bash
+# ❌ BAD — EXIT wipes a finished 300GiB tarball after a later curl 403
+TMP_DIR="$(mktemp -d "${TMP_BASE}/XXXXXX")"
+trap 'rm -rf "${TMP_DIR}"' EXIT
+
+# ✅ GOOD
+ARCHIVE="${TMP_BASE}/${OBJECT}"
+# download to ARCHIVE; echo path + du -sh; never rm the archive
+```
