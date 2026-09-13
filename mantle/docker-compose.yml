@@ -1,0 +1,88 @@
+services:
+  mantle-op-geth:
+    image: ${OP_GETH_IMAGE}
+    container_name: mantle-op-geth
+    platform: linux/amd64
+    # Image default entrypoint.sh is a miner/devnet helper — use geth directly (official compose).
+    entrypoint: ["geth"]
+    command:
+      - --datadir=/data
+      - --verbosity=3
+      - --networkid=${NETWORK_ID}
+      - --syncmode=${GETH_SYNC_MODE}
+      - --gcmode=${GC_MODE}
+      - --txlookuplimit=${TXLOOKUP_LIMIT}
+      - --snapshot=false
+      - --maxpeers=0
+      - --rollup.sequencerhttp=${SEQUENCER_HTTP}
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --http.api=web3,eth,debug,txpool,net
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.origins=*
+      - --ws.api=web3,eth,debug,txpool,net
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --authrpc.vhosts=*
+      - --authrpc.jwtsecret=/config/jwt.hex
+      - --rpc.gascap=${GAS_CAP}
+      - --rpc.allow-unprotected-txs
+      - --nat=extip:${EXT_IP}
+      - --port=${P2P_PORT}
+      - --metrics
+      - --metrics.addr=127.0.0.1
+      - --metrics.port=9001
+    volumes:
+      - ${HOST_DATADIR:-$HOME/mantle-op-geth-data}:/data
+      - ./config:/config:ro
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "geth attach --exec 'eth.blockNumber' http://127.0.0.1:8545"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 300s
+    restart: unless-stopped
+    stop_grace_period: 120s
+    networks:
+      - mantle-network
+
+  mantle-op-node:
+    image: ${OP_NODE_IMAGE}
+    container_name: mantle-op-node
+    platform: linux/amd64
+    env_file: .env
+    environment:
+      OP_NODE_RPC_PORT: ${OP_NODE_RPC_PORT}
+      OP_NODE_P2P_LISTEN_TCP_PORT: ${OP_NODE_P2P_PORT}
+      OP_NODE_P2P_LISTEN_UDP_PORT: ${OP_NODE_P2P_PORT}
+    depends_on:
+      mantle-op-geth:
+        condition: service_healthy
+    volumes:
+      - ${HOST_OP_NODE_DATADIR:-$HOME/mantle-op-node-data}:/data
+      - ./config:/config:ro
+    ports:
+      - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
+      - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - mantle-network
+
+networks:
+  mantle-network:
+    driver: bridge
