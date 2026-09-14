@@ -18,9 +18,8 @@ Before upgrading an existing node, run `./check-genesis.sh` and refresh images/c
 Official archive snapshots (op-reth layout). Restore into `$HOME/katana-op-reth-data`, then start as above (genesis init is automatic via `--chain`):
 
 ```bash
-curl -L -o katana-latest.tar \
-  "https://pub-1d729d824bda40459735d97aca47bc6f.r2.dev/katana/latest.tar"
-# extract into $HOME/katana-op-reth-data
+./restore-snapshot.sh          # mainnet (default)
+./restore-snapshot.sh bokuto   # testnet
 ```
 
 Source: [network-configs snapshots](https://github.com/katana-network/network-configs).
