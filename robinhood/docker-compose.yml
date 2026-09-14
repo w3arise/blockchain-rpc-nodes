@@ -27,7 +27,7 @@ services:
       - --ws.api=${WS_API}
       - --ws.origins=*
       - --node.staker.enable=false
-      - --execution.forwarding-target=null
+      - --execution.forwarding-target=${FORWARDING_TARGET}
       - --execution.tx-indexer.tx-lookup-limit=0
       - --execution.caching.state-scheme=${STATE_SCHEME}
       - --execution.caching.state-history=${STATE_HISTORY}

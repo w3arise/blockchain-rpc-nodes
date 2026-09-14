@@ -6,6 +6,8 @@ Requires synced **Ethereum** execution + beacon endpoints (`L1_ETH_URL`, `L1_ETH
 
 The `nitro-node` image runs as **`user` (UID 1000, GID 1000)**. Datadir inside the container: `/home/user/.arbitrum`.
 
+`eth_sendRawTransaction` is forwarded to the Robinhood sequencer (`FORWARDING_TARGET` in `.env`). Reads are served locally from the archive datadir.
+
 ## State retention
 
 PathDB archive: `STATE_SCHEME=path`, `STATE_HISTORY=0`, plus `--execution.caching.archive` in compose.
