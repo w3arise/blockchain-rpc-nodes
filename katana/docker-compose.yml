@@ -38,6 +38,8 @@ services:
       - ${RPC_BIND_ADDR}:${WS_PORT}:8546
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     stop_grace_period: 120s
     networks:
@@ -53,6 +55,8 @@ services:
       - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
       - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
       - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ${HOST_OP_NODE_DATADIR:-$HOME/katana-op-node-data}:/data
       - ./config:/config

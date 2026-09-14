@@ -83,6 +83,8 @@ Compose mapping — host side from env, container side **fixed** at the client d
 ports:
   - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
   - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+extra_hosts:
+  - "host.docker.internal:host-gateway"
 ```
 
 Do not make both sides the same env var unless the client requires it.
@@ -90,6 +92,21 @@ Do not make both sides the same env var unless the client requires it.
 New setups use these names. Family-specific aliases (`EN_HTTP_PORT` / `EN_WS_PORT` for ZK Stack, `OP_GETH_HTTP_PORT` on some OP Geth nodes) are fine when they already exist — still pair them with `RPC_BIND_ADDR`. Tag-only apply health checks (`health_mode: block_time` / `health_path`) read `HTTP_PORT` and `RPC_BIND_ADDR`; see [`AUTO_UPGRADES.md`](AUTO_UPGRADES.md).
 
 P2P (public TCP + UDP) and OP Stack extra ports: [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2).
+
+## Host gateway (`extra_hosts`)
+
+Linux Docker does not define `host.docker.internal` unless Compose adds it. On every service that is **not** `network_mode: host`, set:
+
+```yaml
+extra_hosts:
+  - "host.docker.internal:host-gateway"
+```
+
+That maps the name to the host’s Docker gateway so L1/beacon/historical RPC URLs in `.env` can use `http://host.docker.internal:<port>`. `127.0.0.1` inside a bridge-network container is the container, not the host.
+
+Skip this on **`network_mode: host`** stacks (the container already shares the host network; use `127.0.0.1`). Host processes must still listen on `0.0.0.0` or the docker0 address — loopback-only binds stay unreachable from containers.
+
+Unused, the mapping is only a `/etc/hosts` entry. It does not publish ports.
 
 ## Chain links (`CHAIN_LINKS.md`)
 
@@ -250,6 +267,7 @@ All **L2** setups (OP Stack, Nitro, ZK Stack external nodes, etc.) must follow t
    - ${P2P_PORT}:${P2P_PORT}
    - ${P2P_PORT}:${P2P_PORT}/udp
    ```
+4. **`extra_hosts`** on every bridge-network service — see [Host gateway (`extra_hosts`)](#host-gateway-extra_hosts). Use `http://host.docker.internal:<port>` in `.env` for L1/beacon/historical RPC on the Docker host (not `127.0.0.1`).
 
 ### OP Stack (op-reth + op-node)
 
@@ -272,6 +290,8 @@ ports:
   - ${RPC_BIND_ADDR}:${WS_PORT}:8546
   - ${P2P_PORT}:${P2P_PORT}
   - ${P2P_PORT}:${P2P_PORT}/udp
+extra_hosts:
+  - "host.docker.internal:host-gateway"
 ```
 
 Inside the container, op-reth listens on fixed `8545` / `8546` (`--http.port=8545`, `--ws.port=8546`). Engine API stays on the Docker network only (e.g. `9551`) — do not publish it to the host.
@@ -381,7 +401,7 @@ chain/
 
 - **`env.template`** — setup steps in header comments; group vars (`### Network ###`, `### Ports ###`, `### RPC ###`, etc.); pin client versions; set `GAS_CAP=600000000` unless the chain requires otherwise. Host RPC bind/port: [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). P2P and public IP vars: [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2).
 - **`configure.sh`** — optional; creates `.env` from `env.template` and sets public IP. See [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2). Do not embed secrets.
-- **`docker-compose.yml`** — load `.env` with `env_file: .env` on services that need runtime vars (typically op-node); keep runtime services only (no init-container chown hacks). Set **`stop_grace_period: 120s`** (minimum) on every **execution client** service — geth, reth, op-geth, op-reth, Nitro, external-node, besu, nethermind, erigon, etc. Longer values (e.g. `5m`) are fine when the client needs more shutdown time. Does **not** apply to op-node, postgres, or monitoring sidecars.
+- **`docker-compose.yml`** — load `.env` with `env_file: .env` on services that need runtime vars (typically op-node); keep runtime services only (no init-container chown hacks). Set **`stop_grace_period: 120s`** (minimum) on every **execution client** service — geth, reth, op-geth, op-reth, Nitro, external-node, besu, nethermind, erigon, etc. Longer values (e.g. `5m`) are fine when the client needs more shutdown time. Does **not** apply to op-node, postgres, or monitoring sidecars. On every service that is **not** `network_mode: host`, set `extra_hosts` so containers can reach processes on the Docker host — see [Host gateway (`extra_hosts`)](#host-gateway-extra_hosts).
 
 ## Archive and state retention (general)
 
@@ -581,7 +601,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 2. **Pick client + retention mode** using [Client selection (historical receipts & logs)](#client-selection-historical-receipts--logs). Present viable Reth A–B / Geth A–E options (receipts/logs vs state, snapshots, HW); **prefer Reth when both families work, but wait for the user to choose** before scaffolding. Avoid reth `--full` and short-pruned geth snapshots for historical log RPC.
 3. Pin client versions in `env.template` (image tags, release versions, etc.). Add a lookup row to [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) (source of truth for *where* to check — not a “latest” snapshot). If the pin is a same-series image swap with no compose/datadir work, also add a `tag-only` row to [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml).
 4. Store datadirs under `$HOME`.
-5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap). Wire **`RPC_BIND_ADDR`** (default `127.0.0.1`) and **`HTTP_PORT`** in `env.template` / compose — see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). Do not hardcode host RPC IP or port.
+5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap). Wire **`RPC_BIND_ADDR`** (default `127.0.0.1`) and **`HTTP_PORT`** in `env.template` / compose — see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). Do not hardcode host RPC IP or port. Add **`extra_hosts: ["host.docker.internal:host-gateway"]`** on every compose service that is not `network_mode: host` — see [Host gateway (`extra_hosts`)](#host-gateway-extra_hosts).
 6. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists. Match snapshot scheme (path vs hash) to the chosen mode. For Tendermint/Cosmos chains, prefer official **`full`** (block/log/receipt history) first, then **archive** (full state); use [Polkachu](https://www.polkachu.com/tendermint_snapshots) only as a **pruned last resort** — see [Snapshot source preference (Tendermint / Cosmos SDK)](#snapshot-source-preference-tendermint--cosmos-sdk). Download/extract staging must follow [Snapshot downloads (temp space)](#snapshot-downloads-temp-space) — never default large tarballs to `/tmp`.
 7. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above); include **Pruning Mode** / **State retention** when applicable (receipts/logs vs state).
 8. **Update** root `README.md` — **Ready** and **Planned** tables (type, execution client); remove from Planned when the chain is ready. Keep both tables sorted alphabetically by **Chain** (case-insensitive).

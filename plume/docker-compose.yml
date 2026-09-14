@@ -10,6 +10,8 @@ services:
       - ${RPC_BIND_ADDR}:${HTTP_PORT}:8547
       - ${RPC_BIND_ADDR}:${WS_PORT}:8548
       - ${RPC_BIND_ADDR}:${METRICS_PORT}:6070
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ${HOST_DATADIR:-$HOME/plume-data}:/home/user/.arbitrum
       - ./config/chainInfo.json:/config/chainInfo.json:ro

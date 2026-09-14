@@ -32,6 +32,8 @@ services:
       - ${RPC_BIND_ADDR}:${WS_PORT}:8546
       - ${RETH_PORT}:${RETH_PORT}
       - ${RETH_PORT}:${RETH_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     stop_grace_period: 120s
     networks:
@@ -39,6 +41,8 @@ services:
 
   worldchain-op-node:
     image: ${OP_NODE_IMAGE}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     container_name: worldchain-op-node
     command:
       - op-node

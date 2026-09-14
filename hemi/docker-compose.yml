@@ -17,6 +17,8 @@ services:
       - ${RPC_BIND_ADDR}:${OP_GETH_WS_PORT}:${OP_GETH_WS_PORT}
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command:
       - --config=/config/l2-config.toml
       - --http
@@ -77,6 +79,8 @@ services:
       BSS_ADDRESS: ":${BSS_RPC_PORT}"
     ports:
       - ${RPC_BIND_ADDR}:${BSS_RPC_PORT}:${BSS_RPC_PORT}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     networks:
       - hemi-network
@@ -99,6 +103,8 @@ services:
       - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
       - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
       - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command:
       - op-node
       - --l1=${GETHL1ENDPOINT}

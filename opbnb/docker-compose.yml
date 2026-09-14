@@ -47,6 +47,8 @@ services:
       - ${RPC_BIND_ADDR}:${PORT__OP_GETH_WS}:8546
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./jwt.txt:/jwt.txt
       - $HOME/opbnb-geth:/geth
@@ -97,6 +99,8 @@ services:
       - ${RPC_BIND_ADDR}:${PORT__OP_NODE_RPC}:9545
       - ${PORT__OP_NODE_P2P}:9003
       - ${PORT__OP_NODE_P2P}:9003/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./jwt.txt:/jwt.txt
       - $HOME/opbnb-node:/op_node

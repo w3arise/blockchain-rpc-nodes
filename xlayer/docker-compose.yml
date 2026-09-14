@@ -12,6 +12,8 @@ services:
       - "${RPC_BIND_ADDR}:${WS_PORT}:7546"     # WebSocket
       - "${P2P_PORT}:${P2P_PORT}" # P2P TCP
       - "${P2P_PORT}:${P2P_PORT}/udp" # P2P UDP
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ${HOME}/xlayer-op-geth-data:/data
       - ./config/jwt.txt:/jwt.txt
@@ -47,6 +49,8 @@ services:
       - xlayer-network
     ports:
       - "${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:9545"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ${HOME}/xlayer-op-node-data:/data
       - ./config/rollup-mainnet.json:/rollup.json
@@ -88,6 +92,8 @@ services:
       args:
         XERIGON_REF: ${ERIGON_VERSION}
     image: xlayer-cdk-erigon:${ERIGON_VERSION}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     container_name: xlayer-cdk-erigon
     restart: unless-stopped
     mem_limit: ${MEM_LIMIT}

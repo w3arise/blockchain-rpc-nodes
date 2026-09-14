@@ -27,6 +27,8 @@ services:
       - ${RPC_BIND_ADDR}:${GRPC_PORT}:9090
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ulimits:
       nofile:
         soft: 1048576

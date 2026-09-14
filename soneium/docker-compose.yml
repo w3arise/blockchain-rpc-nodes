@@ -34,6 +34,8 @@ services:
       - ${RPC_BIND_ADDR}:${WS_PORT}:8546
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     stop_grace_period: 120s
     networks:
@@ -41,6 +43,8 @@ services:
 
   soneium-op-node:
     image: ${OP_NODE_IMAGE}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     container_name: soneium-op-node
     command:
       - op-node

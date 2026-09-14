@@ -30,6 +30,8 @@ services:
       - ${HOST_DATADIR:-$HOME/etherlink-data}:/data
     ports:
       - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     logging:
       options:
         max-size: "10m"

@@ -21,6 +21,8 @@ services:
       EIGENDA_PROXY_APIS_TO_ENABLE: op-generic,metrics
     ports:
       - 127.0.0.1:${EIGENDA_PROXY_PORT}:3100
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     command:
       - --addr=0.0.0.0
       - --port=3100
@@ -39,6 +41,8 @@ services:
       - ${RPC_BIND_ADDR}:${RONIN_RETH_HTTP_PORT}:8545
       - ${RPC_BIND_ADDR}:${RONIN_RETH_WS_PORT}:8546
       - 127.0.0.1:${RONIN_RETH_AUTHRPC_PORT}:9551
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     entrypoint:
       - op-reth
     command:
@@ -80,6 +84,8 @@ services:
       - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
       - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
       - 127.0.0.1:${OP_NODE_METRICS_PORT}:7300
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       OP_NODE_P2P_SYNC_ONLYREQTOSTATIC: ${OP_NODE_P2P_SYNC_ONLYREQTOSTATIC}
     entrypoint:

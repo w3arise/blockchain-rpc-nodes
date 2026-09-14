@@ -1,0 +1,18 @@
+---
+description: Bridge-network compose services must set host.docker.internal extra_hosts
+globs: "**/docker-compose*.yml,**/*compose*.yml,**/prysm.yml"
+alwaysApply: false
+---
+
+# Host gateway (`extra_hosts`)
+
+On every Compose service that is **not** `network_mode: host`, include:
+
+```yaml
+extra_hosts:
+  - "host.docker.internal:host-gateway"
+```
+
+Skip host-network services (BSC, Sonic, FTM, polygon-bor, Linea Besu, Hyperliquid node, heal overlays). Those already share the host stack — use `127.0.0.1` in URLs.
+
+`127.0.0.1` inside a bridge-network container is not the Docker host. Document `http://host.docker.internal:<port>` for L1/beacon/historical RPC on the host.

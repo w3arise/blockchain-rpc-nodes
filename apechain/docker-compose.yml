@@ -6,6 +6,8 @@ services:
     ports:
       - "${RPC_BIND_ADDR}:${HTTP_PORT}:8545"
       - "${RPC_BIND_ADDR}:${WS_PORT}:8546"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - "${HOME}/apechain-data:/home/user/.arbitrum"
       - "./config/nodeConfig.json:/config/nodeConfig.json:ro"
