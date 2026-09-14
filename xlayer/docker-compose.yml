@@ -8,10 +8,10 @@ services:
     container_name: xlayer-mainnet-op-geth
     entrypoint: geth
     ports:
-      - "127.0.0.1:28545:8545"   # HTTP RPC
-      - "127.0.0.1:28546:7546"     # WebSocket
-      - "35303:35303" # P2P TCP
-      - "35303:35303/udp" # P2P UDP
+      - "${RPC_BIND_ADDR}:${HTTP_PORT}:8545"   # HTTP RPC
+      - "${RPC_BIND_ADDR}:${WS_PORT}:7546"     # WebSocket
+      - "${P2P_PORT}:${P2P_PORT}" # P2P TCP
+      - "${P2P_PORT}:${P2P_PORT}/udp" # P2P UDP
     volumes:
       - ${HOME}/xlayer-op-geth-data:/data
       - ./config/jwt.txt:/jwt.txt
@@ -46,7 +46,7 @@ services:
     networks:
       - xlayer-network
     ports:
-      - "127.0.0.1:9555:9545"
+      - "${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:9545"
     volumes:
       - ${HOME}/xlayer-op-node-data:/data
       - ./config/rollup-mainnet.json:/rollup.json
