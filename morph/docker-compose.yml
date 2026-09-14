@@ -11,14 +11,15 @@ services:
       - GETH_P2P_PORT=${GETH_P2P_PORT}
       - GETH_TX_LOOKUP_LIMIT=${GETH_TX_LOOKUP_LIMIT:-0}
       - GETH_GCMODE=${GETH_GCMODE:-archive}
+      - GAS_CAP=${GAS_CAP:-600000000}
     volumes:
       - ${GETH_DATADIR:-$HOME/morph-geth-data}:/db
       - ./config/jwt.hex:/config/jwt.hex:ro
       - ./entrypoint-geth.sh:/entrypoint.sh:ro
     ports:
-      - 127.0.0.1:${HTTP_HOST_PORT}:8545
-      - 127.0.0.1:${WS_HOST_PORT}:8546
-      - 127.0.0.1:${GETH_METRICS_HOST_PORT}:6060
+      - ${RPC_BIND_ADDR}:${HTTP_HOST_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_HOST_PORT}:8546
+      - ${RPC_BIND_ADDR}:${GETH_METRICS_HOST_PORT}:6060
       - ${GETH_P2P_PORT}:${GETH_P2P_PORT}
       - ${GETH_P2P_PORT}:${GETH_P2P_PORT}/udp
     entrypoint:
@@ -49,9 +50,9 @@ services:
       - ./config/jwt.hex:/config/jwt.hex:ro
       - ./entrypoint-node.sh:/entrypoint-node.sh:ro
     ports:
-      - 127.0.0.1:${NODE_RPC_HOST_PORT}:26657
+      - ${RPC_BIND_ADDR}:${NODE_RPC_HOST_PORT}:26657
       - ${NODE_P2P_PORT}:26656
-      - 127.0.0.1:${NODE_METRICS_HOST_PORT}:26660
+      - ${RPC_BIND_ADDR}:${NODE_METRICS_HOST_PORT}:26660
     entrypoint:
       - /bin/sh
       - /entrypoint-node.sh

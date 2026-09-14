@@ -52,9 +52,9 @@ services:
     ports:
       - "${P2P_PORT}:${P2P_PORT}/tcp"
       - "${P2P_PORT}:${P2P_PORT}/udp"
-      - "127.0.0.1:${HTTP_PORT}:${HTTP_PORT}"
-      - "127.0.0.1:${WS_PORT}:${WS_PORT}"
-      - "127.0.0.1:${METRICS_PORT}:${METRICS_PORT}"
+      - "${RPC_BIND_ADDR}:${HTTP_PORT}:${HTTP_PORT}"
+      - "${RPC_BIND_ADDR}:${WS_PORT}:${WS_PORT}"
+      - "${RPC_BIND_ADDR}:${METRICS_PORT}:${METRICS_PORT}"
     logging:
       options:
         max-size: "10m"
