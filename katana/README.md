@@ -25,6 +25,10 @@ curl -L -o katana-latest.tar \
 
 Source: [network-configs snapshots](https://github.com/katana-network/network-configs).
 
+## Host ports
+
+When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (op-reth, default `10301`) and `OP_NODE_P2P_PORT` (op-node, default `9222`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+
 ## Testnet (Bokuto)
 
 Replace `config/genesis.json` and `config/rollup.json` with [bokuto/op-reth](https://github.com/katana-network/network-configs/tree/main/bokuto/op-reth), set L1 to Sepolia, and refresh P2P from Conduit slug `katana-bokuto`. Snapshot: `https://pub-1d729d824bda40459735d97aca47bc6f.r2.dev/katana-bokuto/latest.tar`.
