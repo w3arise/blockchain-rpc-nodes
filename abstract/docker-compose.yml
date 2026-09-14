@@ -97,10 +97,10 @@ services:
       generate-secrets:
         condition: service_completed_successfully
     ports:
-      - 127.0.0.1:${EN_HTTP_PORT:-3060}:${EN_HTTP_PORT:-3060}
-      - 127.0.0.1:${EN_WS_PORT:-3061}:${EN_WS_PORT:-3061}
-      - 127.0.0.1:${EN_HEALTHCHECK_PORT:-3081}:${EN_HEALTHCHECK_PORT:-3081}
-      - 127.0.0.1:${EN_PROMETHEUS_PORT:-3322}:${EN_PROMETHEUS_PORT:-3322}
+      - ${RPC_BIND_ADDR}:${EN_HTTP_PORT:-3060}:${EN_HTTP_PORT:-3060}
+      - ${RPC_BIND_ADDR}:${EN_WS_PORT:-3061}:${EN_WS_PORT:-3061}
+      - ${RPC_BIND_ADDR}:${EN_HEALTHCHECK_PORT:-3081}:${EN_HEALTHCHECK_PORT:-3081}
+      - ${RPC_BIND_ADDR}:${EN_PROMETHEUS_PORT:-3322}:${EN_PROMETHEUS_PORT:-3322}
     volumes:
       - $HOME/abstract-rocksdb-data:/db
       - ./config:/configs
