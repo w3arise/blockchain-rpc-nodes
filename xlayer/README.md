@@ -25,4 +25,8 @@ docker compose build
 docker compose up -d
 ```
 
+## Host ports
+
+P2P port 35303 (TCP + UDP) is exposed for incoming peers. RPC ports 28545 (HTTP) and 28546 (WS) are localhost-only.
+
 Docs: [X Layer docs](https://www.okx.com/xlayer/docs) · [okx/xlayer-erigon](https://github.com/okx/xlayer-erigon)

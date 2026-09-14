@@ -25,4 +25,8 @@ docker compose up -d
 
 Snapshot: [reth-mainnet-latest](https://static.okx.com/cdn/chain/xlayer/snapshot/reth-mainnet-latest)
 
+## Host ports
+
+P2P port 36303 (TCP + UDP) is exposed for incoming peers. RPC ports 48545 (HTTP) and 48546 (WS) are localhost-only.
+
 Docs: [X Layer docs](https://www.okx.com/xlayer/docs) · [okx/xlayer-reth](https://github.com/okx/xlayer-reth)
