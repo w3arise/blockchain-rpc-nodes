@@ -44,16 +44,26 @@ if [[ -z "${GCP_PROJECT}" || "${GCP_PROJECT}" == "(unset)" ]]; then
 fi
 
 mkdir -p "${DATA_DIR}" "${TMP_BASE}"
-TMP_DIR="$(mktemp -d "${TMP_BASE}/XXXXXX")"
-ARCHIVE="${TMP_DIR}/latest.tar"
+ARCHIVE="${TMP_BASE}/latest.tar"
 
-cleanup() {
-  rm -rf "${TMP_DIR}"
+alert_kept_snapshot() {
+  echo "WARNING: snapshot files are never deleted by this script." >&2
+  echo "         archive: ${ARCHIVE}" >&2
+  if [[ -e "${ARCHIVE}" ]]; then
+    echo "         size: $(du -sh "${ARCHIVE}" | awk '{print $1}')" >&2
+  fi
+  echo "         staging: ${TMP_BASE}" >&2
+  echo "         Remove that path yourself when you no longer need the tarball." >&2
 }
-trap cleanup EXIT
 
-echo "==> Downloading ${GCS_URI} (billing project: ${GCP_PROJECT})"
-gcloud storage cp --billing-project="${GCP_PROJECT}" "${GCS_URI}" "${ARCHIVE}"
+if [[ -s "${ARCHIVE}" ]]; then
+  echo "WARNING: existing snapshot archive will be reused (gcloud does not resume partial files)." >&2
+  alert_kept_snapshot
+else
+  echo "==> Downloading ${GCS_URI} (billing project: ${GCP_PROJECT})"
+  gcloud storage cp --billing-project="${GCP_PROJECT}" "${GCS_URI}" "${ARCHIVE}"
+  alert_kept_snapshot
+fi
 
 echo "==> Extracting into ${DATA_DIR}"
 tar -xf "${ARCHIVE}" -C "${DATA_DIR}"
@@ -61,3 +71,4 @@ tar -xf "${ARCHIVE}" -C "${DATA_DIR}"
 echo ""
 echo "Snapshot restore finished. Start the node with:"
 echo "  docker compose up -d"
+alert_kept_snapshot

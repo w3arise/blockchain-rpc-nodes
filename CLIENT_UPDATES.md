@@ -20,7 +20,7 @@ Local cache (gitignored): [`scripts/.client-audit-cache.json`](scripts/.client-a
 - **Chain-official wins.** If the project publishes its own compose, image tags, or required `NODE_IMAGE`, that is the comparison target — even when generic OP Labs / Nitro / Matter Labs is newer.
 - **Stable only.** Ignore prereleases (`alpha`, `rc`, `beta`, `-unsafe`, `-testnet`) unless that is all the chain ships.
 - **Bump related components together** when the chain requires it (op-reth + op-node; mirror + relay; bera-reth + beacon-kit).
-- **Shared Superchain images** (stock `us-docker.pkg.dev/oplabs-tools-artifacts/images/op-*`): compare to `ethereum-optimism/optimism` tags `op-reth/v*` and `op-node/v*` (and `ethereum-optimism/op-geth` when still used). Do not apply that latest to HashKey, B², Celo, Hemi, or XLayer — those use chain images.
+- **Shared Superchain images** (stock `us-docker.pkg.dev/oplabs-tools-artifacts/images/op-*`): compare to `ethereum-optimism/optimism` tags `op-reth/v*` and `op-node/v*` (and `ethereum-optimism/op-geth` when still used). Do not apply that latest to HashKey, B², Celo, Hemi, Mantle, or XLayer — those use chain images.
 
 ### Shared stacks
 
@@ -70,6 +70,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | Lens | `EN_VERSION` | `lens-protocol/lens-chain-node` `mainnet-external-node.yml` (often older than Matter Labs Docker) | needs-review |
 | Linea | `BESU_IMAGE`, `MARU_IMAGE`, `NETHERMIND_VERSION` | `Consensys/linea-monorepo` getting-started compose + `linea-besu-package` releases. Besu tags are `N.N.N-YYYYMMDD-sha`, not the old `beta-v4.4-rc*` scheme. Nethermind: Linea-recommended, not generic `NethermindEth/nethermind` | needs-review |
 | Lisk | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain (this repo uses op-reth; `LiskHQ/lisk-node` may still pin op-geth) | tag-only |
+| Mantle | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | `mantlenetworkio/networks` `docker-compose-mainnetv2-upgrade-beacon.yml` (`mantlenetworkio/mantle-op-geth`, `mantlenetworkio/mantle-op-node`). Pair with `mantlenetworkio/op-geth` + `mantlenetworkio/mantle-v2` releases — **not** generic OP Labs | needs-review |
 | Mode | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain. `op-node` v1.19.3+ required for Mode `--network` Karst gas configs | tag-only |
 | Monad | `MONAD_VERSION` | `category-labs/monad` + [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions). APT pin; 0.16.1+ needs a page-encoded TrieDB | needs-review |
 | Morph | `GETH_IMAGE`, `NODE_IMAGE` | `morph-l2/go-ethereum` (`morph-v*` tags vs compose `2.2.x`), `morph-l2/morph` | needs-review |
@@ -98,6 +99,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 - **Linea Besu** tags are `consensys/linea-besu-package:<semver>-<date>-<sha>`. Follow the getting-started compose pin (`2.0.0-…`), not Hub `2.2.0` until that compose moves. Start with `--profile=advanced-mainnet`.
 - **Worldchain** official compose uses `world-chain`, not stock `op-reth`.
 - **HashKey / B²** freeze OP Labs tags in their own docs; bumping generic Superchain will desync from their genesis/rollup.
+- **Mantle** uses `mantlenetworkio/mantle-op-*` images. Upgrade mantle-op-geth before mantle-op-node; geth must be healthy before op-node starts.
 - **Celo** images are `celo-v*` on `us-west1-docker.pkg.dev/devopsre/celo-blockchain-public/`, not OP Labs.
 - **Aptos** release feed mixes node, CLI, and `-rc` tags — filter `aptos-node-v*` and skip `-rc` unless asked.
 - **Morph geth** GitHub tags are `morph-v2.2.x`; compose/GHCR often `2.2.x` without the prefix.
