@@ -8,7 +8,12 @@ Nodes in this repo are meant to run on **Linux hosts**. Do not target macOS for 
 
 ## Client selection (historical receipts & logs)
 
-**Primary product goal:** serve **historical receipts and logs** (block/`eth_getLogs` history from genesis or a long window). Historical **state** queries (`eth_call` / proofs at old blocks) are secondary and often intentionally omitted.
+**Primary product goals:**
+
+1. **Historical receipts and logs** — block/`eth_getLogs` history from genesis or a long window (drives client/mode selection below).
+2. **Transaction submission** — `eth_sendRawTransaction` (and equivalent write RPC) must work on every JSON-RPC endpoint this repo ships, unless a chain README explicitly documents a read-only exception.
+
+Historical **state** queries (`eth_call` / proofs at old blocks) are secondary and often intentionally omitted.
 
 Client “full” vs “archive” means different things — do not assume they match:
 
@@ -194,6 +199,20 @@ Two flags control retention on PathDB nodes:
 **Pruned full node** — set `state-history` to a non-zero value (e.g. `345600` for ~24h) and omit `--execution.caching.archive` (or `"archive": false` in a config file).
 
 **Repo default for archive setups:** `STATE_HISTORY=0` plus `--execution.caching.archive` in compose.
+
+### Transaction forwarding (writes)
+
+Non-sequencer Nitro nodes do **not** accept `eth_sendRawTransaction` locally. They must **forward** signed txs to the chain’s sequencer RPC via `--execution.forwarding-target`.
+
+| Setup | Forwarding |
+| --- | --- |
+| **Replica / archive RPC node** (this repo’s default) | Set `FORWARDING_TARGET` in `env.template` to the chain’s official **sequencer** URL (from chain docs or `connecting` page). Wire `--execution.forwarding-target=${FORWARDING_TARGET}` in compose. Reads are served from the local datadir; writes are relayed upstream. |
+| **Built-in Nitro preset** (e.g. Arbitrum One with `--chain.id=42161`) | Nitro may auto-fill the sequencer URL from embedded chain info when the sequencer is disabled — verify with a test `eth_sendRawTransaction` after scaffold. |
+| **Custom `chain.info` file** (Robinhood, Plume, Conduit Orbit, …) | Auto-fill usually does **not** apply — **`FORWARDING_TARGET` is required**. |
+
+**Do not** set `--execution.forwarding-target=null` on RPC nodes in this repo — Nitro drops incoming transactions and clients fail with errors such as *publishing transactions not supported by this endpoint*. Use `null` only for batch posters / sequencers that publish txs themselves (not our RPC replicas).
+
+Reference: [`plume/env.template`](plume/env.template), [`robinhood/env.template`](robinhood/env.template).
 
 ### Critical: do not change `state-history` casually
 
@@ -594,4 +613,5 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 
 20. Use `STATE_SCHEME=path`, `STATE_HISTORY=0`, and `--execution.caching.archive` for archive defaults (see [Arbitrum Nitro (PathDB / PBSS)](#arbitrum-nitro-pathdb--pbss)).
 21. Add a **State retention** section to the chain README — warn that non-zero `state-history` prunes on change or snapshot restore.
+22. Wire **`FORWARDING_TARGET`** + `--execution.forwarding-target=${FORWARDING_TARGET}` for non-sequencer RPC nodes (see [Transaction forwarding (writes)](#transaction-forwarding-writes)). Do not use `null` unless the chain is intentionally read-only. Document in the chain README that writes are forwarded to the sequencer.
 
