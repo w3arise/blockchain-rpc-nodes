@@ -79,8 +79,6 @@ services:
       BSS_ADDRESS: ":${BSS_RPC_PORT}"
     ports:
       - ${RPC_BIND_ADDR}:${BSS_RPC_PORT}:${BSS_RPC_PORT}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     restart: unless-stopped
     networks:
       - hemi-network

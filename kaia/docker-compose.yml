@@ -11,8 +11,6 @@ services:
       - "${P2P_PORT}:32323"
       - "${P2P_SUBPORT}:32324"
       - "127.0.0.1:${METRICS_PORT}:61001"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     volumes:
       - "${HOST_DATADIR:-$HOME/kaia-data}:/var/kend/data"
       - "./config:/config:ro"

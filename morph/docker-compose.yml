@@ -21,8 +21,6 @@ services:
       - 127.0.0.1:${GETH_METRICS_HOST_PORT}:6060
       - ${GETH_P2P_PORT}:${GETH_P2P_PORT}
       - ${GETH_P2P_PORT}:${GETH_P2P_PORT}/udp
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     entrypoint:
       - /bin/sh
       - /entrypoint.sh
@@ -54,8 +52,6 @@ services:
       - 127.0.0.1:${NODE_RPC_HOST_PORT}:26657
       - ${NODE_P2P_PORT}:26656
       - 127.0.0.1:${NODE_METRICS_HOST_PORT}:26660
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     entrypoint:
       - /bin/sh
       - /entrypoint-node.sh

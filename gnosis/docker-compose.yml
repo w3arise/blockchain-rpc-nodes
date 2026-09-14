@@ -18,8 +18,6 @@ services:
       - 127.0.0.1:${WS_PORT}:9046
       - ${P2P_PORT}:${P2P_PORT}/tcp
       - ${P2P_PORT}:${P2P_PORT}/udp
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     command:
       - node
       - --chain=gnosis
@@ -65,8 +63,6 @@ services:
       - ${BEACON_P2P_PORT}:${BEACON_P2P_PORT}/tcp
       - ${BEACON_P2P_PORT}:${BEACON_P2P_PORT}/udp
       - 127.0.0.1:${BEACON_HTTP_PORT}:5052
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     command:
       - lighthouse
       - beacon_node

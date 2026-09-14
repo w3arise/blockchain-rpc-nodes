@@ -92,8 +92,6 @@ services:
       args:
         XERIGON_REF: ${ERIGON_VERSION}
     image: xlayer-cdk-erigon:${ERIGON_VERSION}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     container_name: xlayer-cdk-erigon
     restart: unless-stopped
     mem_limit: ${MEM_LIMIT}

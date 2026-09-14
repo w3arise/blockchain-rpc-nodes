@@ -18,8 +18,6 @@ services:
       - "${P2P_PORT}:${P2P_PORT}/udp"
       - "${RPC_BIND_ADDR}:${HTTP_PORT}:${HTTP_PORT}"
       - "${RPC_BIND_ADDR}:${WS_PORT}:${WS_PORT}"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     logging:
       options:
         max-size: "10m"

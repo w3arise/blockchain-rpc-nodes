@@ -33,8 +33,6 @@ services:
       - "127.0.0.1:${HTTP_PORT}:${HTTP_PORT}"
       - "127.0.0.1:${WS_PORT}:${WS_PORT}"
       - "127.0.0.1:${AUTHRPC_PORT}:${AUTHRPC_PORT}"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     logging:
       options:
         max-size: "10m"
