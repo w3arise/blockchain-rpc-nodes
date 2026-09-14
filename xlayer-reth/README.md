@@ -7,8 +7,9 @@ Run one or both XLayer setups — ports don't clash.
 ## Start
 
 ```bash
+./configure.sh          # create .env, set EXT_IP
 ./create-jwt.sh
-cp env.template .env    # set L1_RPC_URL, L1_BEACON_URL, EXT_IP
+# edit .env — set L1_RPC_URL, L1_BEACON_URL
 ./init-database.sh      # from scratch only
 docker compose up -d
 ```
@@ -18,8 +19,9 @@ docker compose up -d
 Restore op-reth snapshot data into `$HOME/xlayer-op-reth-data`, then skip `init-database.sh`:
 
 ```bash
+./configure.sh          # create .env, set EXT_IP
 ./create-jwt.sh
-cp env.template .env
+# edit .env — set L1_RPC_URL, L1_BEACON_URL
 docker compose up -d
 ```
 
