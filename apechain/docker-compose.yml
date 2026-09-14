@@ -4,8 +4,8 @@ services:
     container_name: apechain
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${HTTP_PORT}:8545"
-      - "127.0.0.1:${WS_PORT}:8546"
+      - "${RPC_BIND_ADDR}:${HTTP_PORT}:8545"
+      - "${RPC_BIND_ADDR}:${WS_PORT}:8546"
     volumes:
       - "${HOME}/apechain-data:/home/user/.arbitrum"
       - "./config/nodeConfig.json:/config/nodeConfig.json:ro"
