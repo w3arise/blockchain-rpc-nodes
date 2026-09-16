@@ -1,0 +1,23 @@
+services:
+  stellar-rpc:
+    image: ${STELLAR_RPC_IMAGE}
+    container_name: stellar-rpc
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file: .env
+    command:
+      - --config-path=/config/stellar-rpc.toml
+    volumes:
+      - ./config/stellar-rpc.toml:/config/stellar-rpc.toml:ro
+      - ${HOST_DATADIR:-$HOME/stellar-data}:/data
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8000
+      - ${RPC_BIND_ADDR}:${ADMIN_PORT}:6061
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

@@ -85,6 +85,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | Sei | `SEID_VERSION` | `sei-protocol/sei-chain` | tag-only |
 | Soneium | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain | needs-review |
 | Sonic | `SONIC_VERSION` | `0xsoniclabs/sonic` | needs-review |
+| Stellar | `STELLAR_RPC_IMAGE` | `stellar/stellar-rpc` Docker Hub tags + `stellar/stellar-rpc` GitHub releases `v*` | needs-review |
 | Tac | `TACCHAIN_VERSION` | `TacBuild/tacchain` (ignore `-beta` / `-manual` unless requested) | needs-review |
 | Tempo | `TEMPO_IMAGE` | `tempoxyz/tempo` releases; `ghcr.io/tempoxyz/tempo` (image tag omits git `v`) | tag-only |
 | Worldchain | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Stock Superchain pins in this repo. Official compose uses `ghcr.io/worldcoin/world-chain`, not stock op-reth | tag-only |

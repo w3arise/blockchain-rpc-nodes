@@ -66,6 +66,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Sei                 | `sei/`         | L1 (Cosmos + EVM)                   | seid (historical RPC)                     | [README](sei/README.md)         |
 | Soneium             | `soneium/`     | L2 (OP Stack)                       | op-reth + op-node                         | [README](soneium/README.md)     |
 | Sonic               | `sonic/`       | L1                                  | sonic-node                                | [README](sonic/README.md)       |
+| Stellar             | `stellar/`     | L1 (Stellar + Soroban)              | stellar-rpc                               | [README](stellar/README.md)     |
 | Tac                 | `tac/`         | L1 (CosmoseVM / Ethermint)          | tacchaind                                 | [README](tac/README.md)         |
 | Tempo               | `tempo/`       | L1                                  | tempo (Reth SDK + Simplex BFT)            | [README](tempo/README.md)       |
 | Worldchain          | `worldchain/`  | L2 (OP Stack)                       | op-reth + op-node                         | [README](worldchain/README.md)  |

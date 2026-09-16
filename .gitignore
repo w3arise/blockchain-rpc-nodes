@@ -34,6 +34,9 @@ scripts/.client-audit-cache.json
 hyperliquid/
 henesys/
 
+# Stellar: generated RPC config (from configure.sh)
+stellar/config/stellar-rpc.toml
+
 # Hedera: generated secrets and bootstrap artifacts (not the chain directory itself)
 hedera/bootstrap.env
 hedera/config/application.yml
