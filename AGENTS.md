@@ -171,9 +171,21 @@ external-node:
     nofile:
       soft: 1048576
       hard: 1048576
+  stop_signal: SIGINT
+  stop_grace_period: 120s
 ```
 
 See `abstract/docker-compose.yml` for a working example. If the limit still appears low inside the container (`docker compose exec external-node sh -c 'ulimit -n'`), raise the host hard limit (`ulimit -Hn`, `/etc/security/limits.conf`).
+
+### Stop signal (SIGINT)
+
+`zksync_external_node` only handles **SIGINT**. Its `SigintHandlerLayer` uses `ctrlc::set_handler` without the crate’s `termination` feature, so **SIGTERM and SIGHUP are ignored**. As PID 1, Linux then drops Docker’s default stop signal and the container waits out `stop_grace_period` before **SIGKILL** (exit 137) — RocksDB is not flushed.
+
+Set **`stop_signal: SIGINT`** on every `external-node` service (keep `stop_grace_period: 120s`). That matches Abstract helm’s workaround (`lifecycle.stopSignal: SIGINT` / a TERM→INT wrapper). Recreate the container after adding it so the create-time stop signal applies.
+
+Do **not** use `init: true` as a substitute: tini forwards SIGTERM to a non-PID-1 process, which then dies with the default terminate action and skips graceful RocksDB/Postgres drain.
+
+Confirm: `docker compose stop` (or `docker kill -s INT`) logs `Received SIGINT signal`. A raw `docker stop` without this setting typically exits 137 with no such log line.
 
 ## Arbitrum Nitro (PathDB / PBSS)
 
@@ -607,7 +619,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 
 ### ZK Stack (external node, when applicable)
 
-19. Follow [ZK Stack / ZKsync external nodes](#zk-stack--zksync-external-nodes) — `matterlabs/external-node`, PostgreSQL, `EN_*` env vars, snapshot bucket, and `ulimits.nofile`.
+19. Follow [ZK Stack / ZKsync external nodes](#zk-stack--zksync-external-nodes) — `matterlabs/external-node`, PostgreSQL, `EN_*` env vars, snapshot bucket, `ulimits.nofile`, and **`stop_signal: SIGINT`** (the EN ignores SIGTERM as PID 1).
 
 ### Nitro (PathDB / PBSS)
 

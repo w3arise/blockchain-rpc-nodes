@@ -12,7 +12,7 @@ docker compose up -d
 
 First run downloads a snapshot from GCS (`EN_SNAPSHOTS_RECOVERY_ENABLED=true`). RPC is unavailable until recovery completes.
 
-If the external node fails with `Too many open files` during RocksDB catch-up, recreate it so the compose `ulimits` apply: `docker compose up -d --force-recreate external-node`.
+If the external node fails with `Too many open files` during RocksDB catch-up, recreate it so the compose `ulimits` apply: `docker compose up -d --force-recreate external-node`. The same recreate is needed after compose changes to **`stop_signal: SIGINT`** (the EN ignores Docker’s default SIGTERM).
 
 ## Monitoring (optional)
 
