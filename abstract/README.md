@@ -48,4 +48,18 @@ docker compose down
 # remove $HOME/abstract-postgres-data and $HOME/abstract-rocksdb-data to resync from scratch
 ```
 
+## ZKsync API synchronization
+
+A `WARNING: this node is using ZKsync API synchronization…` line is expected: Abstract has gossipnet/consensus disabled, so the EN syncs from `EN_MAIN_NODE_URL`.
+
+## `en_getInteropFee` 403
+
+The EN polls `EN_MAIN_NODE_URL` (`https://api.mainnet.abs.xyz`) for `en_getInteropFee`. Abstract’s public proxy does not whitelist that method, so the log repeats:
+
+```
+WARN ... Request `en_getInteropFee` failed with HTTP error ... status=403
+```
+
+Ignore it. Sync and `eth_*` RPC are unaffected; the EN keeps the interop-fee fallback (zero). The WARN stops if Abstract exposes the method or a later EN image treats HTTP 403 as “method unavailable”.
+
 Docs: [Running a node](https://docs.abs.xyz/infrastructure/nodes/running-a-node) · [Abstract-Foundation/abstract-node](https://github.com/Abstract-Foundation/abstract-node)
