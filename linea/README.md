@@ -17,7 +17,7 @@ sudo chown -R 1000:1000 ~/besu-db    # first start only
 docker compose up -d
 ```
 
-Existing node: copy only `BESU_IMAGE`, `MARU_IMAGE`, `NETHERMIND_VERSION`, `GAS_CAP`, and `RPC_MAX_ACTIVE_CONNECTIONS` from `env.template` into `.env`, then `docker compose up -d`. Do not recopy the whole template.
+Existing node: copy only `BESU_IMAGE`, `MARU_IMAGE`, `NETHERMIND_VERSION`, `GAS_CAP`, `RPC_MAX_ACTIVE_CONNECTIONS`, and `SNAPSYNC_TRANSACTION_INDEXING_ENABLED` from `env.template` into `.env`, then `docker compose up -d`. Do not recopy the whole template. Enabling SNAP tx indexing on an already-synced datadir does not backfill the historical hash index.
 
 ## Snapshot
 
@@ -25,7 +25,7 @@ No official snapshot. Sync from P2P / genesis.
 
 ## Pruning Mode
 
-Bonsai + `SNAP`. `--bonsai-historical-block-limit` bounds **state** (default `5000` blocks). Receipts/logs stay available for RPC. Linea’s advanced profile keeps parallel tx processing **off**.
+Bonsai + `SNAP`. `--bonsai-historical-block-limit` bounds **state** (default `5000` blocks). Receipts/logs stay available for RPC. `--snapsync-synchronizer-transaction-indexing-enabled` (default on) builds the tx-hash index during SNAP so `eth_getTransactionByHash` / `eth_getTransactionReceipt` work for history. Linea’s advanced profile keeps parallel tx processing **off**.
 
 ## Host ports
 
