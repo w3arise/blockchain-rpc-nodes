@@ -38,6 +38,8 @@ services:
       - --rpc-http-port=${HTTP_PORT}
       - --rpc-ws-host=${WS_ADDR}
       - --rpc-ws-port=${WS_PORT}
+      - --rpc-http-max-active-connections=${RPC_MAX_ACTIVE_CONNECTIONS:-2000}
+      - --rpc-ws-max-active-connections=${RPC_MAX_ACTIVE_CONNECTIONS:-2000}
       - --metrics-port=${METRICS_PORT}
       - --rpc-gas-cap=${GAS_CAP:-600000000}
       - --rpc-tx-feecap=${RPC_TX_FEECAP}
