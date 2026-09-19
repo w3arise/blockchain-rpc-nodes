@@ -17,7 +17,7 @@ sudo chown -R 1000:1000 ~/besu-db    # first start only
 docker compose up -d
 ```
 
-Existing node: copy only `BESU_IMAGE`, `MARU_IMAGE`, `NETHERMIND_VERSION`, and `GAS_CAP` from `env.template` into `.env`, then `docker compose up -d`. Do not recopy the whole template.
+Existing node: copy only `BESU_IMAGE`, `MARU_IMAGE`, `NETHERMIND_VERSION`, `GAS_CAP`, and `RPC_MAX_ACTIVE_CONNECTIONS` from `env.template` into `.env`, then `docker compose up -d`. Do not recopy the whole template.
 
 ## Snapshot
 
