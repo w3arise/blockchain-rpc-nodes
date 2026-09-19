@@ -1,0 +1,84 @@
+engine_api_url = "http://plasma-execution:8551"
+consensus_api_host = "0.0.0.0"
+authrpc_jwtsecret = "/jwt/jwt.hex"
+
+[persistence]
+data_dir = "/consensus"
+
+[network]
+interval = 5
+p2p_port = 34070
+timeout = 5
+identity_file_path = "/consensus/ec-secp256k1-non-validator.der"
+trusted_only = false
+discovery.enabled = true
+
+[network.bootstrap_nodes.0]
+api_host = "plasma-mainnet-observer-cs-1.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAm4WdZmik6PVsRvcbCzc1eHuNfQHgj52CxUAjmdC7W5dXi"
+
+[network.bootstrap_nodes.1]
+api_host = "plasma-mainnet-observer-cs-4.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAmGmnMycTkjnMoxcyVAF8cUFpVoVKKCAGTpwEBJMs181yM"
+
+[network.bootstrap_nodes.2]
+api_host = "plasma-mainnet-observer-cs-9.plasmalabs.tech"
+p2p_port = 34070
+peer_id = "16Uiu2HAm2PVfZRoyXXLASVzVX3gyBEQd3mRAzZytjv3esD9kWumD"
+
+[network.bls_peer_ids]
+ad840fde21315f757ae4f7b30629d6446fced8648b46adfe6cfcda615ee7d93b2c8bd160fc189899d388133935686972 = "16Uiu2HAkvjrtriXRzhVp4i6jdNb6wPWA9wh9TKvsh1DnFJe4AF1J"
+a65fda74154fc876c70feb22e5d51be5d224f57152c37d6ceadb534f0c1976992cc8470b87ade6071574b778ff420828 = "16Uiu2HAkv5EgrXXwi4gheip871xYJrY5Gc7oVTs3TWuS1BgFN5jE"
+9732eabb15ac6fe92a0107c4faf5a2ba175ce0a835e36e0d5892bfea220bc43a1894ff0c75067c733bc3a9c2798b6b3b = "16Uiu2HAkuz46swzu5uRzjwf15YsJBe4yawh9qHtPhtHo5mZp9rQU"
+90bf4d4e3b84f19842d7e01fb09403b074730823fc143f47307018edb03659765d91ce297f945c77e1a198eed0da5b93 = "16Uiu2HAmMjDzXsnKm7xFq2gVAUKhcTtMsETXPWo3HDwnKSVyHCBv"
+a9dcac28ddbf37c7af585a77c6b49568b1d844027443bac69769d5fb69796d8fb93d798ff37c0b1a91fd263576e207d4 = "16Uiu2HAmVXe3Jpb5AVuKoggNJ1cvYKZT7yC7C7Me3JYNrD36hqvU"
+9173143cf3df430b15bc52961a516e1923d023aac7e31c8e4b35a5df41133934639557bec12dcc80b21f4cb879dbf49e = "16Uiu2HAm4mHePE4gesAb9KhUsQ9vbGyxZGbKD2H8Qv9LSERfQ4fq"
+b9935908a1c1b77f8c388767eeb21a8e85b2131204dfea5bed53559b881d22c3bca57237c389be16da6d1ff25aca1385 = "16Uiu2HAmN7iKTmj56PzYBueSo1niYUC7jagvfKPqooz4X9ooTKUs"
+a74898f0250015bd973d569a5c70c7b3ef46121dd6035ce95d000f2fdc61fafd0145d47933ff26ee65a533adbd2e699d = "16Uiu2HAmLtcwU8CSSATpyukvZ9xgjaihjYDye4pBAnvpUsgU9uXQ"
+a442d581de5524eddaf4c8c467cc32f04ddab12b88c7e924fbd67c1546abaca6f8f521dcfafa2df62baa7eda3c055b14 = "16Uiu2HAmCM3TprzKxopBXVP8en3aFH2NuMMgVfYyunvqxt9LWuMF"
+a24775fea0da6e9800492fd896896e79d6cb70058d1f97d2e7405078fcf051b9c49ad60455a11e85dc553cc4a19c2c5e = "16Uiu2HAky6J4k55kyXPiFrtJnqAt6WG4rMC1V2cg7t3E7KmHug7a"
+
+[api]
+enabled = true
+host = "0.0.0.0"
+port = 35070
+
+[chain.aquila]
+activation_height = 33300000
+contract_address = "0x6c50b8ca8EeAa1c75dEe5b5EA79772AcAbc92F48"
+epoch_length = 20000
+handoff_window = 10000
+speculative_prefetch = 9999
+unsafe_allow_short_handoff_window = false
+
+[chain.static_committee.0]
+bls_public_key = "ad840fde21315f757ae4f7b30629d6446fced8648b46adfe6cfcda615ee7d93b2c8bd160fc189899d388133935686972"
+
+[chain.static_committee.1]
+bls_public_key = "a65fda74154fc876c70feb22e5d51be5d224f57152c37d6ceadb534f0c1976992cc8470b87ade6071574b778ff420828"
+
+[chain.static_committee.2]
+bls_public_key = "9732eabb15ac6fe92a0107c4faf5a2ba175ce0a835e36e0d5892bfea220bc43a1894ff0c75067c733bc3a9c2798b6b3b"
+
+[chain.static_committee.3]
+bls_public_key = "90bf4d4e3b84f19842d7e01fb09403b074730823fc143f47307018edb03659765d91ce297f945c77e1a198eed0da5b93"
+
+[chain.static_committee.4]
+bls_public_key = "a9dcac28ddbf37c7af585a77c6b49568b1d844027443bac69769d5fb69796d8fb93d798ff37c0b1a91fd263576e207d4"
+
+[chain.static_committee.5]
+bls_public_key = "9173143cf3df430b15bc52961a516e1923d023aac7e31c8e4b35a5df41133934639557bec12dcc80b21f4cb879dbf49e"
+
+[chain.static_committee.6]
+bls_public_key = "b9935908a1c1b77f8c388767eeb21a8e85b2131204dfea5bed53559b881d22c3bca57237c389be16da6d1ff25aca1385"
+
+[chain.static_committee.7]
+bls_public_key = "a74898f0250015bd973d569a5c70c7b3ef46121dd6035ce95d000f2fdc61fafd0145d47933ff26ee65a533adbd2e699d"
+
+[chain.static_committee.8]
+bls_public_key = "a442d581de5524eddaf4c8c467cc32f04ddab12b88c7e924fbd67c1546abaca6f8f521dcfafa2df62baa7eda3c055b14"
+
+[chain.static_committee.9]
+bls_public_key = "a24775fea0da6e9800492fd896896e79d6cb70058d1f97d2e7405078fcf051b9c49ad60455a11e85dc553cc4a19c2c5e"
