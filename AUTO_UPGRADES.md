@@ -9,7 +9,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Chain | Git pin | Upgrade class | Allowlist (`auto-upgrade.yaml`) | Host apply |
 | --- | --- | --- | --- | --- |
 | Aptos | `aptos-node-v1.48.7-hotfix` | tag-only | **yes** — same-series `v1.48.*` | `./scripts/apply-tag-only.sh aptos` |
-| Arbitrum | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (docker tag from the GitHub release body, not the bare git tag) | `./scripts/apply-tag-only.sh arbitrum` |
+| Arbitrum | `nitro-node:v3.11.4-7d5ac27` | tag-only | **yes** — same-series `v3.11.*` (docker tag from the GitHub release body, not the bare git tag) | `./scripts/apply-tag-only.sh arbitrum` |
 | Berachain | `bera-reth:v1.4.4` | tag-only | **yes** — same-series `v1.4.*`. beacon-kit stays `needs-review` | `./scripts/apply-tag-only.sh berachain` |
 | Bob | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: bob`) | `./scripts/apply-tag-only.sh bob` |
 | Core | `GETH_VERSION=v1.0.26` | tag-only | **yes** — same-series `v1.0.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh core` |
@@ -20,7 +20,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Neo X | `GETH_VERSION=v0.6.2` | tag-only | **yes** — same-series `v0.6.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh neox` |
 | Optimism | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: optimism`) | `./scripts/apply-tag-only.sh optimism` |
 | Plume | `nitro-node:v3.9.5-*-validator` | tag-only | **yes** — same-series `v3.9.*-validator` (release body) | `./scripts/apply-tag-only.sh plume` |
-| Robinhood | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (release body, like Arbitrum) | `./scripts/apply-tag-only.sh robinhood` |
+| Robinhood | `nitro-node:v3.11.4-7d5ac27` | tag-only | **yes** — same-series `v3.11.*` (release body, like Arbitrum) | `./scripts/apply-tag-only.sh robinhood` |
 | Ronin | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: ronin`). EigenDA stays `needs-review` | `./scripts/apply-tag-only.sh ronin` |
 | Sei | `SEID_VERSION=v6.6.3` | tag-only | **yes** — same-series `v6.6.*` | `./scripts/apply-tag-only.sh sei` |
 | Tempo | `tempo:1.14.0` | tag-only | **yes** — same-series `1.14.*` (git tag `v*` → GHCR tag without `v`) | `./scripts/apply-tag-only.sh tempo` |
