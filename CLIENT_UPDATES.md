@@ -9,7 +9,7 @@ When adding a chain, add a row to [Sources](#sources). Pin values live in `env.t
 1. Extract pins from `**/env.template*` (`*_IMAGE`, `*_VERSION`, `*_IMAGE_TAG`) and from compose when a chain has no env pin (e.g. `celo-geth/`).
 2. Compare each pin using the [policy](#comparison-policy) and the [Sources](#sources) row — not a generic GitHub “latest” if the chain publishes its own images.
 3. Present findings (chain, client, pinned, latest stable, **inferred class**, notes). For each bump, read release notes / git compare (pin → latest) and class **pin-only** vs **needs-config** — see [AUTO_UPGRADES.md](AUTO_UPGRADES.md#agent-release-notes-check). **Do not bump `needs-review` or needs-config until the user picks.** YAML `tag-only` chains may also get a CI pin PR (`scripts/check-auto-upgrades.sh`); that script does not read notes.
-4. After a bump: update `env.template` (and README / `CHAIN_LINKS.md` when the upgrade path or official docs change). Follow `<chain>/README.md` for live-node steps (datadir migrations, genesis, JWT). Hosts apply merged tag-only pins with [`scripts/apply-tag-only.sh`](scripts/apply-tag-only.sh).
+4. After the user picks: update `env.template` (and README / `CHAIN_LINKS.md` when the upgrade path or official docs change) **on a branch and open a GitHub PR**. Never push pin bumps to `main`/`master`; do not merge unless asked. Follow `<chain>/README.md` for live-node steps (datadir migrations, genesis, JWT). Hosts apply **after merge**: tag-only with [`scripts/apply-tag-only.sh`](scripts/apply-tag-only.sh).
 
 Optional: dump the audit table to a **local** Cursor canvas (not git). Reuse `host-vs-repo-pins.canvas.tsx` for host sheet vs pins, and `client-release-audit.canvas.tsx` for pin vs upstream — both live in the Cursor workspace `canvases/` dir. Do not commit canvases, host evidence, or a living “pinned vs latest” markdown. This repo is public.
 
@@ -111,6 +111,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 - **Monad** APT `MONAD_VERSION`; 0.16.1+ will not start without a page-encoded TrieDB (MIP-8 Phase A or post-fork snapshot). See `monad/README.md`.
 - **op-node v1.19.2** is below the Mode/Metal/Zora Karst gas-config floor (`v1.19.3+`) for built-in `--network` configs.
 - **Nitro 3.8 / 3.10** one-way datadir (cannot open with 3.7.x / 3.9.x). Arbitrum One replica is pinned at `v3.11.3` and allowlisted for **`v3.11.*` patches** (`image_tag_from: release_body`). A `v3.12` series jump stays `needs-review`. See `arbitrum/README.md`.
+- **Pharos** image and `bin/VERSION` must stay paired (`./configure.sh` refreshes `mainnet.version`). v0.16 monitoring keys are `storage_cetina_*` (was `pamir_cetina_*`); this repo’s `pharos.conf` has no `monitor_config`. See `pharos/README.md`.
 
 ## After an upgrade (code)
 
@@ -118,4 +119,4 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 - OP Stack: bump op-reth and op-node together when release notes require it; refresh Conduit genesis/rollup/bootnodes if the chain is Conduit.
 - Nitro: PathDB archive defaults unchanged (`STATE_SCHEME=path`, `STATE_HISTORY=0` + archive flag) unless the user asked for pruned.
 - Do not mix `--chain=<preset>` vs genesis file on an existing op-reth datadir (`AGENTS.md`).
-- Tag-only pins: land the bump in git, then hosts run `./scripts/apply-tag-only.sh <chain>` (do not re-run `configure.sh` to pick up the pin).
+- Tag-only pins: land the bump as a PR (never push to `main`); after merge, hosts run `./scripts/apply-tag-only.sh <chain>` (do not re-run `configure.sh` to pick up the pin).

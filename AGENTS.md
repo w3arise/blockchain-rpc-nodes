@@ -581,7 +581,7 @@ curl -s http://127.0.0.1:<op-node-rpc> -H 'Content-Type: application/json' \
 
 ## Version pins
 
-Pin client images in `env.template` (op-reth, op-node, etc.) and bump them together when upgrading. When the user asks to check or bump client versions, read [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) first. Tag-only automation: [`AUTO_UPGRADES.md`](AUTO_UPGRADES.md).
+Pin client images in `env.template` (op-reth, op-node, etc.) and bump them together when upgrading. When the user asks to check or bump client versions, read [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) first. Tag-only automation: [`AUTO_UPGRADES.md`](AUTO_UPGRADES.md). **Land pin bumps as a GitHub PR from a branch — never push them to `main`.**
 
 ## Checklist for new chain
 
