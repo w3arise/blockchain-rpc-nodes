@@ -26,6 +26,7 @@ services:
       - --ws.api=${WS_API}
       - --ws.origins=*
       - --rpc.gascap=${GAS_CAP}
+      - --rpc.txfeecap=${TX_FEE_CAP}
       - --txpool.gas-limit=36000000
       - --txpool.blobpool-max-count=0
       - --txpool.blobpool-max-size=0

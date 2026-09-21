@@ -15,6 +15,26 @@ docker compose up -d
 
 RPC: `http://127.0.0.1:8945` · WS: `ws://127.0.0.1:8946`
 
+## Migrate from `non-validator-templates`
+
+In-place on an existing observer datadir (consensus 0.14.x / 0.15.x + Reth 1.8.x). Official notes describe 0.15.0 → 1.1.0; 0.14.x is older than that path.
+
+1. Stop the old compose. Cold-copy `$HOME/data/execution-data`, `$HOME/data/consensus-data`, and `$HOME/jwt-secret`.
+2. `./configure.sh` then set in `.env` (do not recopy the whole template over a live `.env`):
+
+```
+HOST_DATADIR=$HOME/data/execution-data
+HOST_CONSENSUS_DATADIR=$HOME/data/consensus-data
+```
+
+Keep `P2P_PORT=30303` and `HTTP_PORT=8545` if this host already advertised those; otherwise the repo defaults (`10303` / `8945`) are fine.
+3. Copy `$HOME/jwt-secret/jwt.hex` to `config/jwt.hex`, **or** run `./create-jwt.sh` so both containers share a new secret. Do not mix old and new JWTs.
+4. Use this repo’s `config/mainnet/non-validator.toml`. Do not reuse the 0.14 file-path committee / `shared/keys` mounts.
+5. Skip `./restore-snapshot.sh` and `./init-database.sh` (existing `db/` and `data.mdb`).
+6. `docker compose up -d`. First 1.1.0 start migrates consensus LMDB in place. Do not start 0.14.x on that volume again. Do not `docker compose down -v`.
+
+If first start fails, restore the copies and stay on the old images until the toml/JWT match.
+
 ## Snapshot
 
 Official daily observer backups (consensus LMDB + Reth datadir) live in requester-pays S3: `s3://plasma-mainnet-db-backups/mainnet/observer-0/`. `./restore-snapshot.sh` downloads the newest date folder into `$HOME/plasma-snapshot-tmp` (override with `SNAPSHOT_TMPDIR` on the **same volume** as the datadirs), then `mv`s the unpacked DBs into the host paths. Archives are never deleted.
@@ -23,7 +43,7 @@ Needs AWS credentials. After restore, skip `./init-database.sh` unless the snaps
 
 ## Pruning Mode
 
-Default Reth **archive** (no `--full`, no `--minimal`). That keeps historical receipts and logs. Do not add `--full` on this datadir — it drops receipt/log history to a short window. Consensus 1.1.0 can migrate a 0.15.0 observer DB in place; do not downgrade that volume.
+Default Reth **archive** (no `--full`, no `--minimal`). That keeps historical receipts and logs. Do not add `--full` on this datadir — it drops receipt/log history to a short window. Consensus 1.1.0 migrates a 0.14/0.15 observer DB in place; do not downgrade that volume.
 
 Aquila committee settings live in `config/<network>/non-validator.toml`. Refresh those files from [node-templates](https://github.com/PlasmaLaboratories/node-templates) when Plasma publishes a new template release.
 
