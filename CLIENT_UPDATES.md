@@ -78,6 +78,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | opBNB | `OP_GETH_IMAGE_TAG`, `OP_NODE_IMAGE_TAG` | `bnb-chain/op-geth`, `bnb-chain/opbnb` | needs-review |
 | Optimism | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain | tag-only |
 | Pharos | `PHAROS_IMAGE` | `PharosNetwork/resources` + image tag `pharos_community_v*` | needs-review |
+| Plasma | `RETH_IMAGE`, `CONSENSUS_IMAGE` | `PlasmaLaboratories/node-templates` (chain-official compose pins). Do not use generic Reth latest. | needs-review |
 | Plume | `NITRO_IMAGE` | Conduit/Plume docs first; mainline Nitro only if they track it (`*-validator` suffix) | tag-only |
 | Polygon PoS | `BOR_IMAGE` in `polygon-bor/env.template.mainnet` (and `.amoy`) | `0xPolygon/bor` | needs-review |
 | Robinhood Chain | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) | tag-only |
