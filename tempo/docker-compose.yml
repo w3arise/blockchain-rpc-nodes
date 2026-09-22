@@ -33,7 +33,7 @@ services:
     ports:
       - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
       - ${RPC_BIND_ADDR}:${WS_PORT}:8546
-      - ${RPC_BIND_ADDR}:${METRICS_PORT}:9000
+      - ${METRICS_BIND_ADDR}:${METRICS_PORT}:9000
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp
     ulimits:

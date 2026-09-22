@@ -69,6 +69,7 @@ In `env.template` under `### Ports ###`:
 | Variable | Default | Role |
 | --- | --- | --- |
 | `RPC_BIND_ADDR` | `127.0.0.1` | Host bind for HTTP / WS / admin RPC. Change to `0.0.0.0` only when LAN access is intentional. |
+| `METRICS_BIND_ADDR` | `127.0.0.1` | Host bind for a published Prometheus / metrics port. Keep this separate from `RPC_BIND_ADDR`. |
 | `HTTP_PORT` | chain-specific | Host port mapped to the client’s in-container HTTP listen port. |
 | `WS_PORT` | chain-specific | Same for WebSocket, when the client exposes it. |
 
@@ -78,9 +79,14 @@ Compose mapping — host side from env, container side **fixed** at the client d
 ports:
   - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
   - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+  - ${METRICS_BIND_ADDR}:${METRICS_PORT}:6060
 ```
 
 Do not make both sides the same env var unless the client requires it.
+
+Published metrics use `METRICS_BIND_ADDR`, so opening RPC to the LAN does not also publish metrics.
+
+`network_mode: host` binds through the client listen flags (`--http.addr`, `HTTP_ADDR` / `WS_ADDR`, and the same for metrics). Add `RPC_BIND_ADDR` or `METRICS_BIND_ADDR` only when compose or those flags interpolate the variable. An alias that nothing reads does not change the bind — leave it out (BSC, Fantom, Linea, Sonic).
 
 New setups use these names. Family-specific aliases (`EN_HTTP_PORT` / `EN_WS_PORT` for ZK Stack, `OP_GETH_HTTP_PORT` on some OP Geth nodes) are fine when they already exist — still pair them with `RPC_BIND_ADDR`. Tag-only apply health checks (`health_mode: block_time` / `health_path`) read `HTTP_PORT` and `RPC_BIND_ADDR`; see [`AUTO_UPGRADES.md`](AUTO_UPGRADES.md).
 
@@ -224,7 +230,7 @@ All **L2** setups (OP Stack, Nitro, ZK Stack external nodes, etc.) must follow t
 
 ### General rules
 
-1. Follow [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) — `RPC_BIND_ADDR` + `HTTP_PORT` (+ `WS_PORT`) in `### Ports ###`. Never hardcode host RPC IP or port in compose. op-node admin RPC uses the same bind (`RPC_BIND_ADDR` + `OP_NODE_RPC_PORT`).
+1. Follow [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) — `RPC_BIND_ADDR` + `HTTP_PORT` (+ `WS_PORT`) in `### Ports ###`. Published metrics use `METRICS_BIND_ADDR`. Never hardcode host RPC IP or port in compose. op-node admin RPC uses the same bind (`RPC_BIND_ADDR` + `OP_NODE_RPC_PORT`).
 2. **P2P ports** bind on **all interfaces** (no `127.0.0.1` prefix) — peers must reach them from the internet when the node advertises P2P.
 3. **P2P needs TCP and UDP** on the same host port — two compose mappings are required, not redundant:
    ```yaml
@@ -296,7 +302,7 @@ Set in `env.template` for op-node listen/advertise (ports defined once under `##
 ```
 OP_NODE_RPC_ADDR=0.0.0.0
 OP_NODE_P2P_LISTEN_IP=0.0.0.0
-OP_NODE_P2P_ADVERTISE_IP=          # filled by configure.sh
+OP_NODE_P2P_ADVERTISE_IP=<YOUR_PUBLIC_IP>
 ```
 
 op-node runtime config (sync mode, rollup, P2P bootnodes, fork overrides) belongs in **`env.template`** as `OP_NODE_*` vars loaded via `env_file: .env` — not duplicated as CLI flags in compose unless a flag cannot be set via env.
@@ -310,7 +316,14 @@ When the chain exposes P2P, **`configure.sh`** must fetch the host public IP (e.
 | `EXT_IP` | Execution client NAT (e.g. op-reth `--nat=extip`) |
 | `OP_NODE_P2P_ADVERTISE_IP` | op-node P2P advertise (OP Stack only) |
 
-Leave both empty in `env.template`; operators run `./configure.sh` before first start. Re-run after a public IP change.
+Write the placeholder explicitly in `env.template` so it is obvious the operator must supply a public IP:
+
+```
+EXT_IP=<YOUR_PUBLIC_IP>
+OP_NODE_P2P_ADVERTISE_IP=<YOUR_PUBLIC_IP>
+```
+
+`./configure.sh` replaces those lines (`^EXT_IP=.*` / `^OP_NODE_P2P_ADVERTISE_IP=.*`) with the host public IP before first start. Re-run after a public IP change. Do not commit a real address.
 
 Document inbound P2P ports (`P2P_PORT`, `OP_NODE_P2P_PORT` — TCP + UDP) in `<chain>/README.md` when the node is a public replica. RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
 
@@ -561,7 +574,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 2. **Pick client + retention mode** using [Client selection (historical receipts & logs)](#client-selection-historical-receipts--logs). Present viable Reth A–B / Geth A–E options (receipts/logs vs state, snapshots, HW); **prefer Reth when both families work, but wait for the user to choose** before scaffolding. Avoid reth `--full` and short-pruned geth snapshots for historical log RPC.
 3. Pin client versions in `env.template` (image tags, release versions, etc.). Add a lookup row to [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) (source of truth for *where* to check — not a “latest” snapshot). If the pin is a same-series image swap with no compose/datadir work, also add a `tag-only` row to [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml).
 4. Store datadirs under `$HOME`.
-5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap). Wire **`RPC_BIND_ADDR`** (default `127.0.0.1`) and **`HTTP_PORT`** in `env.template` / compose — see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). Do not hardcode host RPC IP or port.
+5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap). Wire **`RPC_BIND_ADDR`** (default `127.0.0.1`) and **`HTTP_PORT`** in `env.template` / compose — see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). Published metrics use **`METRICS_BIND_ADDR`**. On `network_mode: host`, add `RPC_BIND_ADDR` only when a listen flag reads it. Public IP placeholders are `EXT_IP=<YOUR_PUBLIC_IP>` (and `OP_NODE_P2P_ADVERTISE_IP=<YOUR_PUBLIC_IP>` when that var exists). Do not hardcode host RPC IP or port.
 6. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists. Match snapshot scheme (path vs hash) to the chosen mode. For Tendermint/Cosmos chains, prefer official **`full`** (block/log/receipt history) first, then **archive** (full state); use [Polkachu](https://www.polkachu.com/tendermint_snapshots) only as a **pruned last resort** — see [Snapshot source preference (Tendermint / Cosmos SDK)](#snapshot-source-preference-tendermint--cosmos-sdk). Download/extract staging must follow [Snapshot downloads (temp space)](#snapshot-downloads-temp-space) — never default large tarballs to `/tmp`.
 7. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above); include **Pruning Mode** / **State retention** when applicable (receipts/logs vs state).
 8. **Update** root `README.md` — **Ready** and **Planned** tables (type, execution client); remove from Planned when the chain is ready. Keep both tables sorted alphabetically by **Chain** (case-insensitive).
