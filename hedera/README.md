@@ -232,6 +232,8 @@ If you cannot store the minimal export, skip historical CSV import and sync forw
 
 Importer retention is disabled, so imported non-Atma receipts and logs are not intentionally pruned. Enabling `hiero.mirror.importer.retention.enabled` deletes old transaction and balance data and conflicts with this repository's historical-log goal.
 
+HIP-513 sidecar parsing is enabled (`hiero.mirror.importer.parser.record.sidecar.enabled`). The importer downloads sidecar files next to record streams and stores runtime bytecode, clean init code, state changes, and traces. Raw sidecar bytes are not stored. After changing this flag, re-run `./configure.sh` and recreate the importer. Contracts already imported with sidecars off are not rewritten.
+
 The relay limits a single `eth_getLogs` request to 10,000 blocks by default in `.env`; paginate larger ranges.
 
 ## Upgrade
