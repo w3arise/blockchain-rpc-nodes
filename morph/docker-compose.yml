@@ -19,7 +19,7 @@ services:
     ports:
       - ${RPC_BIND_ADDR}:${HTTP_HOST_PORT}:8545
       - ${RPC_BIND_ADDR}:${WS_HOST_PORT}:8546
-      - ${RPC_BIND_ADDR}:${GETH_METRICS_HOST_PORT}:6060
+      - ${METRICS_BIND_ADDR}:${GETH_METRICS_HOST_PORT}:6060
       - ${GETH_P2P_PORT}:${GETH_P2P_PORT}
       - ${GETH_P2P_PORT}:${GETH_P2P_PORT}/udp
     entrypoint:
