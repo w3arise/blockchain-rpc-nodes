@@ -216,7 +216,7 @@ flowchart TD
 Pieces:
 
 - [`scripts/check-auto-upgrades.sh`](scripts/check-auto-upgrades.sh) — reads each YAML row, lists GitHub tags, keeps same-series stable tags (drops `-rc`, `-alpha`, …), writes the pin if upstream is newer. When `image_tag_from: release_body` (Arbitrum), the pin is the docker tag named in that git tag’s release body.
-- [`.github/workflows/auto-upgrade.yml`](.github/workflows/auto-upgrade.yml) — weekly + manual; **no auto-merge**. Before merge, run the [agent notes check](#agent-release-notes-check) (or read the notes yourself).
+- [`.github/workflows/auto-upgrade.yml`](.github/workflows/auto-upgrade.yml) — weekly + manual; **no auto-merge**. The job writes the bump table (`Chain` / `From` / `To`) from `check-auto-upgrades.sh` into the PR body and a bot comment. Before merge, run the [agent notes check](#agent-release-notes-check) (or read the notes yourself).
 - Fail closed: if `--write` touches anything other than the pin line and the CHAIN_LINKS version URL, it restores and exits.
 
 ### What `--write` actually edits
