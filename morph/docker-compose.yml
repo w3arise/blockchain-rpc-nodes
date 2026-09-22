@@ -52,7 +52,7 @@ services:
     ports:
       - ${RPC_BIND_ADDR}:${NODE_RPC_HOST_PORT}:26657
       - ${NODE_P2P_PORT}:26656
-      - ${RPC_BIND_ADDR}:${NODE_METRICS_HOST_PORT}:26660
+      - ${METRICS_BIND_ADDR}:${NODE_METRICS_HOST_PORT}:26660
     entrypoint:
       - /bin/sh
       - /entrypoint-node.sh
