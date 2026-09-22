@@ -4,6 +4,12 @@ hiero:
       network: MAINNET
       downloader:
         cloudProvider: "GCP"
+      # HIP-513 sidecars: runtime bytecode, init code, state changes, traces.
+      # persistBytes stays off — that flag only stores the raw sidecar blob.
+      parser:
+        record:
+          sidecar:
+            enabled: true
       db:
         host: db
         name: mirror_node
