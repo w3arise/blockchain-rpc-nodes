@@ -17,6 +17,8 @@ This is not a Hedera consensus node. Reads are served from the local Mirror Node
 - [Database bootstrap (reference)](#database-bootstrap-reference)
 - [State retention](#state-retention)
 - [Upgrade](#upgrade)
+- [Misc](#misc)
+  - [Entity history](#entity-history)
 
 ## Start
 
@@ -257,3 +259,21 @@ Relay **0.78+** images use a single `dist/index.js` binary; the WebSocket contai
 **Block streams cutover (2026):** Hedera mainnet is replacing record streams with block streams by September 2026 (consensus node v0.77). Mirror Node operators must be running v0.160.0 or later before that date, or ingestion stops at cutover — see the [block streams announcement](https://hedera.com/blog/block-streams-replace-the-record-stream-by-default-starting-september-2026-action-required-by-mirror-node-operators/). Watch `gs://mirrornode-db-export/MAINNET/` for a `0.160.0`+ export and plan the upgrade well before the deadline.
 
 Docs: [Mirror Node bootstrap](https://github.com/hiero-ledger/hiero-mirror-node/blob/main/docs/database/bootstrap.md) · [Mirror Node GCS setup](https://docs.hedera.com/operators/mirror-node/run-your-own/gcs) · [JSON-RPC Relay](https://github.com/hiero-ledger/hiero-json-rpc-relay)
+
+## Misc
+
+### Entity history
+
+`hiero.mirror.importer.parser.record.entity.persist.entityHistory` is left at the Mirror Node default `true`. It versions rows in the `entity` table (accounts, contracts, tokens, topics, files): admin key, memo, expiry, auto-renew, deleted, staking target, `receiverSigRequired`, and similar attributes. Each change closes the current row and inserts a new one, keyed by consensus timestamp, so a query can ask what that entity looked like at an older time.
+
+That is a narrow slice of what Geth calls state. Geth full versus archive is the whole state trie at each block: account balance, nonce, code, and every contract storage slot. Hash-scheme full keeps that trie for about the last 128 blocks. Archive keeps it for every block. Both keep full blocks, receipts, and logs.
+
+| | Geth full | Geth archive | This setup |
+| --- | --- | --- | --- |
+| Blocks, receipts, logs | Full history | Full history | Full non-Atma history (`retention.enabled=false`) |
+| Account key, memo, expiry, staking, deleted | State trie, ~128 blocks | Every block | One `entity` row per change, for all time (`entityHistory`) |
+| HBAR balance | State trie, ~128 blocks | Every block | Updated in place on the current row. `historicalBalance` (default on) writes snapshots on a timer, at least every 15 minutes |
+| Contract storage | State trie, ~128 blocks | Every block | Latest value of each slot in `contract_state`. Each write is also stored as a `contract_state_change`. No per-block state trie for `eth_call` / `eth_getStorageAt` at an old block |
+| Ethereum nonce | State trie | State trie | Updated in place on the current entity. No history row |
+
+Receipts, logs, and current contract storage stay available when `entityHistory` is off. Turning it off drops later attribute changes and keeps entity creation only; lookups of an account or contract as it was at an old consensus timestamp then fail. Upstream warns that anything depending on historical entity state breaks.
