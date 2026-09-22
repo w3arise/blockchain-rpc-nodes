@@ -10,7 +10,7 @@ services:
       - "${RPC_BIND_ADDR}:${WS_PORT}:8552"
       - "${P2P_PORT}:32323"
       - "${P2P_SUBPORT}:32324"
-      - "${RPC_BIND_ADDR}:${METRICS_PORT}:61001"
+      - "${METRICS_BIND_ADDR}:${METRICS_PORT}:61001"
     volumes:
       - "${HOST_DATADIR:-$HOME/kaia-data}:/var/kend/data"
       - "./config:/config:ro"
