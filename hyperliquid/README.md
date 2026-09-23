@@ -49,7 +49,7 @@ Ubuntu 24.04 is the supported OS.
 | `HTTP_PORT` (default **3001**) | Host port for `/evm` and `/info`. Bind is `RPC_BIND_ADDR` (default `127.0.0.1`). Container listen port is **3001**. |
 | **4001**, **4002** (TCP) | Gossip. Published on all interfaces. Must be reachable from the internet, or peers deprioritize this node. |
 
-Gossip peer count for non-validators defaults to **8**. Set `n_gossip_peers` in `override_gossip_config.json` to an integer from 8 to 100. That change does not require a restart.
+`n_gossip_peers` in `override_gossip_config.json` is **20** (allowed range 8–100). That change does not require a restart.
 
 For lowest latency, run in Tokyo.
 

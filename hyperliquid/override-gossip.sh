@@ -63,8 +63,9 @@ curl -sf -X POST --header "Content-Type: application/json" \
       ($peers | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))) as $static
       | {
           root_node_ips: (($static | map({"Ip": .})) + [(.[] | {"Ip": .})]),
-          try_new_peers: false,
+          try_new_peers: true,
           chain: "Mainnet",
+          n_gossip_peers: 20,
           reserved_peer_ips: $static
         }
     ' \
