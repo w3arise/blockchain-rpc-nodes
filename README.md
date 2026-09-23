@@ -47,6 +47,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | HashKey Chain       | `hashkey/`     | L2 (OP Stack / CGT)                 | op-geth + op-node                         | [README](hashkey/README.md)     |
 | Hedera              | `hedera/`      | L1 (Hashgraph / EVM)                | JSON-RPC Relay + Mirror Node              | [README](hedera/README.md)      |
 | Hemi                | `hemi/`        | L2 (OP Stack / Bitcoin)             | hemi op-geth + op-node + bssd             | [README](hemi/README.md)        |
+| Hyperliquid         | `hyperliquid/` | L1                                  | hl-visor (non-validator)                  | [README](hyperliquid/README.md) |
 | Kaia                | `kaia/`        | L1                                  | ken (Endpoint Node)                       | [README](kaia/README.md)        |
 | Katana              | `katana/`      | L2 (OP Stack / Agglayer CDK)        | conduit-op-reth + op-node                 | [README](katana/README.md)      |
 | Lens                | `lens/`        | L2 (ZK Stack)                       | external-node + postgres                  | [README](lens/README.md)        |
@@ -85,7 +86,6 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | 0G                | L1                    | 0g-node + 0g-geth |
 | Astar (L1)        | L1                    | —                |
 | Bittensor         | L1                    | —                |
-| Hyperliquid       | L1                    | hl-node (visor)  |
 | Mode              | L2 (OP Stack)         | op-reth + op-node |
 | Nexon Henesys     | L2                    | —                |
 | Scroll            | L2 (ZK)               | —                |

@@ -1,0 +1,36 @@
+name: hyperliquid
+
+services:
+  node:
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file: .env
+    build:
+      context: .
+      args:
+        HL_VISOR_URL: ${HL_VISOR_URL:-https://binaries.hyperliquid.xyz/Mainnet/hl-visor}
+        HL_VISOR_ASC_URL: ${HL_VISOR_ASC_URL:-https://binaries.hyperliquid.xyz/Mainnet/hl-visor.asc}
+        PUB_KEY_URL: ${PUB_KEY_URL:-https://raw.githubusercontent.com/hyperliquid-dex/node/refs/heads/main/pub_key.asc}
+    command:
+      - --serve-eth-rpc
+      - --serve-info
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:3001
+      - "4001:4001"
+      - "4002:4002"
+    volumes:
+      - "${HOST_DATADIR:-$HOME/hyperliquid-data}:/home/hluser/hl"
+      - ./override_gossip_config.json:/home/hluser/override_gossip_config.json
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  pruner:
+    restart: unless-stopped
+    env_file: .env
+    build: ./pruner
+    environment:
+      PRUNE_RETENTION_HOURS: ${PRUNE_RETENTION_HOURS:-48}
+    volumes:
+      - "${HOST_DATADIR:-$HOME/hyperliquid-data}:/home/hluser/hl"
