@@ -65,6 +65,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | HashKey Chain | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | `HashKeyChain/fullnode-sync` README required `NODE_IMAGE` — **not** generic Superchain op-node | needs-review |
 | Hedera | `MIRROR_NODE_VERSION`, `RELAY_VERSION` | `hiero-ledger/hiero-mirror-node`, `hiero-ledger/hiero-json-rpc-relay`. Run `hedera/check-upgrade.sh` when present | needs-review |
 | Hemi | `OP_GETH_IMAGE`, `OP_NODE_IMAGE`, `BSSD_IMAGE` | `hemilabs/hemi-node` `mainnet/docker-compose.yml` (SHA tags). `hemilabs/heminetwork` GitHub `v2` may not match compose | needs-review |
+| Hyperliquid | `HL_VISOR_URL`, `HL_VISOR_ASC_URL` in `env.template` (Docker build) | [hyperliquid-dex/node](https://github.com/hyperliquid-dex/node) + signed binaries at `binaries.hyperliquid.xyz/Mainnet/`. Rebuild image after URL change; visor auto-upgrades `hl-node` at runtime | needs-review |
 | Kaia | `KAIA_IMAGE` | `kaiachain/kaia` | needs-review |
 | Katana | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Conduit op-reth + OP Labs op-node | tag-only |
 | Lens | `EN_VERSION` | `lens-protocol/lens-chain-node` `mainnet-external-node.yml` (often older than Matter Labs Docker) | needs-review |
