@@ -23,6 +23,7 @@
     {"Ip": "35.72.88.240"},
     {"Ip": "218.33.8.227"}
   ],
-  "try_new_peers": false,
-  "chain": "Mainnet"
+  "try_new_peers": true,
+  "chain": "Mainnet",
+  "n_gossip_peers": 20
 }
