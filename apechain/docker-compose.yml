@@ -15,6 +15,7 @@ services:
       - --conf.file=/config/nodeConfig.json
       - --parent-chain.connection.url=${PARENT_CHAIN_RPC}
       - --execution.forwarding-target=${FORWARDING_TARGET}
+      - --execution.rpc.gas-cap=${GAS_CAP}
       - --node.feed.input.url=${FEED_URL}
       - --node.data-availability.rest-aggregator.urls=${REST_AGGREGATOR_URL}
     logging:
