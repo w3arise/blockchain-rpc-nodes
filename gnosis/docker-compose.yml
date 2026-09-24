@@ -14,8 +14,8 @@ services:
       - $HOME/gnosis-reth-data:/data
       - ./config:/config:ro
     ports:
-      - 127.0.0.1:${HTTP_PORT}:9045
-      - 127.0.0.1:${WS_PORT}:9046
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:9045
+      - ${RPC_BIND_ADDR}:${WS_PORT}:9046
       - ${P2P_PORT}:${P2P_PORT}/tcp
       - ${P2P_PORT}:${P2P_PORT}/udp
     command:
