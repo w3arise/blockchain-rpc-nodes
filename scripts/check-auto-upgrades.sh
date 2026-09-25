@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Compare tag-only allowlisted pins (scripts/auto-upgrade.yaml) to upstream
+# Compare tag-only allowlisted pins (scripts/config/auto-upgrade.yaml) to upstream
 # and optionally write same-series image bumps.
 #
 # Usage:
@@ -19,7 +19,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 YAML_PY="${SCRIPT_DIR}/lib/auto-upgrade-yaml.py"
-YAML_FILE="${SCRIPT_DIR}/auto-upgrade.yaml"
+YAML_FILE="${SCRIPT_DIR}/config/auto-upgrade.yaml"
 CHAIN_LINKS="${REPO_ROOT}/CHAIN_LINKS.md"
 
 WRITE=0
@@ -170,14 +170,14 @@ write_pr_body() {
     return 0
   fi
   {
-    echo "Same-series tag-only pin bump from \`scripts/auto-upgrade.yaml\`."
+    echo "Same-series tag-only pin bump from \`scripts/config/auto-upgrade.yaml\`."
     echo
     bump_table_md
     echo
     echo "Merge is the human gate that the series is still tag-only. This workflow does not auto-merge."
     echo
     echo "After merge, hosts apply with \`./scripts/apply-tag-only.sh <id>\`"
-    echo "for each bumped chain (\`scripts/auto-upgrade.yaml\`)."
+    echo "for each bumped chain (\`scripts/config/auto-upgrade.yaml\`)."
   } > "${dest}"
   echo
   echo "Wrote PR body to ${dest}"

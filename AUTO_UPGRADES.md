@@ -64,7 +64,7 @@ A bump is tag-only when all of these hold:
 
 **Who decides that compose/genesis would not change for a given tag?**
 
-- **Series allowlist** ([`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml)) — a human, once: “patches on this major.minor are *usually* image-only.” CI uses only this plus same-series + fail-closed. It never reads notes.
+- **Series allowlist** ([`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml)) — a human, once: “patches on this major.minor are *usually* image-only.” CI uses only this plus same-series + fail-closed. It never reads notes.
 - **Per bump** — a **manual agent check** (check-client-updates skill): fetch release notes / git compare from the pinned tag to latest, and infer **pin-only** vs **needs-config**. That is what answers “would anything besides the pin change?” for *this* release. Ambiguous notes → needs-config.
 
 Weekly CI can still open a pin PR for allowlisted series. Merge (or a host apply) should wait until that notes check says pin-only — or a human has read the notes themselves.
@@ -73,7 +73,7 @@ What *is* automated vs inferred:
 
 | Check | Who | What it actually proves |
 | --- | --- | --- |
-| Allowlist row in [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml) | Human (once per chain/series) | “Patch tags on this series are *expected* to be image-only.” |
+| Allowlist row in [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml) | Human (once per chain/series) | “Patch tags on this series are *expected* to be image-only.” |
 | Same major.minor as the current pin | [`scripts/check-auto-upgrades.sh`](scripts/check-auto-upgrades.sh) | Not a series jump (`1.48`→`1.49` never auto). |
 | Fail closed after `--write` | Same script | **Our write** only touched the pin line + CHAIN_LINKS URL. It does not inspect upstream. |
 | Release notes pin → latest | Agent (manual check-client-updates) | **This** bump is pin-only or needs-config, with quoted evidence. |
@@ -157,7 +157,7 @@ The agent still does not merge or restart nodes. You confirm, then merge / apply
 flowchart TB
   subgraph gitRepo [Git]
     template[chain/env.template]
-    yaml[scripts/auto-upgrade.yaml]
+    yaml[scripts/config/auto-upgrade.yaml]
   end
 
   subgraph hostDisk [Host]
@@ -184,7 +184,7 @@ flowchart TB
 
 ## Allowlist
 
-Machine-readable source of truth: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Do not parse the markdown tables.
+Machine-readable source of truth: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml). Do not parse the markdown tables.
 
 [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) **Upgrade class** must stay in sync:
 

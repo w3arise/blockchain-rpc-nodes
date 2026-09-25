@@ -2,7 +2,7 @@
 
 Playbook for auditing and bumping pinned client versions. **Lookup rules only** — do not store “latest as of …” tags here; re-check upstream each run.
 
-When adding a chain, add a row to [Sources](#sources). Pin values live in `env.template` (or the path in that row). Tag-only auto-upgrades (same-series image swap, no config/datadir work) also need a row in [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml) — architecture: [AUTO_UPGRADES.md](AUTO_UPGRADES.md).
+When adding a chain, add a row to [Sources](#sources). Pin values live in `env.template` (or the path in that row). Tag-only auto-upgrades (same-series image swap, no config/datadir work) also need a row in [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml) — architecture: [AUTO_UPGRADES.md](AUTO_UPGRADES.md).
 
 ## Procedure
 
@@ -39,7 +39,7 @@ Need `gh` / GitHub API (`full_network`). Docker Hub: `https://hub.docker.com/v2/
 
 Architecture, diagrams, host apply, and the GitHub Actions PR permission: **[AUTO_UPGRADES.md](AUTO_UPGRADES.md)**.
 
-Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [Sources](#sources) **Upgrade class** column in sync (`tag-only` vs `needs-review`).
+Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml). Keep the [Sources](#sources) **Upgrade class** column in sync (`tag-only` vs `needs-review`).
 
 ## Sources
 
