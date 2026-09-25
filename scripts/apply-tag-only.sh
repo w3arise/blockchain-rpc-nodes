@@ -22,7 +22,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 YAML_PY="${SCRIPT_DIR}/lib/auto-upgrade-yaml.py"
-YAML_FILE="${SCRIPT_DIR}/auto-upgrade.yaml"
+YAML_FILE="${SCRIPT_DIR}/config/auto-upgrade.yaml"
 
 CHAIN_ID="${1:-}"
 if [[ -z "${CHAIN_ID}" || -n "${2:-}" ]]; then
