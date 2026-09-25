@@ -34,9 +34,11 @@ dockerfile: Dockerfile.source   # build from source (default)
 
 RPC: `http://127.0.0.1:8545` · WS: `ws://127.0.0.1:8546`
 
-## Upgrade (v1.6.3)
+## Upgrade
 
-On a live 1.6.2 host, wait for the chain to halt (`UPGRADE "v1.6.3" NEEDED` at height **25308500**) before applying this pin. Then copy `TACCHAIN_VERSION` into `.env`, rebuild the image, and recreate the container. No `app.toml` change.
+**v1.6.4 (patch):** copy `TACCHAIN_VERSION` into `.env`, `docker compose build`, recreate the container. Fixes decoding historical Ethereum transactions from the pre-v1.6.0 layout ([v1.6.4](https://github.com/TacBuild/tacchain/releases/tag/v1.6.4)). No `app.toml` change.
+
+**v1.6.3 (consensus):** on a live 1.6.2 host, wait for the chain halt (`UPGRADE "v1.6.3" NEEDED` at height **25308500**) before applying that pin, then rebuild and recreate.
 
 ## Snapshot
 
