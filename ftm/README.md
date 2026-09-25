@@ -7,8 +7,7 @@ This setup includes a watcher that automatically detects and heals "dirty state"
 ## Start
 
 ```bash
-cp env.template .env
-# Edit .env: set EXT_IP to your public IP
+./configure.sh          # create .env, set EXT_IP
 docker compose build
 docker compose up -d
 ```
