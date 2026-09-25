@@ -11,8 +11,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
 
-# shellcheck source=../scripts/check-conduit-genesis-lib.sh
-source "${SCRIPT_DIR}/../scripts/check-conduit-genesis-lib.sh"
+# shellcheck source=../scripts/lib/check-conduit-genesis-lib.sh
+source "${SCRIPT_DIR}/../scripts/lib/check-conduit-genesis-lib.sh"
 
 expand_value() {
   local val="$1"
