@@ -1,6 +1,6 @@
 # Morph (morph-geth + morph-node)
 
-Mainnet MPT full/archive node. Chain data: `$HOME/morph-geth-data`, `$HOME/morph-node-data`.
+Mainnet MPT full/archive node (morph-geth **2.2.6** + morph-node **0.6.3**, post–L1 cutover). Chain data: `$HOME/morph-geth-data`, `$HOME/morph-node-data`.
 
 ## Start
 
@@ -32,6 +32,10 @@ docker compose up -d
 ```
 
 Set `L1_MSG_START_HEIGHT` in `.env` to match the snapshot table in the official README.
+
+## Upgrade
+
+Bump **geth and node images together** — node **v0.6.3** requires the L1 contract cutover and the companion geth **morph-v2.2.6** release. See [morph v0.6.3](https://github.com/morph-l2/morph/releases/tag/v0.6.3) and [go-ethereum morph-v2.2.6](https://github.com/morph-l2/go-ethereum/releases/tag/morph-v2.2.6) release notes before changing pins on a synced datadir.
 
 ## Testnet
 

@@ -17,6 +17,8 @@ RPC: `http://127.0.0.1:7545` (HTTP), `ws://127.0.0.1:7546` (WS).
 
 With `OP_RETH_SNAPSHOT=true` (default), an empty `$HOME/celo-op-reth-data` is bootstrapped from [snapshots.celo.org](https://snapshots.celo.org/) via `celo-reth download` on first start (`NODE_TYPE` selects minimal / full / archive). Skipped once `db/` exists. Mainnet full ≈ 215 GB download / ≈ 355 GB on disk. op-geth datadirs cannot be reused.
 
+Image pins follow [celo-l2-node-docker-compose](https://github.com/celo-org/celo-l2-node-docker-compose) (`celo-v1.0.5` op-reth, `celo-v2.2.1` op-node, EigenDA **v2.6.0**). After a pin bump, `docker compose pull` and recreate **op-reth** (and op-node if its tag changed).
+
 ## Pre-L2 history
 
 `NODE_TYPE=archive` keeps post-L2 history only. Pre-migration Celo L1 state is not in the op-reth datadir (migrated op-geth data cannot be reused). Set `OP_RETH_HISTORICAL_RPC` in `.env` to a legacy Celo L1 archive; op-reth proxies pre-L2 requests there. To reach a node on the Docker host, use `http://host.docker.internal:<port>` (not `127.0.0.1`).
