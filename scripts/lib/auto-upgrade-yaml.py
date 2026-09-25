@@ -32,6 +32,7 @@ ALLOWED_KEYS = {
     "image_tag_from",
     "image_tag_suffix",
     "compose_build",
+    "pin_tag_prefix",
 }
 
 REQUIRED_KEYS = {
@@ -139,10 +140,13 @@ def excluded(tag: str, exclude: str) -> bool:
     return any(part in tag for part in parts)
 
 
-def pin_form(tag: str, strip_prefix: str) -> str:
+def pin_form(tag: str, strip_prefix: str, pin_tag_prefix: str = "") -> str:
+    body = tag
     if strip_prefix and tag.startswith(strip_prefix):
-        return tag[len(strip_prefix) :]
-    return tag
+        body = tag[len(strip_prefix) :]
+    if pin_tag_prefix:
+        return f"{pin_tag_prefix}{body}"
+    return body
 
 
 def docker_tag_from_release_body(
@@ -232,10 +236,12 @@ def main() -> int:
     pin_form_p = sub.add_parser("pin-form")
     pin_form_p.add_argument("tag")
     pin_form_p.add_argument("--strip-prefix", default="")
+    pin_form_p.add_argument("--pin-tag-prefix", default="")
     filter_p = sub.add_parser("filter-series")
     filter_p.add_argument("--current", required=True)
     filter_p.add_argument("--exclude", default="")
     filter_p.add_argument("--strip-prefix", default="")
+    filter_p.add_argument("--pin-tag-prefix", default="")
     body_p = sub.add_parser("docker-tag-from-body")
     body_p.add_argument("--image-prefix", required=True)
     body_p.add_argument("--git-tag", required=True)
@@ -247,7 +253,7 @@ def main() -> int:
         print(series_from_tag(args.tag))
         return 0
     if args.cmd == "pin-form":
-        print(pin_form(args.tag, args.strip_prefix))
+        print(pin_form(args.tag, args.strip_prefix, args.pin_tag_prefix))
         return 0
     if args.cmd == "docker-tag-from-body":
         print(
@@ -262,7 +268,7 @@ def main() -> int:
             tag = line.strip()
             if not tag:
                 continue
-            comparable = pin_form(tag, args.strip_prefix)
+            comparable = pin_form(tag, args.strip_prefix, args.pin_tag_prefix)
             if excluded(tag, args.exclude) or excluded(comparable, args.exclude):
                 continue
             if same_series(comparable, series):
