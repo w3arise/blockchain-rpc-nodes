@@ -1,0 +1,104 @@
+services:
+  plasma-execution:
+    image: ${RETH_IMAGE}
+    container_name: plasma-execution
+    user: "0:0"
+    restart: unless-stopped
+    stop_grace_period: 120s
+    env_file: .env
+    entrypoint: ["reth"]
+    command:
+      - node
+      - --chain=/node/genesis.json
+      - --datadir=/data
+      - --trusted-peers=${EXECUTION_TRUSTED_PEERS}
+      - --authrpc.jwtsecret=/jwt/jwt.hex
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.port=8551
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8545
+      - --http.api=${HTTP_API}
+      - --http.corsdomain=*
+      - --ws
+      - --ws.addr=0.0.0.0
+      - --ws.port=8546
+      - --ws.api=${WS_API}
+      - --ws.origins=*
+      - --rpc.gascap=${GAS_CAP}
+      - --rpc.txfeecap=${TX_FEE_CAP}
+      - --txpool.gas-limit=36000000
+      - --txpool.blobpool-max-count=0
+      - --txpool.blobpool-max-size=0
+      - --txpool.blob-cache-size=0
+      - --nat=extip:${EXT_IP}
+      - --port=${P2P_PORT}
+      - --discovery.addr=0.0.0.0
+      - --discovery.port=${P2P_PORT}
+      - --discovery.v5.port=${P2P_PORT}
+      - --metrics=0.0.0.0:9001
+    volumes:
+      - ${HOST_DATADIR:-$HOME/plasma-reth-data}:/data
+      - ./config/${NETWORK}/genesis.json:/node/genesis.json:ro
+      - ./config/jwt.hex:/jwt/jwt.hex:ro
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "exec 6<> /dev/tcp/localhost/8545 && exec 6<> /dev/tcp/localhost/8551",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    networks:
+      - plasma-network
+
+  plasma-consensus:
+    image: ${CONSENSUS_IMAGE}
+    container_name: plasma-consensus
+    user: "0:0"
+    restart: unless-stopped
+    env_file: .env
+    entrypoint: ["plasma-cli"]
+    command:
+      - observer
+      - --config-path=/tmp/non-validator.toml
+      - --no-color
+      - --timeout-stream-manager
+      - 10ms
+      - --telemetry.enable-metrics
+      - --telemetry.enable-health
+      - --telemetry.host
+      - 0.0.0.0
+      - --telemetry.port
+      - "9001"
+      - --p2p.external-address
+      - ${EXT_IP}:${CONSENSUS_P2P_PORT}
+    volumes:
+      - ${HOST_CONSENSUS_DATADIR:-$HOME/plasma-consensus-data}:/consensus
+      - ./config/${NETWORK}/non-validator.toml:/tmp/non-validator.toml:ro
+      - ./config/${NETWORK}/genesis.json:/node/genesis.json:ro
+      - ./config/jwt.hex:/jwt/jwt.hex:ro
+    ports:
+      - ${RPC_BIND_ADDR}:${CONSENSUS_API_PORT}:35070
+      - ${CONSENSUS_P2P_PORT}:34070
+    depends_on:
+      plasma-execution:
+        condition: service_healthy
+    networks:
+      - plasma-network
+
+networks:
+  plasma-network:
+    driver: bridge

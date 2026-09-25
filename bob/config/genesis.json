@@ -32,7 +32,8 @@
     "graniteTime": 1726070401,
     "holoceneTime": 1736445601,
     "isthmusTime": 1746806401,
-    "jovianTime": 1773325801
+    "jovianTime": 1773325801,
+    "karstTime": 1790179201
   },
   "nonce": "0x0",
   "timestamp": "0x66183323",

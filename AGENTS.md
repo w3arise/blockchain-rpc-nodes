@@ -8,7 +8,12 @@ Nodes in this repo are meant to run on **Linux hosts**. Do not target macOS for 
 
 ## Client selection (historical receipts & logs)
 
-**Primary product goal:** serve **historical receipts and logs** (block/`eth_getLogs` history from genesis or a long window). Historical **state** queries (`eth_call` / proofs at old blocks) are secondary and often intentionally omitted.
+**Primary product goals:**
+
+1. **Historical receipts and logs** — block/`eth_getLogs` history from genesis or a long window (drives client/mode selection below).
+2. **Transaction submission** — `eth_sendRawTransaction` (and equivalent write RPC) must work on every JSON-RPC endpoint this repo ships, unless a chain README explicitly documents a read-only exception.
+
+Historical **state** queries (`eth_call` / proofs at old blocks) are secondary and often intentionally omitted.
 
 Client “full” vs “archive” means different things — do not assume they match:
 
@@ -69,6 +74,7 @@ In `env.template` under `### Ports ###`:
 | Variable | Default | Role |
 | --- | --- | --- |
 | `RPC_BIND_ADDR` | `127.0.0.1` | Host bind for HTTP / WS / admin RPC. Change to `0.0.0.0` only when LAN access is intentional. |
+| `METRICS_BIND_ADDR` | `127.0.0.1` | Host bind for a published Prometheus / metrics port. Keep this separate from `RPC_BIND_ADDR`. |
 | `HTTP_PORT` | chain-specific | Host port mapped to the client’s in-container HTTP listen port. |
 | `WS_PORT` | chain-specific | Same for WebSocket, when the client exposes it. |
 
@@ -78,9 +84,14 @@ Compose mapping — host side from env, container side **fixed** at the client d
 ports:
   - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
   - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+  - ${METRICS_BIND_ADDR}:${METRICS_PORT}:6060
 ```
 
 Do not make both sides the same env var unless the client requires it.
+
+Published metrics use `METRICS_BIND_ADDR`, so opening RPC to the LAN does not also publish metrics.
+
+`network_mode: host` binds through the client listen flags (`--http.addr`, `HTTP_ADDR` / `WS_ADDR`, and the same for metrics). Add `RPC_BIND_ADDR` or `METRICS_BIND_ADDR` only when compose or those flags interpolate the variable. An alias that nothing reads does not change the bind — leave it out (BSC, Fantom, Linea, Sonic).
 
 New setups use these names. Family-specific aliases (`EN_HTTP_PORT` / `EN_WS_PORT` for ZK Stack, `OP_GETH_HTTP_PORT` on some OP Geth nodes) are fine when they already exist — still pair them with `RPC_BIND_ADDR`. Tag-only apply health checks (`health_mode: block_time` / `health_path`) read `HTTP_PORT` and `RPC_BIND_ADDR`; see [`AUTO_UPGRADES.md`](AUTO_UPGRADES.md).
 
@@ -166,9 +177,21 @@ external-node:
     nofile:
       soft: 1048576
       hard: 1048576
+  stop_signal: SIGINT
+  stop_grace_period: 120s
 ```
 
 See `abstract/docker-compose.yml` for a working example. If the limit still appears low inside the container (`docker compose exec external-node sh -c 'ulimit -n'`), raise the host hard limit (`ulimit -Hn`, `/etc/security/limits.conf`).
+
+### Stop signal (SIGINT)
+
+`zksync_external_node` only handles **SIGINT**. Its `SigintHandlerLayer` uses `ctrlc::set_handler` without the crate’s `termination` feature, so **SIGTERM and SIGHUP are ignored**. As PID 1, Linux then drops Docker’s default stop signal and the container waits out `stop_grace_period` before **SIGKILL** (exit 137) — RocksDB is not flushed.
+
+Set **`stop_signal: SIGINT`** on every `external-node` service (keep `stop_grace_period: 120s`). That matches Abstract helm’s workaround (`lifecycle.stopSignal: SIGINT` / a TERM→INT wrapper). Recreate the container after adding it so the create-time stop signal applies.
+
+Do **not** use `init: true` as a substitute: tini forwards SIGTERM to a non-PID-1 process, which then dies with the default terminate action and skips graceful RocksDB/Postgres drain.
+
+Confirm: `docker compose stop` (or `docker kill -s INT`) logs `Received SIGINT signal`. A raw `docker stop` without this setting typically exits 137 with no such log line.
 
 ## Arbitrum Nitro (PathDB / PBSS)
 
@@ -194,6 +217,20 @@ Two flags control retention on PathDB nodes:
 **Pruned full node** — set `state-history` to a non-zero value (e.g. `345600` for ~24h) and omit `--execution.caching.archive` (or `"archive": false` in a config file).
 
 **Repo default for archive setups:** `STATE_HISTORY=0` plus `--execution.caching.archive` in compose.
+
+### Transaction forwarding (writes)
+
+Non-sequencer Nitro nodes do **not** accept `eth_sendRawTransaction` locally. They must **forward** signed txs to the chain’s sequencer RPC via `--execution.forwarding-target`.
+
+| Setup | Forwarding |
+| --- | --- |
+| **Replica / archive RPC node** (this repo’s default) | Set `FORWARDING_TARGET` in `env.template` to the chain’s official **sequencer** URL (from chain docs or `connecting` page). Wire `--execution.forwarding-target=${FORWARDING_TARGET}` in compose. Reads are served from the local datadir; writes are relayed upstream. |
+| **Built-in Nitro preset** (e.g. Arbitrum One with `--chain.id=42161`) | Nitro may auto-fill the sequencer URL from embedded chain info when the sequencer is disabled — verify with a test `eth_sendRawTransaction` after scaffold. |
+| **Custom `chain.info` file** (Robinhood, Plume, Conduit Orbit, …) | Auto-fill usually does **not** apply — **`FORWARDING_TARGET` is required**. |
+
+**Do not** set `--execution.forwarding-target=null` on RPC nodes in this repo — Nitro drops incoming transactions and clients fail with errors such as *publishing transactions not supported by this endpoint*. Use `null` only for batch posters / sequencers that publish txs themselves (not our RPC replicas).
+
+Reference: [`plume/env.template`](plume/env.template), [`robinhood/env.template`](robinhood/env.template).
 
 ### Critical: do not change `state-history` casually
 
@@ -224,7 +261,7 @@ All **L2** setups (OP Stack, Nitro, ZK Stack external nodes, etc.) must follow t
 
 ### General rules
 
-1. Follow [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) — `RPC_BIND_ADDR` + `HTTP_PORT` (+ `WS_PORT`) in `### Ports ###`. Never hardcode host RPC IP or port in compose. op-node admin RPC uses the same bind (`RPC_BIND_ADDR` + `OP_NODE_RPC_PORT`).
+1. Follow [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) — `RPC_BIND_ADDR` + `HTTP_PORT` (+ `WS_PORT`) in `### Ports ###`. Published metrics use `METRICS_BIND_ADDR`. Never hardcode host RPC IP or port in compose. op-node admin RPC uses the same bind (`RPC_BIND_ADDR` + `OP_NODE_RPC_PORT`).
 2. **P2P ports** bind on **all interfaces** (no `127.0.0.1` prefix) — peers must reach them from the internet when the node advertises P2P.
 3. **P2P needs TCP and UDP** on the same host port — two compose mappings are required, not redundant:
    ```yaml
@@ -296,7 +333,7 @@ Set in `env.template` for op-node listen/advertise (ports defined once under `##
 ```
 OP_NODE_RPC_ADDR=0.0.0.0
 OP_NODE_P2P_LISTEN_IP=0.0.0.0
-OP_NODE_P2P_ADVERTISE_IP=          # filled by configure.sh
+OP_NODE_P2P_ADVERTISE_IP=<YOUR_PUBLIC_IP>
 ```
 
 op-node runtime config (sync mode, rollup, P2P bootnodes, fork overrides) belongs in **`env.template`** as `OP_NODE_*` vars loaded via `env_file: .env` — not duplicated as CLI flags in compose unless a flag cannot be set via env.
@@ -310,7 +347,14 @@ When the chain exposes P2P, **`configure.sh`** must fetch the host public IP (e.
 | `EXT_IP` | Execution client NAT (e.g. op-reth `--nat=extip`) |
 | `OP_NODE_P2P_ADVERTISE_IP` | op-node P2P advertise (OP Stack only) |
 
-Leave both empty in `env.template`; operators run `./configure.sh` before first start. Re-run after a public IP change.
+Write the placeholder explicitly in `env.template` so it is obvious the operator must supply a public IP:
+
+```
+EXT_IP=<YOUR_PUBLIC_IP>
+OP_NODE_P2P_ADVERTISE_IP=<YOUR_PUBLIC_IP>
+```
+
+`./configure.sh` replaces those lines (`^EXT_IP=.*` / `^OP_NODE_P2P_ADVERTISE_IP=.*`) with the host public IP before first start. Re-run after a public IP change. Do not commit a real address.
 
 Document inbound P2P ports (`P2P_PORT`, `OP_NODE_P2P_PORT` — TCP + UDP) in `<chain>/README.md` when the node is a public replica. RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
 
@@ -385,7 +429,8 @@ For `restore-snapshot.sh` (and README snapshot steps that download tarballs):
 - Put download/extract staging under **`$HOME/<chain>-snapshot-tmp`** (or another path on the **same large volume as `HOST_DATADIR`**).
 - Allow override via **`SNAPSHOT_TMPDIR`** when set.
 - Prefer `aria2c` for large HTTP(S) tarballs when available; fall back to `curl`.
-- Clean up the staging dir on success (and on failure via `trap` when using a script).
+- **Never delete** the downloaded archive. Use a **stable** staging path (not `mktemp`) so resume works. Do not `trap` `rm -rf` on the tarball. Print a warning with path and size so the operator can remove it themselves. Tiny `mktemp` in `configure.sh` is unchanged.
+- After unpack, **move** the extracted DB into `HOST_DATADIR` (`mv`, same filesystem = rename). Do not `cp`/`rsync` the unpacked tree — that needs a second copy of the DB. Warn if staging and datadir are on different devices (GNU `mv` then copies).
 
 Do not change this for tiny `mktemp` usage in `configure.sh` (sed helpers, etc.).
 
@@ -549,7 +594,7 @@ curl -s http://127.0.0.1:<op-node-rpc> -H 'Content-Type: application/json' \
 
 ## Version pins
 
-Pin client images in `env.template` (op-reth, op-node, etc.) and bump them together when upgrading. When the user asks to check or bump client versions, read [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) first. Tag-only automation: [`AUTO_UPGRADES.md`](AUTO_UPGRADES.md).
+Pin client images in `env.template` (op-reth, op-node, etc.) and bump them together when upgrading. When the user asks to check or bump client versions, read [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) first. Tag-only automation: [`AUTO_UPGRADES.md`](AUTO_UPGRADES.md). **Land pin bumps as a GitHub PR from a branch — never push them to `main`.**
 
 ## Checklist for new chain
 
@@ -561,7 +606,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 2. **Pick client + retention mode** using [Client selection (historical receipts & logs)](#client-selection-historical-receipts--logs). Present viable Reth A–B / Geth A–E options (receipts/logs vs state, snapshots, HW); **prefer Reth when both families work, but wait for the user to choose** before scaffolding. Avoid reth `--full` and short-pruned geth snapshots for historical log RPC.
 3. Pin client versions in `env.template` (image tags, release versions, etc.). Add a lookup row to [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) (source of truth for *where* to check — not a “latest” snapshot). If the pin is a same-series image swap with no compose/datadir work, also add a `tag-only` row to [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml).
 4. Store datadirs under `$HOME`.
-5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap). Wire **`RPC_BIND_ADDR`** (default `127.0.0.1`) and **`HTTP_PORT`** in `env.template` / compose — see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). Do not hardcode host RPC IP or port.
+5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap). Wire **`RPC_BIND_ADDR`** (default `127.0.0.1`) and **`HTTP_PORT`** in `env.template` / compose — see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). Published metrics use **`METRICS_BIND_ADDR`**. On `network_mode: host`, add `RPC_BIND_ADDR` only when a listen flag reads it. Public IP placeholders are `EXT_IP=<YOUR_PUBLIC_IP>` (and `OP_NODE_P2P_ADVERTISE_IP=<YOUR_PUBLIC_IP>` when that var exists). Do not hardcode host RPC IP or port.
 6. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists. Match snapshot scheme (path vs hash) to the chosen mode. For Tendermint/Cosmos chains, prefer official **`full`** (block/log/receipt history) first, then **archive** (full state); use [Polkachu](https://www.polkachu.com/tendermint_snapshots) only as a **pruned last resort** — see [Snapshot source preference (Tendermint / Cosmos SDK)](#snapshot-source-preference-tendermint--cosmos-sdk). Download/extract staging must follow [Snapshot downloads (temp space)](#snapshot-downloads-temp-space) — never default large tarballs to `/tmp`.
 7. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above); include **Pruning Mode** / **State retention** when applicable (receipts/logs vs state).
 8. **Update** root `README.md` — **Ready** and **Planned** tables (type, execution client); remove from Planned when the chain is ready. Keep both tables sorted alphabetically by **Chain** (case-insensitive).
@@ -587,10 +632,11 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 
 ### ZK Stack (external node, when applicable)
 
-19. Follow [ZK Stack / ZKsync external nodes](#zk-stack--zksync-external-nodes) — `matterlabs/external-node`, PostgreSQL, `EN_*` env vars, snapshot bucket, and `ulimits.nofile`.
+19. Follow [ZK Stack / ZKsync external nodes](#zk-stack--zksync-external-nodes) — `matterlabs/external-node`, PostgreSQL, `EN_*` env vars, snapshot bucket, `ulimits.nofile`, and **`stop_signal: SIGINT`** (the EN ignores SIGTERM as PID 1).
 
 ### Nitro (PathDB / PBSS)
 
 20. Use `STATE_SCHEME=path`, `STATE_HISTORY=0`, and `--execution.caching.archive` for archive defaults (see [Arbitrum Nitro (PathDB / PBSS)](#arbitrum-nitro-pathdb--pbss)).
 21. Add a **State retention** section to the chain README — warn that non-zero `state-history` prunes on change or snapshot restore.
+22. Wire **`FORWARDING_TARGET`** + `--execution.forwarding-target=${FORWARDING_TARGET}` for non-sequencer RPC nodes (see [Transaction forwarding (writes)](#transaction-forwarding-writes)). Do not use `null` unless the chain is intentionally read-only. Document in the chain README that writes are forwarded to the sequencer.
 

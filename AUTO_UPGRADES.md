@@ -29,7 +29,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Abstract | stays `needs-review` | never auto across EN majors (`v29`→`v31` needs snapshot wipe) | no | `<chain>/README.md` |
 | Linea feecap / other config | not a client pin | out of this workflow | no | — |
 
-A new agent picking up “upgrade X”: read this file + CLIENT_UPDATES, run the notes check, **wait for the user to pick** before bumping `needs-review` / needs-config. `apply-tag-only.sh` only works for YAML ids.
+A new agent picking up “upgrade X”: read this file + CLIENT_UPDATES, run the notes check, **wait for the user to pick** before bumping `needs-review` / needs-config. After they pick, **open a GitHub PR** from a branch — never push pin bumps to `main`/`master`, and do not merge unless asked. `apply-tag-only.sh` only works for YAML ids.
 
 ## Two layers
 
@@ -123,7 +123,7 @@ For each pin that is behind latest:
 2. Classify **pin-only** (image/binary only) vs **needs-config** (flags, genesis, snapshot wipe, migrations, paired bumps, “operator action required”).
 3. If notes are missing or unclear → **needs-config**. Quote the bullets that decided it.
 
-Allowlisted + pin-only: merge the auto-PR (or bump the pin) and hosts can `apply-tag-only.sh`. Allowlisted + needs-config: close or skip that PR; do not host-apply; pause the YAML row until a human upgrade lands.
+Allowlisted + pin-only: merge the auto-PR (or open a human PR on a branch — never push the pin to `main`) and hosts can `apply-tag-only.sh` **after merge**. Allowlisted + needs-config: close or skip that PR; do not host-apply; pause the YAML row until a human upgrade lands as a PR.
 
 This does not run in GitHub Actions v1. Trigger it in Cursor (“check client updates” / “check Aptos notes for the open pin PR”).
 
@@ -216,7 +216,7 @@ flowchart TD
 Pieces:
 
 - [`scripts/check-auto-upgrades.sh`](scripts/check-auto-upgrades.sh) — reads each YAML row, lists GitHub tags, keeps same-series stable tags (drops `-rc`, `-alpha`, …), writes the pin if upstream is newer. When `image_tag_from: release_body` (Arbitrum), the pin is the docker tag named in that git tag’s release body.
-- [`.github/workflows/auto-upgrade.yml`](.github/workflows/auto-upgrade.yml) — weekly + manual; **no auto-merge**. Before merge, run the [agent notes check](#agent-release-notes-check) (or read the notes yourself).
+- [`.github/workflows/auto-upgrade.yml`](.github/workflows/auto-upgrade.yml) — weekly + manual; **no auto-merge**. The job writes the bump table (`Chain` / `From` / `To`) from `check-auto-upgrades.sh` into the PR body and a bot comment. Before merge, run the [agent notes check](#agent-release-notes-check) (or read the notes yourself).
 - Fail closed: if `--write` touches anything other than the pin line and the CHAIN_LINKS version URL, it restores and exits.
 
 ### What `--write` actually edits

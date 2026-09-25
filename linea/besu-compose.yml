@@ -27,6 +27,7 @@ services:
       - --static-nodes-file=/var/lib/besu/static-nodes.json
       - --bonsai-trie-logs-pruning-window-size=${BONSAI_TRIE_LOGS_PRUNING_WINDOW_SIZE}
       - --bonsai-historical-block-limit=${BONSAI_HISTORICAL_BLOCK_LIMIT}
+      - --snapsync-synchronizer-transaction-indexing-enabled=${SNAPSYNC_TRANSACTION_INDEXING_ENABLED:-true}
       - --auto-log-bloom-caching-enabled=true
       - --cache-last-blocks=2048
       - --p2p-enabled=true
@@ -38,6 +39,8 @@ services:
       - --rpc-http-port=${HTTP_PORT}
       - --rpc-ws-host=${WS_ADDR}
       - --rpc-ws-port=${WS_PORT}
+      - --rpc-http-max-active-connections=${RPC_MAX_ACTIVE_CONNECTIONS:-2000}
+      - --rpc-ws-max-active-connections=${RPC_MAX_ACTIVE_CONNECTIONS:-2000}
       - --metrics-port=${METRICS_PORT}
       - --rpc-gas-cap=${GAS_CAP:-600000000}
       - --rpc-tx-feecap=${RPC_TX_FEECAP}

@@ -90,6 +90,8 @@ services:
         soft: 1048576
         hard: 1048576
     restart: unless-stopped
+    # EN Ctrl+C handler is SIGINT-only; default SIGTERM is ignored as PID 1.
+    stop_signal: SIGINT
     stop_grace_period: 120s
     depends_on:
       postgres:
@@ -97,10 +99,10 @@ services:
       generate-secrets:
         condition: service_completed_successfully
     ports:
-      - 127.0.0.1:${EN_HTTP_PORT:-3060}:${EN_HTTP_PORT:-3060}
-      - 127.0.0.1:${EN_WS_PORT:-3061}:${EN_WS_PORT:-3061}
-      - 127.0.0.1:${EN_HEALTHCHECK_PORT:-3081}:${EN_HEALTHCHECK_PORT:-3081}
-      - 127.0.0.1:${EN_PROMETHEUS_PORT:-3322}:${EN_PROMETHEUS_PORT:-3322}
+      - ${RPC_BIND_ADDR}:${EN_HTTP_PORT:-3060}:${EN_HTTP_PORT:-3060}
+      - ${RPC_BIND_ADDR}:${EN_WS_PORT:-3061}:${EN_WS_PORT:-3061}
+      - ${RPC_BIND_ADDR}:${EN_HEALTHCHECK_PORT:-3081}:${EN_HEALTHCHECK_PORT:-3081}
+      - ${RPC_BIND_ADDR}:${EN_PROMETHEUS_PORT:-3322}:${EN_PROMETHEUS_PORT:-3322}
     volumes:
       - $HOME/abstract-rocksdb-data:/db
       - ./config:/configs
@@ -108,7 +110,8 @@ services:
       - 3322
     environment:
       DATABASE_URL: postgres://postgres:${DB_PASSWORD:-notsecurepassword}@postgres:5430/abstract_local_ext_node
-      DATABASE_POOL_SIZE: 10
+      DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-50}
+      EN_POSTGRES_STATEMENT_TIMEOUT: ${EN_POSTGRES_STATEMENT_TIMEOUT:-60s}
 
       EN_HTTP_PORT: ${EN_HTTP_PORT:-3060}
       EN_WS_PORT: ${EN_WS_PORT:-3061}
@@ -125,12 +128,17 @@ services:
       EN_ESTIMATE_GAS_SCALE_FACTOR: "1.3"
       EN_ESTIMATE_GAS_ACCEPTABLE_OVERESTIMATION: "5000"
 
+      EN_REQ_ENTITIES_LIMIT: ${EN_REQ_ENTITIES_LIMIT:-50000}
+      EN_MAX_RESPONSE_BODY_SIZE_MB: ${EN_MAX_RESPONSE_BODY_SIZE_MB:-100}
+      EN_MAX_RESPONSE_BODY_SIZE_OVERRIDES_MB: ${EN_MAX_RESPONSE_BODY_SIZE_OVERRIDES_MB:-eth_getLogs=100,eth_getBlockReceipts=None}
+      EN_ETH_CALL_GAS_CAP: ${EN_ETH_CALL_GAS_CAP:-600000000}
+
       EN_STATE_CACHE_PATH: ./db/ext-node/state_keeper
       EN_MERKLE_TREE_PATH: ./db/ext-node/lightweight
       EN_SNAPSHOTS_RECOVERY_ENABLED: ${EN_SNAPSHOTS_RECOVERY_ENABLED:-true}
       EN_SNAPSHOTS_OBJECT_STORE_BUCKET_BASE_URL: ${EN_SNAPSHOTS_OBJECT_STORE_BUCKET_BASE_URL}
       EN_SNAPSHOTS_OBJECT_STORE_MODE: GCSAnonymousReadOnly
-      RUST_LOG: ${RUST_LOG:-warn,zksync=info,zksync_core::metadata_calculator=debug,zksync_state=debug,zksync_utils=debug,zksync_web3_decl::client=error}
+      RUST_LOG: ${RUST_LOG:-info,zksync=info,zksync_core::metadata_calculator=info,zksync_state=info,zksync_utils=info,zksync_web3_decl::client=info}
 
       EN_STATE_KEEPER_L2_BLOCK_COMMIT_DEADLINE: ${EN_STATE_KEEPER_L2_BLOCK_COMMIT_DEADLINE:-200 ms}
       EN_API_SEND_RAW_TX_SYNC_DEFAULT_TIMEOUT_MS: ${EN_API_SEND_RAW_TX_SYNC_DEFAULT_TIMEOUT_MS:-2000}

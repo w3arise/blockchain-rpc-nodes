@@ -14,6 +14,16 @@ docker compose up -d
 
 RPC: `http://127.0.0.1:18100` · WS: `ws://127.0.0.1:18200`
 
+## Upgrade
+
+Copy only the `PHAROS_IMAGE` line from `env.template` into `.env` (do not recopy the whole template). Re-run `./configure.sh` so `bin/VERSION` matches the new image, then `docker compose pull && docker compose up -d`. Official docs require the VERSION file to stay in sync with the image.
+
+The image copies `ops` into the datadir on start. Confirm SpecVersion after the container is up:
+
+```bash
+docker compose exec -w /data pharos ./ops health-check
+```
+
 ## Snapshot
 
 Latest mainnet snapshot and checksum: [Pharos Network Snapshots](https://docs.pharos.xyz/node-and-validator-guide/pharos-network-snapshots).
