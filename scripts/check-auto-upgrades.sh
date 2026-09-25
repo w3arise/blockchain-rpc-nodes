@@ -113,7 +113,8 @@ resolve_pin_tag() {
       --suffix="${AUTO_IMAGE_TAG_SUFFIX:-}"
     return 0
   fi
-  python3 "${YAML_PY}" pin-form "${git_tag}" --strip-prefix "${AUTO_STRIP_GIT_PREFIX:-}"
+  python3 "${YAML_PY}" pin-form "${git_tag}" --strip-prefix "${AUTO_STRIP_GIT_PREFIX:-}" \
+    --pin-tag-prefix "${AUTO_PIN_TAG_PREFIX:-}"
 }
 
 version_lt() {
@@ -262,7 +263,7 @@ for chain_id in "${CHAIN_IDS[@]}"; do
   unset AUTO_IMAGE_TAG_FROM AUTO_CHAIN_LINKS AUTO_EXCLUDE \
     AUTO_HEALTH_PATH AUTO_HEALTH_PORT_VAR AUTO_HEALTH_BIND_VAR \
     AUTO_STRIP_GIT_PREFIX AUTO_APPLY_GROUP AUTO_IMAGE_TAG_SUFFIX \
-    AUTO_COMPOSE_BUILD
+    AUTO_COMPOSE_BUILD AUTO_PIN_TAG_PREFIX
   # shellcheck disable=SC1090
   eval "$(python3 "${YAML_PY}" --file "${YAML_FILE}" export "${chain_id}")"
 
@@ -288,6 +289,7 @@ for chain_id in "${CHAIN_IDS[@]}"; do
     printf '%s\n' "${tags_raw}" \
       | python3 "${YAML_PY}" filter-series --current "${current_tag}" \
         --exclude="${AUTO_EXCLUDE:-}" --strip-prefix "${AUTO_STRIP_GIT_PREFIX:-}" \
+        --pin-tag-prefix "${AUTO_PIN_TAG_PREFIX:-}" \
       | sort -V
   )
   if [[ "${#tags[@]}" -eq 0 ]]; then

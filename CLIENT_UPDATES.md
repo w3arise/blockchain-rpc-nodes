@@ -55,7 +55,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | B² Network | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | [B² rollup node docs](https://docs.bsquared.network/for-developers/running_rollup_node) / `b2network/docs` — **not** generic OP Labs | needs-review |
 | Bob | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain (OP Labs) | tag-only |
 | BSC | `BSC_IMAGE` | `bnb-chain/bsc` (`ghcr.io/bnb-chain/bsc`) | needs-review |
-| Celo | `OP_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | `celo-org/celo-l2-node-docker-compose` (`celo-v*` on Celo registry). EigenDA: Celo compose, not monorepo latest | needs-review |
+| Celo | `OP_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | `celo-org/celo-l2-node-docker-compose` (`celo-v*` on Celo registry). EigenDA: Celo compose, not monorepo latest | tag-only (op-reth auto; op-node + EigenDA manual) |
 | Celo (op-geth) | `celo-geth/docker-compose.yml` | Deprecated stack — prefer `celo/` | needs-review |
 | Core | `GETH_VERSION` | `coredao-org/core-chain` | tag-only |
 | Cronos | `CRONOS_VERSION` | `crypto-org-chain/cronos` | needs-review |
@@ -74,7 +74,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | Mantle | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | `mantlenetworkio/networks` `docker-compose-mainnetv2-upgrade-beacon.yml` (`mantlenetworkio/mantle-op-geth`, `mantlenetworkio/mantle-op-node`). Pair with `mantlenetworkio/op-geth` + `mantlenetworkio/mantle-v2` releases — **not** generic OP Labs | needs-review |
 | Mode | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain. `op-node` v1.19.3+ required for Mode `--network` Karst gas configs | tag-only |
 | Monad | `MONAD_VERSION` | `category-labs/monad` + [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions). APT pin; 0.16.1+ needs a page-encoded TrieDB | needs-review |
-| Morph | `GETH_IMAGE`, `NODE_IMAGE` | `morph-l2/go-ethereum` (`morph-v*` tags vs compose `2.2.x`), `morph-l2/morph` | needs-review |
+| Morph | `GETH_IMAGE`, `NODE_IMAGE` | `morph-l2/go-ethereum` (`morph-v*` tags vs compose `2.2.x`), `morph-l2/morph` | tag-only |
 | Neo X | `GETH_VERSION` | `bane-labs/go-ethereum` | tag-only |
 | opBNB | `OP_GETH_IMAGE_TAG`, `OP_NODE_IMAGE_TAG` | `bnb-chain/op-geth`, `bnb-chain/opbnb` | needs-review |
 | Optimism | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain | tag-only |
@@ -86,7 +86,7 @@ Allowlist: [`scripts/auto-upgrade.yaml`](scripts/auto-upgrade.yaml). Keep the [S
 | Ronin | `RONIN_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | Conduit op-reth + OP Labs op-node + EigenDA monorepo. Reth/op-node are tag-only; EigenDA stays needs-review | tag-only |
 | Sei | `SEID_VERSION` | `sei-protocol/sei-chain` | tag-only |
 | Soneium | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain | tag-only |
-| Sonic | `SONIC_VERSION` | `0xsoniclabs/sonic` | needs-review |
+| Sonic | `SONIC_VERSION` | `0xsoniclabs/sonic` | tag-only |
 | Tac | `TACCHAIN_VERSION` | `TacBuild/tacchain` (ignore `-beta` / `-manual` unless requested) | needs-review |
 | Tempo | `TEMPO_IMAGE` | `tempoxyz/tempo` releases; `ghcr.io/tempoxyz/tempo` (image tag omits git `v`) | tag-only |
 | Worldchain | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Stock Superchain pins in this repo. Official compose uses `ghcr.io/worldcoin/world-chain`, not stock op-reth | tag-only |
