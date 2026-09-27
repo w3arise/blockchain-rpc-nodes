@@ -15,7 +15,7 @@ Entrypoint: `hl-visor run-non-validator --replica-cmds-style recent-actions`. Co
 
 `./configure.sh` writes the host public IP to `$HOST_DATADIR/override_public_ip_address`. hl-visor advertises that address. Re-run `./configure.sh` after the public IP changes.
 
-Refresh gossip roots (overwrites `override_gossip_config.json`). Reserved peers from `RESERVED_PEER_IPS` are included only when TCP 4001 accepts a connection:
+Refresh gossip roots (overwrites `override_gossip_config.json`). The script puts roots in this order: `RESERVED_PEER_IPS`, then `SEED_PEER_IPS` (default: the upstream README root peer table), then the `gossipRootIps` API. It keeps a peer only when TCP 4001 accepts a connection from this host. Run it on the node host:
 
 ```bash
 ./override-gossip.sh
