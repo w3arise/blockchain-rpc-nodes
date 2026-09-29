@@ -240,7 +240,9 @@ The relay limits a single `eth_getLogs` request to 10,000 blocks by default in `
 
 ## Upgrade
 
-Bootstrap and first-start the importer with the version recorded in `MIRRORNODE_VERSION.gz` (published minimal export is still **0.156.0** — sizes below). After it starts cleanly and catches up, set `MIRROR_NODE_VERSION=0.162.0` so database migrations run from the known-compatible schema. Do not point a newer importer at a fresh older export before the version-matched first start. The env.template pin is the **live** importer (`0.162.0`); for a new datadir, temporarily set it to the export version, bootstrap, then bump.
+Bootstrap and first-start the importer with the version recorded in `MIRRORNODE_VERSION.gz` (published minimal export is still **0.156.0** — sizes below). After it starts cleanly and catches up, set `MIRROR_NODE_VERSION` to the repo pin so Flyway migrations run from the known-compatible schema. Do not point a newer importer at a fresh older export before the version-matched first start. The env.template pin is the **live** importer (`0.163.1`); for a new datadir, temporarily set it to the export version, bootstrap, then bump.
+
+**0.162.0 → 0.163.1:** edit `MIRROR_NODE_VERSION` in `.env`, `./configure.sh` (refreshes `config/init.sh` for the pin), `docker compose up -d`, watch `docker compose logs -f importer` for Flyway. Restart `api-proxy` after mirror API containers recreate. Relay pin unchanged at `0.78.5` unless `./check-upgrade.sh` reports a relay bump.
 
 Check upstream releases against your pin (and running containers, if up):
 
