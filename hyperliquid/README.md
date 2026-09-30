@@ -36,6 +36,18 @@ hl-visor has no RPC gas-cap flag. Block gas limits are the chain's small-block a
 
 HyperEVM transaction submission is `eth_sendRawTransaction` on `/evm`. HyperCore orders use the exchange API.
 
+## Missing EVM blocks
+
+The node's local EVM history can end up with a hole (typically after a restart): `eth_getBlockByNumber` returns `invalid block height` and `eth_getLogs` returns `invalid block range` for blocks public RPCs serve. `./evm-backfill.sh` finds holes and backfills them from Hyperliquid's S3 block archive (AWS account required, requester pays):
+
+```bash
+./evm-backfill.sh setup                      # once: build the importer
+./evm-backfill.sh scan <START> <END> [STEP]  # list holes (read-only)
+./evm-backfill.sh run <START> <END>          # download, stop, back up, check, import, start, verify
+```
+
+Details, setup and rollback: [hyperliquid-evm-backfill.md](hyperliquid-evm-backfill.md).
+
 ## Testnet
 
 The Dockerfile and `visor.json` in the image target **Mainnet** (`HL_VISOR_URL` in `env.template`). Testnet uses `https://binaries.hyperliquid-testnet.xyz/Testnet/hl-visor` and `{"chain": "Testnet"}` in `visor.json`. Change those, rebuild, and set gossip config `chain` to `Testnet`.
