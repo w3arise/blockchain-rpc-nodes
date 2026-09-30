@@ -2,6 +2,10 @@
 
 Deprecated L2 setup kept for historical / pre-migration needs. Prefer [`celo/`](../celo/) (op-reth) for new nodes. Chain data: `../.celo/op-geth`, `../.celo/shared`, `../.celo/eigenda-data` (relative to this directory).
 
+## Why this directory stays in the repo
+
+We **keep** `celo-geth/` (not only document it) because production still runs this stack for **archival / pre-L2 Celo L1 state** — migrated op-geth datadir, `OP_GETH__HISTORICAL_RPC`, and related paths that **op-reth cannot replace** (`celo/` README: post-L2 op-reth does not reuse op-geth datadir). Do not delete or fold into `celo/` unless archival RPC is retired or served another way. Bump these pins only when archival sync or security requires it; the live L2 node tracks [`celo/`](../celo/) and official `celo-l2-node-docker-compose`.
+
 ## Start
 
 ```bash
