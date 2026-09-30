@@ -46,7 +46,7 @@ The node's local EVM history can end up with a hole (typically after a restart):
 ./evm-backfill.sh run <START> <END>          # download, stop, back up, check, import, start, verify
 ```
 
-Details, setup and rollback: [docs/hyperliquid-evm-backfill.md](../docs/hyperliquid-evm-backfill.md).
+Details, setup and rollback: [hyperliquid-evm-backfill.md](hyperliquid-evm-backfill.md).
 
 ## Testnet
 

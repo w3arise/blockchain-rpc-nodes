@@ -2,7 +2,7 @@
 #
 # Find and backfill HyperEVM blocks missing from hl-node's RPC DB, using the official
 # S3 block archive (s3://hl-mainnet-evm-blocks) and sprites0/block-importer.
-# Procedure and background: ../docs/hyperliquid-evm-backfill.md
+# Procedure and background: hyperliquid-evm-backfill.md
 #
 # Usage: ./evm-backfill.sh setup                      clone + build the importer and the compare tool
 #        ./evm-backfill.sh scan     START END [STEP]  list missing ranges (STEP>1: sample, bisect edges)

@@ -3,7 +3,7 @@
 Operator notes for **hl-node** non-validators serving HyperEVM JSON-RPC (`/evm`). Covers
 holes in the node's local EVM history, how to find them, and how to backfill them from
 Hyperliquid's official S3 block archive with
-[`hyperliquid/evm-backfill.sh`](../hyperliquid/evm-backfill.sh).
+[`evm-backfill.sh`](evm-backfill.sh).
 
 ## The problem
 
