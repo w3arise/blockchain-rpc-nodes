@@ -11,7 +11,7 @@ sudo chown -R 10000:10000 "$HOME/hyperliquid-data"   # first start only (contain
 docker compose up -d
 ```
 
-Entrypoint: `hl-visor run-non-validator --replica-cmds-style recent-actions`. Compose adds `--serve-eth-rpc` and `--serve-info`. Extra `--write-*` flags go on the `node` service `command:` list in `docker-compose.yml`.
+Entrypoint: `hl-visor run-non-validator --replica-cmds-style recent-actions`, started by `tini -g` through the `start-node` wrapper. hl-visor has no SIGTERM handler, so without tini as PID 1 `docker compose stop` waits out the full grace period and then kills it. Compose adds `--serve-eth-rpc` and `--serve-info`. Extra `--write-*` flags go on the `node` service `command:` list in `docker-compose.yml`.
 
 `./configure.sh` writes the host public IP to `$HOST_DATADIR/override_public_ip_address`. hl-visor advertises that address. Re-run `./configure.sh` after the public IP changes.
 
@@ -49,7 +49,7 @@ Ubuntu 24.04 is the supported OS.
 | `HTTP_PORT` (default **3001**) | Host port for `/evm` and `/info`. Bind is `RPC_BIND_ADDR` (default `127.0.0.1`). Container listen port is **3001**. |
 | **4001**, **4002** (TCP) | Gossip. Published on all interfaces. Must be reachable from the internet, or peers deprioritize this node. |
 
-`n_gossip_peers` in `override_gossip_config.json` is **20** (allowed range 8–100). That change does not require a restart.
+`n_gossip_peers` in `override_gossip_config.json` comes from `N_GOSSIP_PEERS` (default **50**, allowed range 8–100). Re-run `./override-gossip.sh` after changing it.
 
 For lowest latency, run in Tokyo.
 

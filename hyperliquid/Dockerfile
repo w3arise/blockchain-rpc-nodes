@@ -12,7 +12,7 @@ ARG HL_VISOR_ASC_URL
 # Create user and install dependencies
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    && apt-get update -y && apt-get install -y curl gnupg \
+    && apt-get update -y && apt-get install -y curl gnupg tini \
     && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /home/$USERNAME/hl/data && chown -R $USERNAME:$USERNAME /home/$USERNAME/hl
 
@@ -39,5 +39,11 @@ RUN curl -o /home/$USERNAME/hl-visor $HL_VISOR_URL \
 # Expose gossip ports
 EXPOSE 4000-4010
 
-# Run a non-validating node
-ENTRYPOINT ["/home/hluser/hl-visor", "run-non-validator", "--replica-cmds-style", "recent-actions"]
+# Run a non-validating node. hl-visor installs no SIGTERM/SIGINT handler, so as
+# PID 1 it ignores docker stop and never reaps its children. tini is PID 1
+# instead and -g forwards the stop signal to the process group (hl-visor + hl-node).
+# hl-visor panics if another process cmdline contains "hl-visor", so tini starts
+# a wrapper that execs it rather than naming the binary directly.
+RUN printf '#!/bin/sh\nexec /home/%s/hl-visor run-non-validator --replica-cmds-style recent-actions "$@"\n' $USERNAME > /home/$USERNAME/start-node \
+    && chmod +x /home/$USERNAME/start-node
+ENTRYPOINT ["/usr/bin/tini", "-g", "--", "/home/hluser/start-node"]
