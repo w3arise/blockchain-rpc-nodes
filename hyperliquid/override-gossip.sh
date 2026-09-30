@@ -24,6 +24,7 @@ DEFAULT_SEED_PEER_IPS="64.31.48.111,64.31.51.137,180.189.55.18,180.189.55.19,72.
 SEED_PEER_IPS="${SEED_PEER_IPS:-$DEFAULT_SEED_PEER_IPS}"
 
 CONNECT_TIMEOUT=2
+N_GOSSIP_PEERS="${N_GOSSIP_PEERS:-20}"
 
 split_csv() {
   printf '%s\n' "${1:-}" \
@@ -43,8 +44,14 @@ if ((${#API[@]} == 0)); then
   echo "WARN: gossipRootIps API returned no peers" >&2
 fi
 
-# Ordered, de-duplicated candidate list.
+# Ordered, de-duplicated candidate list. This host's own public IP (written by
+# ./configure.sh) is skipped so one shared RESERVED_PEER_IPS works on every host.
 declare -A SEEN=()
+SELF_IP_FILE="${HOST_DATADIR:-$HOME/hyperliquid-data}/override_public_ip_address"
+if [[ -r "${SELF_IP_FILE}" ]]; then
+  SELF_IP="$(tr -d '[:space:]' < "${SELF_IP_FILE}")"
+  [[ -n "${SELF_IP}" ]] && SEEN[$SELF_IP]=1
+fi
 CANDIDATES=()
 for ip in "${RESERVED[@]}" "${SEEDS[@]}" "${API[@]}"; do
   [[ -n "${SEEN[$ip]:-}" ]] && continue
@@ -84,13 +91,14 @@ fi
 
 jq -n \
   --arg roots "$(IFS=,; printf '%s' "${ROOTS[*]}")" \
-  --arg reserved "$(IFS=,; printf '%s' "${REACHABLE_RESERVED[*]:-}")" '
+  --arg reserved "$(IFS=,; printf '%s' "${REACHABLE_RESERVED[*]:-}")" \
+  --argjson n_peers "${N_GOSSIP_PEERS}" '
     def csv: split(",") | map(select(length > 0));
     {
       root_node_ips: ($roots | csv | map({"Ip": .})),
       try_new_peers: true,
       chain: "Mainnet",
-      n_gossip_peers: 20,
+      n_gossip_peers: $n_peers,
       reserved_peer_ips: ($reserved | csv)
     }
   ' > override_gossip_config.json
