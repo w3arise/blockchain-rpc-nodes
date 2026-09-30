@@ -24,15 +24,16 @@ services:
       - --traceaction=${TRACEACTION}
       - --verbosity=${VERBOSITY}
       - --bootnodes=${BOOTNODES}
+      - --rpc.gascap=${GAS_CAP}
     volumes:
       - ${HOST_DATADIR:-$HOME/bitlayer-data}:/data
       - ./config/config.toml:/config/config.toml:ro
     ports:
       - "${P2P_PORT}:${P2P_PORT}/tcp"
       - "${P2P_PORT}:${P2P_PORT}/udp"
-      - "127.0.0.1:${HTTP_PORT}:${HTTP_PORT}"
-      - "127.0.0.1:${WS_PORT}:${WS_PORT}"
-      - "127.0.0.1:${AUTHRPC_PORT}:${AUTHRPC_PORT}"
+      - "${RPC_BIND_ADDR}:${HTTP_PORT}:${HTTP_PORT}"
+      - "${RPC_BIND_ADDR}:${WS_PORT}:${WS_PORT}"
+      - "${RPC_BIND_ADDR}:${AUTHRPC_PORT}:${AUTHRPC_PORT}"
     logging:
       options:
         max-size: "10m"

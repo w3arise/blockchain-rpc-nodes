@@ -21,4 +21,8 @@ PBSS snapshots: [bnb-chain/opbnb-snapshot](https://github.com/bnb-chain/opbnb-sn
 
 Archive snapshots are generally unavailable; archive requires HBSS and sync from scratch.
 
+## Host ports
+
+When running a public replica, allow inbound P2P (TCP + UDP): `OP_GETH_P2P_PORT` (default `37307`) and `PORT__OP_NODE_P2P` (default `9003`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+
 Docs: [Run a Local Node](https://docs.bnbchain.org/bnb-opbnb/advanced/local-node/) · [Best practices](https://docs.bnbchain.org/bnb-opbnb/advanced/node-best-practices/)

@@ -31,8 +31,6 @@ scripts/.client-audit-cache.json
 
 # Planned chain configs (uncommitted for now)
 0g/
-hyperliquid/
-mantle/
 henesys/
 
 # Hedera: generated secrets and bootstrap artifacts (not the chain directory itself)
@@ -43,9 +41,6 @@ hedera/config/.init.version
 hedera/bootstrap-logs/
 hedera/db-export/
 hedera/secrets-backups/
-
-# Hyperliquid
-override_gossip_config.json
 
 # Docker specific
 target/

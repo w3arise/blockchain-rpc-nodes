@@ -35,10 +35,8 @@ if [[ ! -f "${DATA_DIR}/genesis.conf" ]]; then
   echo "==> Downloading mainnet genesis.conf"
   curl -fsSL "${RESOURCES_BASE}/mainnet.genesis" -o "${DATA_DIR}/genesis.conf"
 fi
-if [[ ! -f "${DATA_DIR}/bin/VERSION" ]]; then
-  echo "==> Downloading mainnet bin/VERSION"
-  curl -fsSL "${RESOURCES_BASE}/mainnet.version" -o "${DATA_DIR}/bin/VERSION"
-fi
+echo "==> Downloading mainnet bin/VERSION"
+curl -fsSL "${RESOURCES_BASE}/mainnet.version" -o "${DATA_DIR}/bin/VERSION"
 
 if [[ -z "${CONSENSUS_KEY_PWD:-}" ]]; then
   echo "WARNING: set CONSENSUS_KEY_PWD in .env before first start" >&2

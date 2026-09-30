@@ -90,12 +90,24 @@ print_version_row() {
   printf '    %s\n' "${url}"
 }
 
+compose_project_name() {
+  local name
+  name="$(read_env_value COMPOSE_PROJECT_NAME 2>/dev/null || true)"
+  printf '%s' "${name:-hedera}"
+}
+
+# Exact container_name from docker-compose.yml (${COMPOSE_PROJECT_NAME}-…).
+running_container_id() {
+  local name="$1"
+  local running
+  running="$(docker inspect --format '{{.State.Running}}' "${name}" 2>/dev/null || true)"
+  [[ "${running}" == "true" ]] || return 1
+  docker inspect --format '{{.Id}}' "${name}"
+}
+
 running_mirror_version() {
   local cid version
-  cid="$(docker ps --filter 'name=hedera-mirror-importer' --format '{{.ID}}' 2>/dev/null | head -n1 || true)"
-  if [[ -z "${cid}" ]]; then
-    return 1
-  fi
+  cid="$(running_container_id "${COMPOSE_PROJECT}-mirror-importer")" || return 1
   version="$(docker inspect --format '{{index .Config.Labels "org.opencontainers.image.version"}}' "${cid}" 2>/dev/null || true)"
   if [[ -z "${version}" || "${version}" == "<no value>" ]]; then
     version="$(docker inspect --format '{{.Config.Image}}' "${cid}" 2>/dev/null | sed -n 's/.*:\([0-9][0-9.]*\)$/\1/p')"
@@ -106,10 +118,7 @@ running_mirror_version() {
 
 running_relay_version() {
   local cid version
-  cid="$(docker ps --filter 'name=hedera-json-rpc-relay' --filter 'status=running' --format '{{.ID}}' 2>/dev/null | head -n1 || true)"
-  if [[ -z "${cid}" ]]; then
-    return 1
-  fi
+  cid="$(running_container_id "${COMPOSE_PROJECT}-json-rpc-relay")" || return 1
   version="$(docker inspect --format '{{.Config.Image}}' "${cid}" 2>/dev/null | sed -n 's/.*:\([0-9][0-9.]*\)$/\1/p')"
   [[ -n "${version}" ]] || return 1
   normalize_version "${version}"
@@ -149,8 +158,9 @@ fi
 
 PINNED_MIRROR="$(normalize_version "${PINNED_MIRROR}")"
 PINNED_RELAY="$(normalize_version "${PINNED_RELAY}")"
+COMPOSE_PROJECT="$(compose_project_name)"
 
-echo "Hedera upgrade check"
+echo "Hedera upgrade check (compose project: ${COMPOSE_PROJECT})"
 echo
 
 MIRROR_JSON="$(fetch_latest_release "${MIRROR_REPO}")"

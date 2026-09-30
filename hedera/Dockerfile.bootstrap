@@ -1,4 +1,7 @@
-FROM golang:1.25-bookworm AS builder
+# Official golang images set GOTOOLCHAIN=local. auto downloads a newer
+# toolchain when go.mod is ahead of the image (v0.162.0 needs >= 1.26.7).
+FROM golang:1.26-bookworm AS builder
+ENV GOTOOLCHAIN=auto
 
 ARG MIRROR_NODE_VERSION
 

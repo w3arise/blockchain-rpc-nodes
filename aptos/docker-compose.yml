@@ -10,7 +10,7 @@ services:
     working_dir: /opt/aptos/etc
     ports:
       - "${RPC_BIND_ADDR}:${HTTP_PORT}:8080"
-      - "${RPC_BIND_ADDR}:${METRICS_PORT}:9101"
+      - "${METRICS_BIND_ADDR}:${METRICS_PORT}:9101"
       - "${P2P_PORT}:6182"
     volumes:
       - ./config:/opt/aptos/etc:ro

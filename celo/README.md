@@ -25,4 +25,8 @@ With `OP_RETH_SNAPSHOT=true` (default), an empty `$HOME/celo-op-reth-data` is bo
 
 For Celo Sepolia, set `OP_RETH_CHAIN=celo-sepolia`, `OP_NODE_NETWORK=celo-sepolia`, Sepolia L1 endpoints, and the Sepolia EigenDA / bootnode values commented in `env.template`. Use separate `$HOME` datadir mounts.
 
+## Host ports
+
+When running a public replica, allow inbound P2P (TCP + UDP): `RETH_PORT` (op-reth, default `10401`) and `OP_NODE_P2P_PORT` (default `10422`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+
 Docs: [Run a node](https://docs.celo.org/infra-partners/operators/run-node) · [celo-l2-node-docker-compose](https://github.com/celo-org/celo-l2-node-docker-compose) · [snapshots.celo.org](https://snapshots.celo.org/)

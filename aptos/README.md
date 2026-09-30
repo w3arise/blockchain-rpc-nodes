@@ -44,7 +44,7 @@ Default sync uses `DownloadLatestStates` (no full ledger history from genesis). 
 | Port (default) | Bind | Role |
 | --- | --- | --- |
 | 8080 | `RPC_BIND_ADDR` (127.0.0.1) | REST API |
-| 9101 | `RPC_BIND_ADDR` | Prometheus metrics |
+| 9101 | `METRICS_BIND_ADDR` (127.0.0.1) | Prometheus metrics |
 | 6182 | all interfaces | Public PFN P2P (TCP) |
 
 Open **6182/tcp** inbound on the host firewall when running a public replica.

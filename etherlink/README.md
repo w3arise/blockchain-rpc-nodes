@@ -16,6 +16,8 @@ First start imports a Nomadic Labs snapshot (`--init-from-snapshot`) for `HISTOR
 
 RPC: `http://127.0.0.1:42793` · WS: `ws://127.0.0.1:42793/ws`
 
+A single `eth_getLogs` is capped at `MAX_NUMBER_BLOCKS` (100000) and `MAX_NUMBER_LOGS` (20000). Paginate wider ranges.
+
 ## Snapshot
 
 Snapshots: [snapshotter-sandbox.nomadic-labs.eu/etherlink-mainnet](https://snapshotter-sandbox.nomadic-labs.eu/etherlink-mainnet/) (`full` matches this setup).

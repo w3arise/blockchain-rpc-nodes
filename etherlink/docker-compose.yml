@@ -24,6 +24,10 @@ services:
       - --cors-origins
       - "*"
       - --ws
+      - --max-number-blocks
+      - ${MAX_NUMBER_BLOCKS:-100000}
+      - --max-number-logs
+      - ${MAX_NUMBER_LOGS:-20000}
       - --init-from-snapshot
       - --dont-track-rollup-node
     volumes:

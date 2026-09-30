@@ -18,12 +18,15 @@ Before upgrading an existing node, run `./check-genesis.sh` and refresh images/c
 Official archive snapshots (op-reth layout). Restore into `$HOME/katana-op-reth-data`, then start as above (genesis init is automatic via `--chain`):
 
 ```bash
-curl -L -o katana-latest.tar \
-  "https://pub-1d729d824bda40459735d97aca47bc6f.r2.dev/katana/latest.tar"
-# extract into $HOME/katana-op-reth-data
+./restore-snapshot.sh          # mainnet (default)
+./restore-snapshot.sh bokuto   # testnet
 ```
 
 Source: [network-configs snapshots](https://github.com/katana-network/network-configs).
+
+## Host ports
+
+When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (op-reth, default `10301`) and `OP_NODE_P2P_PORT` (op-node, default `9222`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
 
 ## Testnet (Bokuto)
 

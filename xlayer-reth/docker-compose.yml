@@ -8,10 +8,10 @@ services:
     container_name: xlayer-mainnet-op-reth
     entrypoint: ["op-reth"]
     ports:
-      - "127.0.0.1:48545:8545"   # HTTP RPC
-      - "127.0.0.1:48546:8546"   # WebSocket
-      - "36303:36303"            # P2P TCP
-      - "36303:36303/udp"        # P2P UDP
+      - "${RPC_BIND_ADDR}:${HTTP_PORT}:8545"   # HTTP RPC
+      - "${RPC_BIND_ADDR}:${WS_PORT}:8546"   # WebSocket
+      - "${P2P_PORT}:${P2P_PORT}"            # P2P TCP
+      - "${P2P_PORT}:${P2P_PORT}/udp"        # P2P UDP
     volumes:
       - ${HOME}/xlayer-op-reth-data:/datadir
       - ./config/jwt.txt:/jwt.txt
@@ -65,7 +65,7 @@ services:
     networks:
       - xlayer-reth-network
     ports:
-      - "127.0.0.1:9565:9545"
+      - "${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:9545"
     volumes:
       - ${HOME}/xlayer-reth-op-node-data:/data
       - ./config/rollup-mainnet.json:/rollup.json

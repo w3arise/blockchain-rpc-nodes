@@ -16,10 +16,10 @@ docker compose up -d
 Conduit archive snapshots (requester-pays GCS). Restore into `$HOME/mode-op-reth-data`, then start as above (genesis init is automatic via `--chain=mode`):
 
 ```bash
-gcloud storage cp --billing-project="${GCP_PROJECT}" \
-  "gs://conduit-networks-snapshots/mode-mainnet-0/latest.tar" .
-# extract into $HOME/mode-op-reth-data (op-reth layout — no mnt/geth/ path)
+./restore-snapshot.sh
 ```
+
+Requires `gcloud` CLI with an active project (`GCP_PROJECT` in `.env` or `gcloud config`).
 
 See [Conduit OP Stack nodes](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes).
 

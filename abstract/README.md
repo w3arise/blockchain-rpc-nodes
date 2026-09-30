@@ -12,7 +12,7 @@ docker compose up -d
 
 First run downloads a snapshot from GCS (`EN_SNAPSHOTS_RECOVERY_ENABLED=true`). RPC is unavailable until recovery completes.
 
-If the external node fails with `Too many open files` during RocksDB catch-up, recreate it so the compose `ulimits` apply: `docker compose up -d --force-recreate external-node`.
+If the external node fails with `Too many open files` during RocksDB catch-up, recreate it so the compose `ulimits` apply: `docker compose up -d --force-recreate external-node`. The same recreate is needed after compose changes to **`stop_signal: SIGINT`** (the EN ignores Docker’s default SIGTERM).
 
 ## Monitoring (optional)
 
@@ -47,5 +47,19 @@ Same-series SHA bumps on an already-v31 datadir: `docker compose pull && docker 
 docker compose down
 # remove $HOME/abstract-postgres-data and $HOME/abstract-rocksdb-data to resync from scratch
 ```
+
+## ZKsync API synchronization
+
+A `WARNING: this node is using ZKsync API synchronization…` line is expected: Abstract has gossipnet/consensus disabled, so the EN syncs from `EN_MAIN_NODE_URL`.
+
+## `en_getInteropFee` 403
+
+The EN polls `EN_MAIN_NODE_URL` (`https://api.mainnet.abs.xyz`) for `en_getInteropFee`. Abstract’s public proxy does not whitelist that method, so the log repeats:
+
+```
+WARN ... Request `en_getInteropFee` failed with HTTP error ... status=403
+```
+
+Ignore it. Sync and `eth_*` RPC are unaffected; the EN keeps the interop-fee fallback (zero). The WARN stops if Abstract exposes the method or a later EN image treats HTTP 403 as “method unavailable”.
 
 Docs: [Running a node](https://docs.abs.xyz/infrastructure/nodes/running-a-node) · [Abstract-Foundation/abstract-node](https://github.com/Abstract-Foundation/abstract-node)

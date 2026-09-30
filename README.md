@@ -47,17 +47,21 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | HashKey Chain       | `hashkey/`     | L2 (OP Stack / CGT)                 | op-geth + op-node                         | [README](hashkey/README.md)     |
 | Hedera              | `hedera/`      | L1 (Hashgraph / EVM)                | JSON-RPC Relay + Mirror Node              | [README](hedera/README.md)      |
 | Hemi                | `hemi/`        | L2 (OP Stack / Bitcoin)             | hemi op-geth + op-node + bssd             | [README](hemi/README.md)        |
+| Hyperliquid         | `hyperliquid/` | L1                                  | hl-visor (non-validator)                  | [README](hyperliquid/README.md) |
 | Kaia                | `kaia/`        | L1                                  | ken (Endpoint Node)                       | [README](kaia/README.md)        |
 | Katana              | `katana/`      | L2 (OP Stack / Agglayer CDK)        | conduit-op-reth + op-node                 | [README](katana/README.md)      |
 | Lens                | `lens/`        | L2 (ZK Stack)                       | external-node + postgres                  | [README](lens/README.md)        |
 | Linea               | `linea/`       | L2 (ZK)                             | Besu / Nethermind + Maru                  | [README](linea/README.md)       |
 | Lisk                | `lisk/`        | L2 (OP Stack)                       | op-reth + op-node                         | [README](lisk/README.md)        |
+| Mantle              | `mantle/`      | L2 (OP Stack)                       | mantle-op-geth + mantle-op-node (hash-full) | [README](mantle/README.md)    |
 | Monad               | `monad/`       | L1                                  | monad-bft + monad-execution + monad-rpc   | [README](monad/README.md)       |
+| Mode                | `mode/`        | L2 (OP Stack / Conduit)             | op-reth + op-node                         | [README](mode/README.md)        |
 | Morph               | `morph/`       | L2 (Optimistic + ZK)                | morph-geth + morph-node                   | [README](morph/README.md)       |
 | Neo X               | `neox/`        | L1 (EVM-compatible)                 | bane-labs geth                            | [README](neox/README.md)        |
 | opBNB               | `opbnb/`       | L2 (OP Stack)                       | op-geth + op-node                         | [README](opbnb/README.md)       |
 | Optimism            | `optimism/`    | L2 (OP Stack)                       | op-reth + op-node                         | [README](optimism/README.md)    |
 | Pharos              | `pharos/`      | L1 (EVM-compatible)                 | pharos_light                              | [README](pharos/README.md)      |
+| Plasma              | `plasma/`      | L1 (PlasmaBFT)                      | reth + plasma-consensus                   | [README](plasma/README.md)      |
 | Plume               | `plume/`       | L2 (Arbitrum Nitro / Conduit Orbit) | nitro                                     | [README](plume/README.md)       |
 | Polygon PoS         | `polygon-bor/` | L2 (PoS)                            | bor (PBSS archive)                        | [README](polygon-bor/README.md) |
 | Robinhood Chain     | `robinhood/`   | L2 (Arbitrum Nitro)                 | nitro                                     | [README](robinhood/README.md)   |
@@ -83,8 +87,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | 0G                | L1                    | 0g-node + 0g-geth |
 | Astar (L1)        | L1                    | —                |
 | Bittensor         | L1                    | —                |
-| Hyperliquid       | L1                    | hl-node (visor)  |
-| Mantle            | L2 (OP Stack)         | mantle-op-geth + mantle-op-node |
+| Mode              | L2 (OP Stack)         | op-reth + op-node |
 | Nexon Henesys     | L2                    | —                |
 | Scroll            | L2 (ZK)               | —                |
 

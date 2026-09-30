@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 #
-# Compare tag-only allowlisted pins (scripts/auto-upgrade.yaml) to upstream
+# Compare tag-only allowlisted pins (scripts/config/auto-upgrade.yaml) to upstream
 # and optionally write same-series image bumps.
 #
 # Usage:
 #   ./scripts/check-auto-upgrades.sh           # report only (exit 1 if bumps exist)
 #   ./scripts/check-auto-upgrades.sh --write   # bump env.template (+ CHAIN_LINKS)
+#
+# When AUTO_UPGRADE_PR_BODY is set and upgrades exist, write a markdown PR
+# body (table of chain / from / to) to that path. The GitHub workflow uses
+# this for the weekly PR description. The file is not committed.
 #
 # Auto only follows the currently pinned major.minor series. Crossing a
 # minor/major line is always needs-review.
@@ -15,7 +19,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 YAML_PY="${SCRIPT_DIR}/lib/auto-upgrade-yaml.py"
-YAML_FILE="${SCRIPT_DIR}/auto-upgrade.yaml"
+YAML_FILE="${SCRIPT_DIR}/config/auto-upgrade.yaml"
 CHAIN_LINKS="${REPO_ROOT}/CHAIN_LINKS.md"
 
 WRITE=0
@@ -148,6 +152,35 @@ restore_write() {
   if [[ "${chain_links_enabled}" == "true" ]]; then
     git checkout -- CHAIN_LINKS.md 2>/dev/null || true
   fi
+}
+
+bump_table_md() {
+  echo "| Chain | From | To |"
+  echo "| --- | --- | --- |"
+  local row bump_id bump_from bump_to
+  for row in "${SUMMARY[@]}"; do
+    IFS=$'\t' read -r bump_id bump_from bump_to <<< "${row}"
+    echo "| ${bump_id} | \`${bump_from}\` | \`${bump_to}\` |"
+  done
+}
+
+write_pr_body() {
+  local dest="${AUTO_UPGRADE_PR_BODY:-}"
+  if [[ -z "${dest}" ]]; then
+    return 0
+  fi
+  {
+    echo "Same-series tag-only pin bump from \`scripts/config/auto-upgrade.yaml\`."
+    echo
+    bump_table_md
+    echo
+    echo "Merge is the human gate that the series is still tag-only. This workflow does not auto-merge."
+    echo
+    echo "After merge, hosts apply with \`./scripts/apply-tag-only.sh <id>\`"
+    echo "for each bumped chain (\`scripts/config/auto-upgrade.yaml\`)."
+  } > "${dest}"
+  echo
+  echo "Wrote PR body to ${dest}"
 }
 
 fail_closed() {
@@ -284,7 +317,7 @@ for chain_id in "${CHAIN_IDS[@]}"; do
   echo "  latest: ${latest_image}  (upgrade available)"
   echo
   BUMPS=$((BUMPS + 1))
-  SUMMARY+=("${chain_id}: ${current_tag} -> ${latest_tag}")
+  SUMMARY+=("${chain_id}"$'\t'"${current_tag}"$'\t'"${latest_tag}")
 
   if [[ "${WRITE}" -eq 1 ]]; then
     set_env_value "${env_path}" "${AUTO_VAR}" "${latest_image}"
@@ -302,9 +335,8 @@ if [[ "${BUMPS}" -eq 0 ]]; then
 fi
 
 echo "Upgrades:"
-for line in "${SUMMARY[@]}"; do
-  echo "  ${line}"
-done
+bump_table_md
+write_pr_body
 
 if [[ "${WRITE}" -eq 0 ]]; then
   echo

@@ -60,6 +60,6 @@ Then `./restore-snapshot.sh` and `docker compose up -d`.
 | 9000 | localhost | Prometheus metrics |
 | 30303 | public | Execution P2P (TCP + UDP) |
 
-Change `RPC_BIND_ADDR` to `0.0.0.0` only when LAN access to RPC is intentional.
+Change `RPC_BIND_ADDR` to `0.0.0.0` only when LAN access to RPC is intentional. Metrics stay on `METRICS_BIND_ADDR` (default `127.0.0.1`).
 
 Docs: [RPC nodes](https://docs.tempo.xyz/guide/node/rpc) · [Install](https://docs.tempo.xyz/guide/node/installation) · [Conduit Hub](https://hub.conduit.xyz/tempo) · [tempoxyz/tempo](https://github.com/tempoxyz/tempo)

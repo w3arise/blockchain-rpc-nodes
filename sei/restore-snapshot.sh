@@ -108,18 +108,32 @@ fi
 mkdir -p "${DATA_DIR}"
 TMP_BASE="${SNAPSHOT_TMPDIR:-${HOME}/sei-snapshot-tmp}"
 mkdir -p "${TMP_BASE}"
-TMP_DIR="$(mktemp -d "${TMP_BASE}/XXXXXX")"
-cleanup() { rm -rf "${TMP_DIR}"; }
-trap cleanup EXIT
-echo "==> Using temp dir ${TMP_DIR}"
-
 ARCHIVE_NAME="$(basename "${SNAPSHOT_URL}")"
-ARCHIVE="${TMP_DIR}/${ARCHIVE_NAME}"
+ARCHIVE="${TMP_BASE}/${ARCHIVE_NAME}"
+EXTRACT="${TMP_BASE}/extract"
+
+alert_kept_snapshot() {
+  echo "WARNING: snapshot files are never deleted by this script." >&2
+  echo "         archive: ${ARCHIVE}" >&2
+  if [[ -e "${ARCHIVE}" ]]; then
+    echo "         size: $(du -sh "${ARCHIVE}" | awk '{print $1}')" >&2
+  fi
+  echo "         staging: ${TMP_BASE}" >&2
+  echo "         Remove that path yourself when you no longer need the tarball." >&2
+}
+
+if [[ -e "${ARCHIVE}" ]]; then
+  echo "WARNING: existing snapshot archive will be reused (aria2c -c resumes if incomplete)." >&2
+  alert_kept_snapshot
+fi
+echo "==> Using staging dir ${TMP_BASE}"
+
 echo "==> Downloading snapshot"
 echo "    ${SNAPSHOT_URL}"
 download "${SNAPSHOT_URL}" "${ARCHIVE}"
+alert_kept_snapshot
 
-EXTRACT="${TMP_DIR}/extract"
+EXTRACT="${TMP_BASE}/extract"
 mkdir -p "${EXTRACT}"
 echo "==> Extracting"
 case "${ARCHIVE_NAME}" in
@@ -134,6 +148,26 @@ case "${ARCHIVE_NAME}" in
     exit 1
     ;;
 esac
+
+move_into() {
+  local src="$1"
+  local dest="$2"
+  local dest_parent
+  dest_parent="$(dirname "${dest}")"
+  mkdir -p "${dest_parent}"
+  if [[ -d "${dest}" ]]; then
+    if [[ -n "$(ls -A "${dest}" 2>/dev/null)" ]]; then
+      echo "ERROR: ${dest} is not empty; refuse to overwrite" >&2
+      exit 1
+    fi
+    rmdir "${dest}"
+  fi
+  if [[ "$(stat -c '%d' "${src}")" != "$(stat -c '%d' "${dest_parent}")" ]]; then
+    echo "WARNING: ${src} and ${dest} are on different filesystems; move will copy and needs extra space." >&2
+  fi
+  echo "==> Moving ${src} -> ${dest}"
+  mv "${src}" "${dest}"
+}
 
 install_tree() {
   local name="$1"
@@ -158,12 +192,7 @@ install_tree() {
   fi
 
   echo "==> Installing ${name}/ into ${DATA_DIR}/${name}"
-  mkdir -p "${DATA_DIR}/${name}"
-  if command -v rsync >/dev/null 2>&1; then
-    rsync -a "${src}/" "${DATA_DIR}/${name}/"
-  else
-    cp -a "${src}/." "${DATA_DIR}/${name}/"
-  fi
+  move_into "${src}" "${DATA_DIR}/${name}"
   return 0
 }
 
@@ -187,3 +216,4 @@ echo "    datadir: ${DATA_DIR}"
 echo "Next: ./patch-config.sh"
 echo "      docker compose up -d"
 echo "Do not re-run ./init-database.sh against this datadir."
+alert_kept_snapshot

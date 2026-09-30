@@ -16,6 +16,10 @@ docker compose up -d
 
 RPC: `http://127.0.0.1:18545` · WS: `ws://127.0.0.1:18546`
 
+## Upgrade
+
+Copy `SONIC_VERSION` into `.env`, `docker compose build`, recreate the container. [v2.2.2](https://github.com/0xsoniclabs/sonic/releases/tag/v2.2.2) is a stability release (shutdown races, memory, `eth_feeHistory` API fields). No genesis re-import on an existing datadir.
+
 ## Snapshot
 
 Sonic uses genesis files to prime the database to a recent state (not a raw chaindata tarball). Download a pruned or archive genesis from [genesis.soniclabs.com](https://genesis.soniclabs.com/), then:
@@ -48,5 +52,9 @@ When priming with `./sonic-init.sh`, use an **archive** genesis (`latest-sonic-a
 ## Testnet
 
 Download a testnet genesis from [genesis.soniclabs.com](https://genesis.soniclabs.com/) (e.g. `latest-testnet-pruned.g`), point `./sonic-init.sh` at that file, and set a separate `HOST_DATADIR` in `.env` if running both networks.
+
+## Host ports
+
+Compose uses `network_mode: host`. P2P: port 5050 (TCP + UDP, sonicd default). RPC: `HTTP_PORT` (default `18545`) / `WS_PORT` (default `18546`) are bound by `HTTP_ADDR` / `WS_ADDR` (default `0.0.0.0`).
 
 Docs: [Archive node](https://docs.soniclabs.com/sonic/node-deployment/archive-node) · [Genesis files](https://genesis.soniclabs.com/) · [0xsoniclabs/sonic](https://github.com/0xsoniclabs/sonic)

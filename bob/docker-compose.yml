@@ -21,8 +21,10 @@ services:
       - --authrpc.addr=0.0.0.0
       - --authrpc.port=9551
       - --authrpc.jwtsecret=/config/jwt.hex
+      - --rpc.gascap=${GAS_CAP}
       - --nat=extip:${EXT_IP}
-      - --port=${RETH_PORT}
+      - --port=${P2P_PORT}
+      - --discovery.port=${P2P_PORT}
       - --discovery.v5.port=${DISCOVERY_V5_PORT}
       - --metrics=127.0.0.1:9001
       - --trusted-peers=${RETH_TRUSTED_PEERS}
@@ -30,10 +32,10 @@ services:
       - $HOME/op-reth-data:/data
       - ./config:/config
     ports:
-      - 127.0.0.1:8141:8545
-      - 127.0.0.1:8142:8546
-      - ${RETH_PORT}:${RETH_PORT}
-      - ${RETH_PORT}:${RETH_PORT}/udp
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
       - ${DISCOVERY_V5_PORT}:${DISCOVERY_V5_PORT}/udp
     restart: unless-stopped
     stop_grace_period: 120s

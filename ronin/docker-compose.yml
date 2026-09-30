@@ -36,8 +36,8 @@ services:
     volumes:
       - ${RONIN_RETH_DATADIR}:/data
     ports:
-      - 127.0.0.1:${RONIN_RETH_HTTP_PORT}:8545
-      - 127.0.0.1:${RONIN_RETH_WS_PORT}:8546
+      - ${RPC_BIND_ADDR}:${RONIN_RETH_HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${RONIN_RETH_WS_PORT}:8546
       - 127.0.0.1:${RONIN_RETH_AUTHRPC_PORT}:9551
     entrypoint:
       - op-reth
@@ -57,6 +57,7 @@ services:
       - --authrpc.addr=0.0.0.0
       - --authrpc.port=9551
       - --authrpc.jwtsecret=/data/jwt.hex
+      - --rpc.gascap=${GAS_CAP}
       - --rollup.sequencer=${RONIN_ROLLUP_SEQUENCER}
     networks:
       - ronin-network

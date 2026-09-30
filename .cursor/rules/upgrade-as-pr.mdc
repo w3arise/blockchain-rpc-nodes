@@ -1,0 +1,12 @@
+---
+description: Client upgrades land as GitHub PRs — never push pin bumps to main
+alwaysApply: true
+---
+
+# Upgrades land as PRs
+
+Client version pins and chain upgrades go through a **GitHub pull request**. Never commit or push pin bumps (`env.template` image/tag/version, YAML allowlist, companion README / `CHAIN_LINKS.md`) directly to `main`/`master`.
+
+- Wait for the operator to pick the bump, then open a branch PR. Do not merge unless asked.
+- Host apply (`apply-tag-only.sh` or copying one pin line into `.env`) happens **after merge**, not from an unmerged branch.
+- Playbook: `CLIENT_UPDATES.md`, `AUTO_UPGRADES.md`, skill `check-client-updates`.

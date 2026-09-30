@@ -67,12 +67,23 @@ mkdir -p "${DATA_DIR}"
 # the final mv is a rename when possible.
 TMP_BASE="${SNAPSHOT_TMPDIR:-${HOME}/b2-snapshot-tmp}"
 mkdir -p "${TMP_BASE}"
-TMP_DIR="$(mktemp -d "${TMP_BASE}/XXXXXX")"
-cleanup() {
-  rm -rf "${TMP_DIR}"
+ARCHIVE="${TMP_BASE}/${OBJECT}"
+
+alert_kept_snapshot() {
+  echo "WARNING: snapshot files are never deleted by this script." >&2
+  echo "         archive: ${ARCHIVE}" >&2
+  if [[ -e "${ARCHIVE}" ]]; then
+    echo "         size: $(du -sh "${ARCHIVE}" | awk '{print $1}')" >&2
+  fi
+  echo "         staging: ${TMP_BASE}" >&2
+  echo "         Remove that path yourself when you no longer need the tarball." >&2
 }
-trap cleanup EXIT
-echo "using temp dir ${TMP_DIR}"
+
+if [[ -e "${ARCHIVE}" ]]; then
+  echo "WARNING: existing snapshot archive will be reused (aria2c -c resumes if incomplete)." >&2
+  alert_kept_snapshot
+fi
+echo "using staging dir ${TMP_BASE}"
 
 download() {
   local url="$1"
@@ -90,27 +101,29 @@ download() {
 }
 
 echo "downloading ${URL} ..."
-download "${URL}" "${TMP_DIR}/${OBJECT}"
-curl -fsSL -o "${TMP_DIR}/${CHECKSUM_OBJECT}" "${CHECKSUM_URL}"
+download "${URL}" "${ARCHIVE}"
+alert_kept_snapshot
+curl -fsSL -o "${TMP_BASE}/${CHECKSUM_OBJECT}" "${CHECKSUM_URL}"
 
-EXPECTED="$(awk '{print $1}' "${TMP_DIR}/${CHECKSUM_OBJECT}")"
+EXPECTED="$(awk '{print $1}' "${TMP_BASE}/${CHECKSUM_OBJECT}")"
 echo "verifying sha256 (${EXPECTED}) ..."
 (
-  cd "${TMP_DIR}"
+  cd "${TMP_BASE}"
   echo "${EXPECTED}  ${OBJECT}" | sha256sum -c -
 )
 
 echo "extracting into ${DATA_DIR} ..."
-tar -xzf "${TMP_DIR}/${OBJECT}" -C "${TMP_DIR}"
-if [[ ! -d "${TMP_DIR}/db/geth" ]]; then
+tar -xzf "${ARCHIVE}" -C "${TMP_BASE}"
+if [[ ! -d "${TMP_BASE}/db/geth" ]]; then
   echo "ERROR: unexpected tarball layout (expected db/geth/)" >&2
   exit 1
 fi
 # Tarball root is db/; our --datadir expects geth/ at the top level.
 shopt -s dotglob
-mv "${TMP_DIR}/db/"* "${DATA_DIR}/"
+mv "${TMP_BASE}/db/"* "${DATA_DIR}/"
 shopt -u dotglob
 
 echo "restored ${KIND} snapshot to ${DATA_DIR}"
 echo "Skip ./init-database.sh. Keep GC_MODE=${GC_MODE:-${KIND}} matching this snapshot, then:"
 echo "  docker compose up -d"
+alert_kept_snapshot

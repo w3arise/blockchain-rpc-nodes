@@ -55,4 +55,8 @@ curl -s -X POST -H 'Content-Type: application/json' \
 curl -s http://127.0.0.1:12657/status | jq '.result.sync_info.catching_up'
 ```
 
+## Host ports
+
+When running a public replica, allow inbound P2P (TCP + UDP): `GETH_P2P_PORT` (morph-geth, default `10303`) and `NODE_P2P_PORT` (morph-node, default `10656`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+
 Docs: [run-morph-node](https://github.com/morph-l2/run-morph-node) · [Run full node (Docker)](https://docs.morph.network/docs/build-on-morph/developer-resources/node-operation/full-node/run-in-docker)

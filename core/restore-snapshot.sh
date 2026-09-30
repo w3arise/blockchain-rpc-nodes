@@ -65,14 +65,28 @@ mkdir -p "${DATA_DIR}"
 # Keep download/extract off /tmp (usually the small OS partition). Prefer home disk space.
 TMP_BASE="${SNAPSHOT_TMPDIR:-${HOME}/core-snapshot-tmp}"
 mkdir -p "${TMP_BASE}"
-TMP_DIR="$(mktemp -d "${TMP_BASE}/XXXXXX")"
-cleanup() { rm -rf "${TMP_DIR}"; }
-trap cleanup EXIT
-echo "==> Using temp dir ${TMP_DIR}"
+ARCHIVE="${TMP_BASE}/$(basename "${SNAPSHOT_URL}")"
+EXTRACT="${TMP_BASE}/extract"
 
-ARCHIVE="${TMP_DIR}/snapshot.tar.lz4"
+alert_kept_snapshot() {
+  echo "WARNING: snapshot files are never deleted by this script." >&2
+  echo "         archive: ${ARCHIVE}" >&2
+  if [[ -e "${ARCHIVE}" ]]; then
+    echo "         size: $(du -sh "${ARCHIVE}" | awk '{print $1}')" >&2
+  fi
+  echo "         staging: ${TMP_BASE}" >&2
+  echo "         Remove that path yourself when you no longer need the tarball." >&2
+}
+
+if [[ -e "${ARCHIVE}" ]]; then
+  echo "WARNING: existing snapshot archive will be reused (aria2c -c resumes if incomplete)." >&2
+  alert_kept_snapshot
+fi
+echo "==> Using staging dir ${TMP_BASE}"
+
 echo "==> Downloading ${SNAPSHOT_URL}"
 download "${SNAPSHOT_URL}" "${ARCHIVE}"
+alert_kept_snapshot
 
 if [[ -n "${SNAPSHOT_MD5}" ]]; then
   echo "==> Verifying MD5 ${SNAPSHOT_MD5}"
@@ -89,7 +103,7 @@ if [[ -n "${SNAPSHOT_MD5}" ]]; then
   fi
 fi
 
-EXTRACT="${TMP_DIR}/extract"
+EXTRACT="${TMP_BASE}/extract"
 mkdir -p "${EXTRACT}"
 echo "==> Extracting into ${EXTRACT}"
 if command -v lz4 >/dev/null 2>&1; then
@@ -125,17 +139,32 @@ if [[ -z "${SRC}" ]]; then
   exit 1
 fi
 
+move_into() {
+  local src="$1"
+  local dest="$2"
+  local dest_parent
+  dest_parent="$(dirname "${dest}")"
+  mkdir -p "${dest_parent}"
+  if [[ -d "${dest}" ]]; then
+    if [[ -n "$(ls -A "${dest}" 2>/dev/null)" ]]; then
+      echo "ERROR: ${dest} is not empty; refuse to overwrite" >&2
+      exit 1
+    fi
+    rmdir "${dest}"
+  fi
+  if [[ "$(stat -c '%d' "${src}")" != "$(stat -c '%d' "${dest_parent}")" ]]; then
+    echo "WARNING: ${src} and ${dest} are on different filesystems; move will copy and needs extra space." >&2
+  fi
+  echo "==> Moving ${src} -> ${dest}"
+  mv "${src}" "${dest}"
+}
+
 echo "==> Installing chaindata into ${DATA_DIR}"
-mkdir -p "${DATA_DIR}"
-# Prefer rsync if available (shows progress); else cp
-if command -v rsync >/dev/null 2>&1; then
-  rsync -a "${SRC}/" "${DATA_DIR}/"
-else
-  cp -a "${SRC}/." "${DATA_DIR}/"
-fi
+move_into "${SRC}" "${DATA_DIR}"
 
 echo ""
 echo "==> Snapshot restore complete"
 echo "    datadir: ${DATA_DIR}"
 echo "Next: docker compose up -d"
 echo "Do not run ./init-database.sh against this datadir."
+alert_kept_snapshot

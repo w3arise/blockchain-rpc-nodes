@@ -11,6 +11,6 @@ This tree is **public**. Treat every edit, commit, and PR as world-readable.
 
 **Local only** (already gitignored or outside the repo): `.env`, `jwt.hex`, `scripts/.client-audit-cache.json`, Cursor canvases (`host-vs-repo-pins.canvas.tsx` and siblings). Do not copy those into the repo.
 
-`env.template` may use empty placeholders (`EXT_IP=`, `L1_RPC=`). Do not fill them with real endpoints. Commit messages and PR bodies stay as generic as the code.
+`env.template` uses placeholders (`EXT_IP=<YOUR_PUBLIC_IP>`, `L1_RPC=`). Do not fill them with real endpoints or operator public IPs. Commit messages and PR bodies stay as generic as the code.
 
 Host version sheets belong in the local canvas, not in `CLIENT_UPDATES.md` or chain READMEs.

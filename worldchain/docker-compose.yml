@@ -18,6 +18,7 @@ services:
       - --ws.addr=0.0.0.0
       - --ws.port=8546
       - --ws.api=web3,debug,eth,txpool,net
+      - --rpc.gascap=${GAS_CAP}
       - --authrpc.addr=0.0.0.0
       - --authrpc.port=9551
       - --authrpc.jwtsecret=/config/jwt.hex

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Parse scripts/auto-upgrade.yaml (restricted mapping-list schema)."""
+"""Parse scripts/config/auto-upgrade.yaml (restricted mapping-list schema)."""
 
 from __future__ import annotations
 
@@ -213,7 +213,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--file",
-        default=str(Path(__file__).resolve().parents[1] / "auto-upgrade.yaml"),
+        default=str(Path(__file__).resolve().parents[1] / "config" / "auto-upgrade.yaml"),
     )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
