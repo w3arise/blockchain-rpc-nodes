@@ -1,0 +1,46 @@
+---
+description: Safe GitHub auth and git push — never embed tokens in URLs
+alwaysApply: true
+---
+
+# GitHub auth and push (no token leakage)
+
+Operator classic PAT lives at **`~/.gh-token`** (mode `600`, outside the repo). **Do not delete** it unless the user asks. Never commit it, never paste it into chat, never `echo` / `cat` it into the assistant reply.
+
+## Auth for this session
+
+```bash
+export GH_TOKEN="$(cat "$HOME/.gh-token")"
+# use gh / git; then optionally: unset GH_TOKEN
+```
+
+`gh` picks up `GH_TOKEN` for API calls (`gh pr create`, `gh api`, …). Prefer that over `gh auth login` when the classic token lacks `read:org`.
+
+## Push — never put the token in the remote URL
+
+**Forbidden** (git prints the URL and leaks the secret into logs/chat):
+
+```bash
+# ❌ BAD
+git push "https://x-access-token:${GH_TOKEN}@github.com/org/repo.git" HEAD:refs/heads/branch
+```
+
+**Required pattern:**
+
+1. Keep `origin` as a clean URL: `https://github.com/w3arise/blockchain-rpc-nodes.git` (no userinfo).
+2. Export `GH_TOKEN` from `~/.gh-token`.
+3. Wire the credential helper, then push by **branch name** only:
+
+```bash
+export GH_TOKEN="$(cat "$HOME/.gh-token")"
+gh auth setup-git
+git push -u origin "HEAD:refs/heads/<branch>"
+```
+
+If `gh auth setup-git` is unavailable, use a short-lived `GIT_ASKPASS` script that reads `~/.gh-token` and prints username `x-access-token` / password — still **never** embed the token in the `git push` argv or remote URL. Delete the askpass script after the push.
+
+## After push
+
+- Set upstream to `origin/<branch>` (not a tokenized HTTPS remote).
+- Confirm `git remote -v` and `git config --list` contain **no** `ghp_` / `x-access-token:` strings.
+- Create PRs with `gh pr create` while `GH_TOKEN` is set. Do not merge unless asked.
