@@ -45,6 +45,8 @@ exec celo-reth node \
   --chain="$CHAIN" \
   --datadir="$DATADIR" \
   --storage.v2=true \
+  --prune.account-history.distance 10064 \
+  --prune.storage-history.distance 10064 \
   --http \
   --http.corsdomain="*" \
   --http.addr=0.0.0.0 \
