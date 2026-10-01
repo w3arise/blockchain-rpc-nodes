@@ -75,4 +75,4 @@ Info requests go to `http://127.0.0.1:3001/info` ([info endpoint](https://hyperl
 
 Crash logs: `$HOST_DATADIR/data/visor_child_stderr/{date}/{node_binary_index}`.
 
-Docs: [P2P and peering notes](docs/p2p.md) · [Run a node](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/nodes) · [hyperliquid-dex/node](https://github.com/hyperliquid-dex/node)
+Docs: [P2P and peering notes](docs/p2p.md) · [WebSockets](docs/websockets.md) · [Run a node](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/nodes) · [hyperliquid-dex/node](https://github.com/hyperliquid-dex/node)
