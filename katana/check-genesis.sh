@@ -8,8 +8,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=../scripts/check-conduit-genesis-lib.sh
-source "${SCRIPT_DIR}/../scripts/check-conduit-genesis-lib.sh"
+# shellcheck source=../scripts/lib/check-conduit-genesis-lib.sh
+source "${SCRIPT_DIR}/../scripts/lib/check-conduit-genesis-lib.sh"
 
 CHECK_GENESIS_SLUG="katana"
 CHECK_GENESIS_LOCAL="${SCRIPT_DIR}/config/genesis.json"

@@ -11,11 +11,11 @@ sudo chown -R 10000:10000 "$HOME/hyperliquid-data"   # first start only (contain
 docker compose up -d
 ```
 
-Entrypoint: `hl-visor run-non-validator --replica-cmds-style recent-actions`. Compose adds `--serve-eth-rpc` and `--serve-info`. Extra `--write-*` flags go on the `node` service `command:` list in `docker-compose.yml`.
+Entrypoint: `hl-visor run-non-validator --replica-cmds-style recent-actions`, started by `tini -g` through the `start-node` wrapper. hl-visor has no SIGTERM handler, so without tini as PID 1 `docker compose stop` waits out the full grace period and then kills it. Compose adds `--serve-eth-rpc` and `--serve-info`. Extra `--write-*` flags go on the `node` service `command:` list in `docker-compose.yml`.
 
 `./configure.sh` writes the host public IP to `$HOST_DATADIR/override_public_ip_address`. hl-visor advertises that address. Re-run `./configure.sh` after the public IP changes.
 
-Refresh gossip roots (overwrites `override_gossip_config.json`). Reserved peers from `RESERVED_PEER_IPS` are included only when TCP 4001 accepts a connection:
+Refresh gossip roots (overwrites `override_gossip_config.json`). The script puts roots in this order: `RESERVED_PEER_IPS`, then `SEED_PEER_IPS` (default: the upstream README root peer table), then the `gossipRootIps` API. It keeps a peer only when TCP 4001 accepts a connection from this host. Run it on the node host:
 
 ```bash
 ./override-gossip.sh
@@ -36,6 +36,18 @@ hl-visor has no RPC gas-cap flag. Block gas limits are the chain's small-block a
 
 HyperEVM transaction submission is `eth_sendRawTransaction` on `/evm`. HyperCore orders use the exchange API.
 
+## Missing EVM blocks
+
+The node's local EVM history can end up with a hole (typically after a restart): `eth_getBlockByNumber` returns `invalid block height` and `eth_getLogs` returns `invalid block range` for blocks public RPCs serve. `./evm-backfill.sh` finds holes and backfills them from Hyperliquid's S3 block archive (AWS account required, requester pays):
+
+```bash
+./evm-backfill.sh setup                      # once: build the importer
+./evm-backfill.sh scan <START> <END> [STEP]  # list holes (read-only)
+./evm-backfill.sh run <START> <END>          # download, stop, back up, check, import, start, verify
+```
+
+Details, setup and rollback: [hyperliquid-evm-backfill.md](hyperliquid-evm-backfill.md).
+
 ## Testnet
 
 The Dockerfile and `visor.json` in the image target **Mainnet** (`HL_VISOR_URL` in `env.template`). Testnet uses `https://binaries.hyperliquid-testnet.xyz/Testnet/hl-visor` and `{"chain": "Testnet"}` in `visor.json`. Change those, rebuild, and set gossip config `chain` to `Testnet`.
@@ -49,7 +61,7 @@ Ubuntu 24.04 is the supported OS.
 | `HTTP_PORT` (default **3001**) | Host port for `/evm` and `/info`. Bind is `RPC_BIND_ADDR` (default `127.0.0.1`). Container listen port is **3001**. |
 | **4001**, **4002** (TCP) | Gossip. Published on all interfaces. Must be reachable from the internet, or peers deprioritize this node. |
 
-`n_gossip_peers` in `override_gossip_config.json` is **20** (allowed range 8–100). That change does not require a restart.
+`n_gossip_peers` in `override_gossip_config.json` comes from `N_GOSSIP_PEERS` (default **50**, allowed range 8–100). Re-run `./override-gossip.sh` after changing it.
 
 For lowest latency, run in Tokyo.
 
@@ -63,4 +75,4 @@ Info requests go to `http://127.0.0.1:3001/info` ([info endpoint](https://hyperl
 
 Crash logs: `$HOST_DATADIR/data/visor_child_stderr/{date}/{node_binary_index}`.
 
-Docs: [Run a node](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/nodes) · [hyperliquid-dex/node](https://github.com/hyperliquid-dex/node)
+Docs: [P2P and peering notes](docs/p2p.md) · [Run a node](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/nodes) · [hyperliquid-dex/node](https://github.com/hyperliquid-dex/node)

@@ -21,7 +21,7 @@ jobs:
         run: |
           ./scripts/check-auto-upgrades.sh --write
           if [[ ! -f "${AUTO_UPGRADE_PR_BODY}" ]]; then
-            printf '%s\n' "Same-series tag-only pin bump from \`scripts/auto-upgrade.yaml\`." > "${AUTO_UPGRADE_PR_BODY}"
+            printf '%s\n' "Same-series tag-only pin bump from \`scripts/config/auto-upgrade.yaml\`." > "${AUTO_UPGRADE_PR_BODY}"
           fi
 
       - name: Open pull request
@@ -38,7 +38,7 @@ jobs:
           commit-message: |
             Bump tag-only client pins.
 
-            Same-series image tags only (scripts/auto-upgrade.yaml).
+            Same-series image tags only (scripts/config/auto-upgrade.yaml).
           body-path: ${{ runner.temp }}/auto-upgrade-pr-body.md
 
       - name: Comment pin table on the PR

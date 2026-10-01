@@ -5,7 +5,8 @@ Mainnet OP Stack rollup with EigenDA Alt-DA. Chain data: `$HOME/ronin-reth-datad
 ## Start
 
 ```bash
-cp env.template .env    # set L1_RPC, L1_BEACON, EXT_IP
+./configure.sh          # create .env, set EXT_IP and P2P advertise IP
+# edit .env — set L1_RPC and L1_BEACON
 ./init-datadirs.sh      # jwt.hex, genesis.json, rollup.json + alt_da patch
 docker compose up -d
 ```

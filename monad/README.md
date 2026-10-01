@@ -105,7 +105,7 @@ Re-run `./configure.sh` after a public IP change, then `./sign-name-record.sh` (
 
 ## Upgrade
 
-`install-package.sh` installs exactly `MONAD_VERSION` and `apt-mark hold`s the package, so `apt upgrade` cannot move it. Read the official [v0.16.1 upgrade](https://docs.monad.xyz/node-ops/upgrade-instructions/v0.16.1) and [MIP-8 page storage](https://docs.monad.xyz/node-ops/upgrade-instructions/page-storage-mip-8-migration) notes before changing a live node.
+`install-package.sh` installs exactly `MONAD_VERSION` and `apt-mark hold`s the package, so `apt upgrade` cannot move it. Read the official [v0.16.1 upgrade](https://docs.monad.xyz/node-ops/upgrade-instructions/v0.16.1), [v0.16.2 upgrade](https://docs.monad.xyz/node-ops/upgrade-instructions/v0.16.2) (mainnet rolling upgrade from 0.16.1), and [MIP-8 page storage](https://docs.monad.xyz/node-ops/upgrade-instructions/page-storage-mip-8-migration) notes before changing a live node. [v0.16.3](https://docs.monad.xyz/node-ops/upgrade-instructions/v0.16.3) is **testnet-only** per Monad docs — do not pin mainnet to 0.16.3.
 
 **Fresh install or hard reset:** `./restore-snapshot.sh` builds a page-only TrieDB once MIP-8 is live on the network. No Phase A/C.
 
@@ -123,7 +123,7 @@ If `node.toml` still has `[prometheus]`, rename that section to `[metrics]` (v0.
 
 ```bash
 systemctl stop monad-bft monad-execution monad-rpc
-# MONAD_VERSION=0.16.1 in .env
+# MONAD_VERSION=0.16.2 in .env
 ./install-package.sh
 systemctl start monad-bft monad-execution monad-rpc
 monad-rpc -V
@@ -183,4 +183,4 @@ systemctl list-timers --all | grep -i cruft
 journalctl -u monad-bft -u monad-execution -u monad-rpc -n 30 --no-pager
 ```
 
-Docs: [Full node installation](https://docs.monad.xyz/node-ops/full-node-installation) · [v0.16.1 upgrade](https://docs.monad.xyz/node-ops/upgrade-instructions/v0.16.1) · [MIP-8 page storage](https://docs.monad.xyz/node-ops/upgrade-instructions/page-storage-mip-8-migration) · [Hard reset](https://docs.monad.xyz/node-ops/node-recovery/hard-reset) · [General operations](https://docs.monad.xyz/node-ops/general-operations)
+Docs: [Full node installation](https://docs.monad.xyz/node-ops/full-node-installation) · [v0.16.2 upgrade](https://docs.monad.xyz/node-ops/upgrade-instructions/v0.16.2) · [MIP-8 page storage](https://docs.monad.xyz/node-ops/upgrade-instructions/page-storage-mip-8-migration) · [Hard reset](https://docs.monad.xyz/node-ops/node-recovery/hard-reset) · [General operations](https://docs.monad.xyz/node-ops/general-operations)

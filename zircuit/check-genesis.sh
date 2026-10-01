@@ -11,8 +11,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=../scripts/check-conduit-genesis-lib.sh
-source "${SCRIPT_DIR}/../scripts/check-conduit-genesis-lib.sh"
+# shellcheck source=../scripts/lib/check-conduit-genesis-lib.sh
+source "${SCRIPT_DIR}/../scripts/lib/check-conduit-genesis-lib.sh"
 
 ZIRCUIT_BEDROCK_BLOCK=32956468
 

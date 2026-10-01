@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 #
-# Refresh override_gossip_config.json from the public gossipRootIps API.
-# RESERVED_PEER_IPS in .env is prepended to root_node_ips and set as
-# reserved_peer_ips, but only when TCP 4001 accepts a connection.
+# Refresh override_gossip_config.json. Root peers, in order:
+#   1. RESERVED_PEER_IPS from .env (also written as reserved_peer_ips)
+#   2. SEED_PEER_IPS (default: upstream hyperliquid-dex/node README root peer table)
+#   3. gossipRootIps from the public info API
+# Every candidate is kept only when TCP 4001 accepts a connection from this host.
 #
 # Usage: ./override-gossip.sh
 #
@@ -17,58 +19,88 @@ if [[ -f .env ]]; then
   set +a
 fi
 
-CONNECT_TIMEOUT=2
+# Mainnet root peers from https://github.com/hyperliquid-dex/node (README table).
+DEFAULT_SEED_PEER_IPS="64.31.48.111,64.31.51.137,180.189.55.18,180.189.55.19,72.46.86.185,72.46.86.159,13.230.78.76,52.195.133.97,52.68.71.160,13.114.116.44,79.127.159.173,199.254.199.194,23.81.40.69,212.95.58.62,109.123.230.189,31.223.196.172,31.223.196.238,72.46.87.141,199.254.199.12,35.74.132.113,35.79.2.229,23.81.41.3,15.235.231.247,199.254.199.48,64.34.83.57"
+SEED_PEER_IPS="${SEED_PEER_IPS:-$DEFAULT_SEED_PEER_IPS}"
 
-mapfile -t CANDIDATES < <(
-  printf '%s\n' "${RESERVED_PEER_IPS:-}" \
+CONNECT_TIMEOUT=2
+N_GOSSIP_PEERS="${N_GOSSIP_PEERS:-20}"
+
+split_csv() {
+  printf '%s\n' "${1:-}" \
     | tr ',' '\n' \
     | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' \
     | sed '/^$/d'
+}
+
+mapfile -t RESERVED < <(split_csv "${RESERVED_PEER_IPS:-}")
+mapfile -t SEEDS < <(split_csv "${SEED_PEER_IPS}")
+mapfile -t API < <(
+  curl -sf -X POST --header "Content-Type: application/json" \
+    --data '{ "type": "gossipRootIps" }' https://api.hyperliquid.xyz/info \
+    | jq -r '.[]'
 )
+if ((${#API[@]} == 0)); then
+  echo "WARN: gossipRootIps API returned no peers" >&2
+fi
 
-REACHABLE=()
-if ((${#CANDIDATES[@]})); then
-  TMP="$(mktemp -d)"
-  pids=()
-  for ip in "${CANDIDATES[@]}"; do
-    (
-      if timeout "${CONNECT_TIMEOUT}" bash -c ">/dev/tcp/${ip}/4001" 2>/dev/null; then
-        printf '%s\n' "$ip" > "${TMP}/${ip}"
-      fi
-    ) &
-    pids+=("$!")
-  done
-  for pid in "${pids[@]}"; do
-    wait "$pid" || true
-  done
-  for ip in "${CANDIDATES[@]}"; do
-    if [[ -f "${TMP}/${ip}" ]]; then
-      REACHABLE+=("$ip")
-      echo "reserved ${ip}: TCP 4001 open"
-    else
-      echo "reserved ${ip}: TCP 4001 unreachable, skipped" >&2
+# Ordered, de-duplicated candidate list. This host's own public IP (written by
+# ./configure.sh) is skipped so one shared RESERVED_PEER_IPS works on every host.
+declare -A SEEN=()
+SELF_IP_FILE="${HOST_DATADIR:-$HOME/hyperliquid-data}/override_public_ip_address"
+if [[ -r "${SELF_IP_FILE}" ]]; then
+  SELF_IP="$(tr -d '[:space:]' < "${SELF_IP_FILE}")"
+  [[ -n "${SELF_IP}" ]] && SEEN[$SELF_IP]=1
+fi
+CANDIDATES=()
+for ip in "${RESERVED[@]}" "${SEEDS[@]}" "${API[@]}"; do
+  [[ -n "${SEEN[$ip]:-}" ]] && continue
+  SEEN[$ip]=1
+  CANDIDATES+=("$ip")
+done
+
+TMP="$(mktemp -d)"
+trap 'rm -rf "${TMP}"' EXIT
+for ip in "${CANDIDATES[@]}"; do
+  (
+    if timeout "${CONNECT_TIMEOUT}" bash -c ">/dev/tcp/${ip}/4001" 2>/dev/null; then
+      : > "${TMP}/${ip}"
     fi
-  done
-  rm -rf "${TMP}"
+  ) &
+done
+wait
+
+declare -A IS_RESERVED=()
+for ip in "${RESERVED[@]}"; do IS_RESERVED[$ip]=1; done
+
+ROOTS=()
+REACHABLE_RESERVED=()
+for ip in "${CANDIDATES[@]}"; do
+  if [[ -f "${TMP}/${ip}" ]]; then
+    ROOTS+=("$ip")
+    [[ -n "${IS_RESERVED[$ip]:-}" ]] && REACHABLE_RESERVED+=("$ip")
+  else
+    echo "${ip}: TCP 4001 unreachable, skipped" >&2
+  fi
+done
+
+if ((${#ROOTS[@]} == 0)); then
+  echo "ERROR: no reachable peers; leaving override_gossip_config.json unchanged" >&2
+  exit 1
 fi
 
-REACHABLE_CSV=""
-if ((${#REACHABLE[@]})); then
-  REACHABLE_CSV=$(IFS=,; printf '%s' "${REACHABLE[*]}")
-fi
+jq -n \
+  --arg roots "$(IFS=,; printf '%s' "${ROOTS[*]}")" \
+  --arg reserved "$(IFS=,; printf '%s' "${REACHABLE_RESERVED[*]:-}")" \
+  --argjson n_peers "${N_GOSSIP_PEERS}" '
+    def csv: split(",") | map(select(length > 0));
+    {
+      root_node_ips: ($roots | csv | map({"Ip": .})),
+      try_new_peers: true,
+      chain: "Mainnet",
+      n_gossip_peers: $n_peers,
+      reserved_peer_ips: ($reserved | csv)
+    }
+  ' > override_gossip_config.json
 
-curl -sf -X POST --header "Content-Type: application/json" \
-  --data '{ "type": "gossipRootIps" }' https://api.hyperliquid.xyz/info \
-  | jq -c --arg peers "$REACHABLE_CSV" '
-      ($peers | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))) as $static
-      | {
-          root_node_ips: (($static | map({"Ip": .})) + [(.[] | {"Ip": .})]),
-          try_new_peers: true,
-          chain: "Mainnet",
-          n_gossip_peers: 20,
-          reserved_peer_ips: $static
-        }
-    ' \
-  > override_gossip_config.json
-
-echo "wrote override_gossip_config.json ($(jq '.root_node_ips | length' override_gossip_config.json) roots, $(jq '.reserved_peer_ips | length' override_gossip_config.json) reserved)"
+echo "wrote override_gossip_config.json (${#ROOTS[@]} roots of ${#CANDIDATES[@]} candidates, ${#REACHABLE_RESERVED[@]} reserved)"

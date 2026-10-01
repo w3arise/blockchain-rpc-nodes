@@ -11,6 +11,8 @@ services:
         HL_VISOR_URL: ${HL_VISOR_URL:-https://binaries.hyperliquid.xyz/Mainnet/hl-visor}
         HL_VISOR_ASC_URL: ${HL_VISOR_ASC_URL:-https://binaries.hyperliquid.xyz/Mainnet/hl-visor.asc}
         PUB_KEY_URL: ${PUB_KEY_URL:-https://raw.githubusercontent.com/hyperliquid-dex/node/refs/heads/main/pub_key.asc}
+    environment:
+      RUST_MIN_STACK: ${RUST_MIN_STACK:-134217728}
     command:
       - --serve-eth-rpc
       - --serve-info
