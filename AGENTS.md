@@ -126,11 +126,12 @@ Include:
 - **Pruning Mode** or **State retention** — when the client has archive/pruning flags or init-time choices; see [Archive and state retention (general)](#archive-and-state-retention-general).
 - **Testnet** — only if the setup supports it
 - **Host ports** — document RPC (`RPC_BIND_ADDR`, `HTTP_PORT`) and inbound P2P ports; see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) and [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2)
+- **Upgrade** (when the chain has a pin or package version) — the **durable** host procedure only: stop services, copy the pin from `env.template` into `.env`, pull/build/install, recreate or start, verify. Link to the chain’s official upgrade docs. Do not copy release-specific migration steps into the README.
 - Link to official run docs
 
 Do not duplicate `env.template` comments or long troubleshooting guides.
 
-Do not put **ephemeral dates** in chain READMEs — upcoming fork activations, upgrade deadlines, "as of YYYY-MM-DD" version notes, or similar time-bound content goes stale quickly. Pin fork timestamps, image tags, and other values that change on a schedule in **`env.template`**, **`config/`**, or helper scripts (e.g. `check-genesis.sh` printing `OP_NODE_OVERRIDE_*` from Conduit). READMEs may describe *how* to refresh (run the script, check the API) without calendar dates.
+Do not put **transient upgrade or time-bound content** in chain READMEs. That includes upcoming fork activations, upgrade deadlines, "as of YYYY-MM-DD" version notes, "upgrade from X to Y" checklists, testnet-only build warnings, and one-off datadir migrations tied to a single release. Those details belong in the **pin PR body** (Summary / Test plan / operator notes) and in upstream release or upgrade instructions — not in git after the bump merges. Pin image tags and package versions in **`env.template`**; pin fork timestamps and overrides in **`env.template`**, **`config/`**, or helper scripts (e.g. `check-genesis.sh` printing `OP_NODE_OVERRIDE_*` from Conduit). READMEs may describe *how* to refresh (run the script, check the API) without calendar dates. On a pin PR, edit `<chain>/README.md` only for **lasting** setup changes (new script, env var, or compose flag that stays).
 
 If the compose setup includes **Prometheus and/or Grafana**, add a **first-start ownership** step in **Start** (see [Prometheus and Grafana](#prometheus-and-grafana-optional-monitoring) below).
 

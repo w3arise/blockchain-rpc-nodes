@@ -8,7 +8,7 @@ Official deployment is **not Docker** — run these steps on an Ubuntu 24.04+ ba
 
 - 16-core CPU @ 4.5 GHz+, 32 GB+ RAM, HT/SMT disabled in BIOS
 - 2 TB dedicated NVMe for TrieDB + 500 GB for BFT/OS (PCIe Gen4 x4+)
-- Linux kernel ≥ 6.8.0.60 (avoid 6.8.0.136)
+- Linux kernel ≥ 6.8.0.60 — current known-bad builds are in [full node installation](https://docs.monad.xyz/node-ops/full-node-installation)
 - Inbound P2P: **8000** and **8001** (TCP + UDP on 8000)
 - RPC: **8080** (localhost by default)
 
@@ -99,39 +99,21 @@ Fast path is hard reset + official MF snapshot (requires `aria2`):
 systemctl start monad-bft monad-execution monad-rpc
 ```
 
-Alternative provider: [Category Labs R2 scripts](https://pub-b0d0d7272c994851b4c8af22a766f571.r2.dev). Mainnet TrieDB restore typically takes 1–5 minutes, then statesync/blocksync catch-up. After MIP-8 is live, the official restore builds a **page-only** TrieDB (no slot timeline to decommission).
+Alternative provider: [Category Labs R2 scripts](https://pub-b0d0d7272c994851b4c8af22a766f571.r2.dev). Mainnet TrieDB restore typically takes 1–5 minutes, then statesync/blocksync catch-up.
 
 Re-run `./configure.sh` after a public IP change, then `./sign-name-record.sh` (it re-signs at the next `self_record_seq_num` so peers accept the new address) and restart `monad-bft`.
 
 ## Upgrade
 
-`install-package.sh` installs exactly `MONAD_VERSION` and `apt-mark hold`s the package, so `apt upgrade` cannot move it. Read the official [v0.16.1 upgrade](https://docs.monad.xyz/node-ops/upgrade-instructions/v0.16.1), [v0.16.2 upgrade](https://docs.monad.xyz/node-ops/upgrade-instructions/v0.16.2) (mainnet rolling upgrade from 0.16.1), and [MIP-8 page storage](https://docs.monad.xyz/node-ops/upgrade-instructions/page-storage-mip-8-migration) notes before changing a live node. [v0.16.3](https://docs.monad.xyz/node-ops/upgrade-instructions/v0.16.3) is **testnet-only** per Monad docs — do not pin mainnet to 0.16.3.
-
-**Fresh install or hard reset:** `./restore-snapshot.sh` builds a page-only TrieDB once MIP-8 is live on the network. No Phase A/C.
-
-**Existing 0.15.x node:** `0.16.1` refuses to start unless TrieDB already has a page-encoded timeline (`monad` kind as primary or secondary). Confirm first:
-
-```bash
-monad-mpt --storage /dev/triedb
-```
-
-- Dual-db (Phase A): Primary `ethereum` + Secondary `monad` — safe to install `0.16.1`.
-- Page-only (Phase C / post-fork snapshot): Primary `monad` only — safe to install `0.16.1`.
-- Slot-only: Primary `ethereum` only — do **not** install `0.16.1` yet. Phase A tooling starts at `0.15.2`: set `MONAD_VERSION=0.15.2`, run `./install-package.sh`, complete [Phase A](https://docs.monad.xyz/node-ops/upgrade-instructions/page-storage-mip-8-migration), then bump to `0.16.1`.
-
-If `node.toml` still has `[prometheus]`, rename that section to `[metrics]` (v0.16.0), or re-run `./configure.sh` and `./sign-name-record.sh`.
+`install-package.sh` installs exactly `MONAD_VERSION` and `apt-mark hold`s the package, so `apt upgrade` cannot move it. Read that release’s [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions) before changing a live node.
 
 ```bash
 systemctl stop monad-bft monad-execution monad-rpc
-# MONAD_VERSION=0.16.2 in .env
+# set MONAD_VERSION in .env
 ./install-package.sh
 systemctl start monad-bft monad-execution monad-rpc
 monad-rpc -V
 ```
-
-After MIP-8 has activated, run Phase C (promote the page timeline, drop the slot timeline) unless this node already hard-reset to page-only. State archive nodes skip Phase C.
-
-The older `monad-mpt --storage /dev/triedb --upgrade` path applied only when coming from `0.14.5` or earlier.
 
 ## State retention
 
@@ -148,7 +130,7 @@ All long-running daemons run as the **`monad`** user via **systemd** on the host
 | Port | Protocol | Exposure | Service | Purpose |
 | --- | --- | --- | --- | --- |
 | 8080 | TCP | localhost by default (`127.0.0.1`) | `monad-rpc` | JSON-RPC (and WS where enabled). Bind is package/default; use a firewall or `systemctl edit monad-rpc` if you expose it beyond localhost. |
-| 9143 | TCP | package default `0.0.0.0` since `0.16.0` | `monad-bft` metrics | Prometheus scrape. **Firewall this** — do not leave it reachable from the internet. |
+| 9143 | TCP | package default `0.0.0.0` | `monad-bft` metrics | Prometheus scrape. **Firewall this** — do not leave it reachable from the internet. |
 | 8000 | TCP + UDP | public (firewall) | `monad-bft` | Consensus P2P — peer discovery, raptorcast, blocksync. Must be reachable from the internet on a public full node. |
 | 8001 | UDP | public (firewall) | `monad-bft` | Authenticated UDP for peer discovery (`authenticated_bind_address_port` in `node.toml`). |
 
@@ -170,7 +152,7 @@ After `./install-package.sh`, `./restore-snapshot.sh`, and `systemctl enable/sta
 
 | Unit | When it runs |
 | --- | --- |
-| `monad-mpt.service` | One-shot TrieDB format during `./init-triedb.sh`. Live upgrades use `monad-mpt` CLI (MIP-8 Phase A/C), not this unit. |
+| `monad-mpt.service` | One-shot TrieDB format during `./init-triedb.sh`. |
 
 **Optional (upstream docs, not part of this repo’s Start steps):** `otelcol.service` — OpenTelemetry metrics on `:8889/metrics` if you install the collector per [full node installation](https://docs.monad.xyz/node-ops/full-node-installation#configure-otel-collector).
 
@@ -183,4 +165,4 @@ systemctl list-timers --all | grep -i cruft
 journalctl -u monad-bft -u monad-execution -u monad-rpc -n 30 --no-pager
 ```
 
-Docs: [Full node installation](https://docs.monad.xyz/node-ops/full-node-installation) · [v0.16.2 upgrade](https://docs.monad.xyz/node-ops/upgrade-instructions/v0.16.2) · [MIP-8 page storage](https://docs.monad.xyz/node-ops/upgrade-instructions/page-storage-mip-8-migration) · [Hard reset](https://docs.monad.xyz/node-ops/node-recovery/hard-reset) · [General operations](https://docs.monad.xyz/node-ops/general-operations)
+Docs: [Full node installation](https://docs.monad.xyz/node-ops/full-node-installation) · [Upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions) · [Hard reset](https://docs.monad.xyz/node-ops/node-recovery/hard-reset) · [General operations](https://docs.monad.xyz/node-ops/general-operations)

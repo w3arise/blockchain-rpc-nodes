@@ -9,7 +9,7 @@ When adding a chain, add a row to [Sources](#sources). Pin values live in `env.t
 1. Extract pins from `**/env.template*` (`*_IMAGE`, `*_VERSION`, `*_IMAGE_TAG`) and from compose when a chain has no env pin (e.g. `celo-geth/`).
 2. Compare each pin using the [policy](#comparison-policy) and the [Sources](#sources) row — not a generic GitHub “latest” if the chain publishes its own images.
 3. Present findings (chain, client, pinned, latest stable, **inferred class**, notes). For each bump, read release notes / git compare (pin → latest) and class **pin-only** vs **needs-config** — see [AUTO_UPGRADES.md](AUTO_UPGRADES.md#agent-release-notes-check). **Do not bump `needs-review` or needs-config until the user picks.** YAML `tag-only` chains may also get a CI pin PR (`scripts/check-auto-upgrades.sh`); that script does not read notes.
-4. After the user picks: update `env.template` (and README / `CHAIN_LINKS.md` when the upgrade path or official docs change) **on a branch and open a GitHub PR**. Never push pin bumps to `main`/`master`; do not merge unless asked. Follow `<chain>/README.md` for live-node steps (datadir migrations, genesis, JWT). Hosts apply **after merge**: tag-only with [`scripts/apply-tag-only.sh`](scripts/apply-tag-only.sh).
+4. After the user picks: update `env.template` (and README / `CHAIN_LINKS.md` only for **lasting** setup or doc-link changes) **on a branch and open a GitHub PR**. Never push pin bumps to `main`/`master`; do not merge unless asked. Release-specific steps (migrations, genesis, JWT one-offs) go in the **PR body**, not the chain README — see `AGENTS.md` Chain README. Hosts apply **after merge**: tag-only with [`scripts/apply-tag-only.sh`](scripts/apply-tag-only.sh).
 
 Optional: dump the audit table to a **local** Cursor canvas (not git). Reuse `host-vs-repo-pins.canvas.tsx` for host sheet vs pins, and `client-release-audit.canvas.tsx` for pin vs upstream — both live in the Cursor workspace `canvases/` dir. Do not commit canvases, host evidence, or a living “pinned vs latest” markdown. This repo is public.
 
@@ -73,7 +73,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Lisk | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain (this repo uses op-reth; `LiskHQ/lisk-node` may still pin op-geth) | tag-only |
 | Mantle | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | `mantlenetworkio/networks` `docker-compose-mainnetv2-upgrade-beacon.yml` (`mantlenetworkio/mantle-op-geth`, `mantlenetworkio/mantle-op-node`). Pair with `mantlenetworkio/op-geth` + `mantlenetworkio/mantle-v2` releases — **not** generic OP Labs | needs-review |
 | Mode | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain. `op-node` v1.19.3+ required for Mode `--network` Karst gas configs | tag-only |
-| Monad | `MONAD_VERSION` | `category-labs/monad` + [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions). APT pin; 0.16.1+ needs a page-encoded TrieDB | needs-review |
+| Monad | `MONAD_VERSION` | `category-labs/monad` + [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions). APT pin | needs-review |
 | Morph | `GETH_IMAGE`, `NODE_IMAGE` | `morph-l2/go-ethereum` (`morph-v*` tags vs compose `2.2.x`), `morph-l2/morph` | needs-review |
 | Neo X | `GETH_VERSION` | `bane-labs/go-ethereum` | tag-only |
 | opBNB | `OP_GETH_IMAGE_TAG`, `OP_NODE_IMAGE_TAG` | `bnb-chain/op-geth`, `bnb-chain/opbnb` | needs-review |
@@ -109,7 +109,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 - **Abstract vs Lens** can pin different `matterlabs/external-node` tags; never copy one onto the other. Abstract `.env.mainnet` `EN_VERSION` can lag helm; follow helm tag+digest.
 - **EigenDA v2** releases are on `Layr-Labs/eigenda`, not the archived proxy repo.
 - **Nitro Orbit** (ApeChain, Plume) may require a vendor tag (`apechain-3.9.9` / older `apechain-v*`, `*-validator`).
-- **Monad** APT `MONAD_VERSION`; 0.16.1+ will not start without a page-encoded TrieDB (MIP-8 Phase A or post-fork snapshot). See `monad/README.md`.
+- **Monad** APT `MONAD_VERSION`. Release-specific steps (TrieDB timeline, testnet-only builds) stay in that release’s [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions) and in the pin PR.
 - **op-node v1.19.2** is below the Mode/Metal/Zora Karst gas-config floor (`v1.19.3+`) for built-in `--network` configs.
 - **Nitro 3.8 / 3.10** one-way datadir (cannot open with 3.7.x / 3.9.x). Arbitrum One replica is pinned at `v3.11.3` and allowlisted for **`v3.11.*` patches** (`image_tag_from: release_body`). A `v3.12` series jump stays `needs-review`. See `arbitrum/README.md`.
 - **Pharos** image and `bin/VERSION` must stay paired (`./configure.sh` refreshes `mainnet.version`). v0.16 monitoring keys are `storage_cetina_*` (was `pamir_cetina_*`); this repo’s `pharos.conf` has no `monitor_config`. See `pharos/README.md`.
