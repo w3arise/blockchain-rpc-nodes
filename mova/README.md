@@ -15,7 +15,9 @@ Image: `movachain/movan-syncnode:v0.0.1` (linux/amd64). Commit `6f0cc05`. That i
 docker compose up -d
 ```
 
-`patch-config.sh` is **idempotent**. It sets `pruning = "syncable"`, `indexer = "kv"`, the mainnet persistent peers, `logs_cap` / `block_range_cap = 100000`, and `rpc_gas_limit = 600000000`. Start uses `--home /data`.
+`movad init` writes `config.toml` and `app.toml`. Those files are kept. `patch-config.sh` then edits them in place. It is **idempotent** and sets `pruning = "syncable"`, `indexer = "kv"`, `persistent_peers`, `logs_cap` / `block_range_cap = 100000`, and `rpc_gas_limit = 600000000`. `pex` and `max_num_inbound_peers` stay at the init defaults. If patch reports a missing key, `movad init` did not emit that key.
+
+Init also writes a local genesis. That file is replaced with the chain 61901 genesis (checksum-checked). `noderpc.toml` is installed only when init did not create it. Start uses `--home /data`.
 
 The vendor image's supervisord passes `--pruning=nothing` (archive). This compose file overrides that with `PRUNING`.
 
@@ -52,6 +54,6 @@ Do not use `node-snap.movachain.com` — that host is chain 61900.
 | 26657 | localhost | CometBFT RPC |
 | 26656 | public TCP+UDP | P2P |
 
-Change `RPC_BIND_ADDR` in `.env` to `0.0.0.0` only if you need LAN access to RPC. Open inbound **26656/tcp** and **26656/udp** for peers. Shipped `config.toml` sets `pex = false` and `max_num_inbound_peers = 0`; the node dials the three `p2p.movan.movachain.com` peers.
+Change `RPC_BIND_ADDR` in `.env` to `0.0.0.0` only if you need LAN access to RPC. Open inbound **26656/tcp** and **26656/udp** for peers. `patch-config.sh` also dials the three `p2p.movan.movachain.com` peers from `.env`. Peer exchange stays at the `movad init` default.
 
 Docs: [CryptoManufaktur-io/mova-docker](https://github.com/CryptoManufaktur-io/mova-docker) · [movachain/movan-syncnode](https://hub.docker.com/r/movachain/movan-syncnode) · [Explorer](https://scan.movan.movachain.com/)
