@@ -1,0 +1,15 @@
+---
+description: In committed docs, link only official chain sources — not community operator repos
+alwaysApply: true
+---
+
+# Official documentation in git
+
+In **README.md** (root and `<chain>/`), **`CHAIN_LINKS.md`**, **`AGENTS.md`**, **`CLIENT_UPDATES.md`**, **`env.template` comments**, and other **committed documentation**:
+
+- Link and cite **only official** sources for that chain: chain foundation / client team docs, official GitHub org repos, published client images (Docker Hub / GHCR from the vendor), official block explorer, official snapshot or node-run pages from those same publishers.
+- **Do not** link or name third-party operator setups (community Docker repos, hoster runbooks, copied genesis/config hosts, unrelated chain IDs on the same brand, forum posts, Chainlist unless it is the chain’s own listing page).
+
+Non-official URLs may still appear in **scripts** (e.g. `init-database.sh` download URLs) when no official genesis URL exists. Do not surface those hosts in prose docs — describe behavior (“genesis downloaded at init, checksum in script”) instead.
+
+When official docs for the pinned network do not exist, state that in the chain README and list only what **is** official (image, explorer, snapshot host). Use `—` in `CHAIN_LINKS.md` for missing columns.
