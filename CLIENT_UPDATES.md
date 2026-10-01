@@ -114,7 +114,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 - **op-node v1.19.2** is below the Mode/Metal/Zora Karst gas-config floor (`v1.19.3+`) for built-in `--network` configs.
 - **Nitro 3.8 / 3.10** one-way datadir (cannot open with 3.7.x / 3.9.x). Arbitrum One replica is pinned at `v3.11.3` and allowlisted for **`v3.11.*` patches** (`image_tag_from: release_body`). A `v3.12` series jump stays `needs-review`. See `arbitrum/README.md`.
 - **Pharos** image and `bin/VERSION` must stay paired (`./configure.sh` refreshes `mainnet.version`). v0.16 monitoring keys are `storage_cetina_*` (was `pamir_cetina_*`); this repo’s `pharos.conf` has no `monitor_config`. See `pharos/README.md`.
-- **Mova** genesis sync stays on `movachain/movan-syncnode:v0.0.1` (commit `6f0cc05`) until a newer tag's release notes say it can sync from height 0. The vendor supervisord flag `--pruning=nothing` is archive; this repo forces `syncable`. Chain 61900 is `mainnet-syncnode`, not this pin.
+- **Mova (61901)** genesis sync stays on `movachain/movan-syncnode:v0.0.1` (commit `6f0cc05`, linux/amd64 only) until a newer tag's release notes say it can sync from height 0. Chain **61900** uses `movachain/mainnet-syncnode` (different network). Vendor supervisord uses `--pruning=nothing`; compose overrides to `syncable`. Config: `movad init` + `patch-config.sh` (no vendored full `config.toml`); genesis downloaded at init (checksum in `init-database.sh`). Gas cap in `noderpc.toml`, not geth-style flags. No separate official node-run doc for 61901 in repo links — image, explorer, and snapshot host only.
 
 ## After an upgrade (code)
 

@@ -4,20 +4,24 @@ Mainnet EVM RPC on chain ID **61901** (`movad` + `movacli`). Chain data: `$HOME/
 
 Default mode: **syncable** — full blocks, receipts, and logs; app state pruned (last 100 states plus every 10,000th). Sync is from **genesis** on the creation binary.
 
-Image: `movachain/movan-syncnode:v0.0.1` (linux/amd64). Commit `6f0cc05`. That is the only published tag, and live `web3_clientVersion` is `mova/0.0.1+6f0cc05`. Chain 61900 (`movachain/mainnet-syncnode`) is a different network.
+Image: `movachain/movan-syncnode:v0.0.1` (linux/amd64). Commit `6f0cc05`. That is the only published tag, and live `web3_clientVersion` is `mova/0.0.1+6f0cc05`.
+
+**Not chain 61900** — `movachain/mainnet-syncnode`, `rpc.movachain.com`, and `node-snap.movachain.com` are a different network. There is no separate official node-run doc in this repo for 61901 beyond the published image, explorer, and snapshot host below.
 
 ## Start
 
 ```bash
 ./configure.sh            # .env + EXT_IP + BUILD_UID/GID
-./init-database.sh        # movad init + genesis (chain_id 61901)
+./init-database.sh        # movad init + chain 61901 genesis (checksum)
 ./patch-config.sh         # pruning, peers, gas cap, log caps
 docker compose up -d
 ```
 
-`movad init` writes `config.toml` and `app.toml`. Those files are kept. `patch-config.sh` then edits them in place. It is **idempotent** and sets `pruning = "syncable"`, `indexer = "kv"`, `persistent_peers`, `logs_cap` / `block_range_cap = 100000`, and `rpc_gas_limit = 600000000`. `pex` and `max_num_inbound_peers` stay at the init defaults. If patch reports a missing key, `movad init` did not emit that key.
+`movad init` writes **`config.toml`** and **`app.toml`**. Those files are kept (Tendermint/CometBFT standard). **`patch-config.sh`** is **idempotent** and edits them: `pruning = "syncable"`, `indexer = "kv"`, `persistent_peers`, P2P listen/advertise, `logs_cap` / `block_range_cap = 100000`, and `rpc_gas_limit = 600000000`. **`pex`** and **`max_num_inbound_peers`** stay at init defaults unless you add them after testing.
 
-Init also writes a local genesis. That file is replaced with the chain 61901 genesis (checksum-checked). `noderpc.toml` is installed only when init did not create it. Start uses `--home /data`.
+Init’s local genesis is **replaced** with the chain 61901 genesis (downloaded at init, sha256-checked in `init-database.sh` — not committed; gentx memos can contain operator IPs). **`noderpc.toml`** is installed only when init did not create it (gas/log caps live there, not geth `--rpc.gascap`).
+
+If patch fails on a **missing key**, `movad init` on v0.0.1 did not emit that key — add only the needed field after checking the generated file on **linux/amd64**, do not drop in a full copied config. Start uses `--home /data`.
 
 The vendor image's supervisord passes `--pruning=nothing` (archive). This compose file overrides that with `PRUNING`.
 
@@ -54,6 +58,10 @@ Do not use `node-snap.movachain.com` — that host is chain 61900.
 | 26657 | localhost | CometBFT RPC |
 | 26656 | public TCP+UDP | P2P |
 
-Change `RPC_BIND_ADDR` in `.env` to `0.0.0.0` only if you need LAN access to RPC. Open inbound **26656/tcp** and **26656/udp** for peers. `patch-config.sh` also dials the three `p2p.movan.movachain.com` peers from `.env`. Peer exchange stays at the `movad init` default.
+Change `RPC_BIND_ADDR` in `.env` to `0.0.0.0` only if you need LAN access to RPC. Open inbound **26656/tcp** and **26656/udp** for peers. Persistent peers are patched from `PERSISTENT_PEERS` in `.env`.
 
-Docs: [CryptoManufaktur-io/mova-docker](https://github.com/CryptoManufaktur-io/mova-docker) · [movachain/movan-syncnode](https://hub.docker.com/r/movachain/movan-syncnode) · [Explorer](https://scan.movan.movachain.com/)
+## Health
+
+`eth_syncing` may return an object with `currentBlock` even when the node is caught up. Prefer **block head advancing** / block time over `result === false` alone.
+
+Docs: [movachain/movan-syncnode](https://hub.docker.com/r/movachain/movan-syncnode) · [Explorer](https://scan.movan.movachain.com/)
