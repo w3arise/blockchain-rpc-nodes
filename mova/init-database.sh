@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Initialize Mova mainnet home dir (movad init + chain-61901 genesis).
+# Initialize Mova mainnet home dir.
+# movad init writes config.toml and app.toml. Do not replace those files.
 #
 # Sync from genesis. Do not restore a snapshot over this datadir.
 #
@@ -52,18 +53,19 @@ mkdir -p "${DATA_DIR}"
 
 echo "==> Initializing movad (${CHAIN_ID}) into ${DATA_DIR}"
 echo "    image movachain/movan-syncnode:${MOVA_VERSION:-v0.0.1} (genesis binary, linux/amd64)"
+echo "    config.toml and app.toml are left as movad init writes them"
 export HOST_DATADIR="${DATA_DIR}"
 docker compose run --rm --no-deps \
   --entrypoint movad \
   movad init "${MONIKER}" --chain-id "${CHAIN_ID}" --home /data
 
-echo "==> Installing mainnet config (peers, pruning template, noderpc)"
-cp "${SCRIPT_DIR}/config/config.toml" "${DATA_DIR}/config/config.toml"
-cp "${SCRIPT_DIR}/config/app.toml" "${DATA_DIR}/config/app.toml"
-cp "${SCRIPT_DIR}/config/noderpc.toml" "${DATA_DIR}/config/noderpc.toml"
+# movad init does not write noderpc.toml. The gas and log caps are patched there.
+if [[ ! -f "${DATA_DIR}/config/noderpc.toml" ]]; then
+  cp "${SCRIPT_DIR}/config/noderpc.toml" "${DATA_DIR}/config/noderpc.toml"
+fi
 mkdir -p "${DATA_DIR}/clicfg"
 
-echo "==> Downloading mainnet genesis (chain_id ${CHAIN_ID})"
+echo "==> Replacing init genesis with chain ${CHAIN_ID} (operator copy, checksum-checked)"
 curl -fsSL "${GENESIS_URL}" -o "${GENESIS_FILE}"
 if command -v sha256sum >/dev/null 2>&1; then
   ACTUAL_SHA="$(sha256sum "${GENESIS_FILE}" | awk '{print $1}')"

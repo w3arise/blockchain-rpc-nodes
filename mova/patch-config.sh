@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 #
-# Apply Mova mainnet settings to config.toml, app.toml, and noderpc.toml.
+# Patch the config.toml and app.toml that movad init wrote, plus noderpc.toml.
 #
 # Idempotent — safe to re-run after .env changes.
 # Run before the first start. Do not change pruning on an existing datadir.
+# A missing key means movad init did not emit it; do not paper over that
+# by copying a full config.toml.
 #
 # Usage: ./patch-config.sh
 #
