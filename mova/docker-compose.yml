@@ -1,0 +1,39 @@
+services:
+  movad:
+    image: movachain/movan-syncnode:${MOVA_VERSION}
+    platform: linux/amd64
+    container_name: movad
+    restart: unless-stopped
+    stop_signal: SIGINT
+    stop_grace_period: 120s
+    user: "${BUILD_UID}:${BUILD_GID}"
+    env_file: .env
+    environment:
+      PRUNING: ${PRUNING:-syncable}
+      CHAIN_ID: ${CHAIN_ID:-61901}
+      READ_TIMEOUT: ${READ_TIMEOUT:-60}
+      WRITE_TIMEOUT: ${WRITE_TIMEOUT:-60}
+      RPC_API: ${RPC_API:-eth,net,web3,debug}
+      EXT_IP: ${EXT_IP:-}
+      P2P_PORT: ${P2P_PORT:-26656}
+      MOVA_NODERPC_CONFIG: /data/config/noderpc.toml
+    volumes:
+      - ${HOST_DATADIR:-$HOME/mova-data}:/data
+      - ./entrypoint.sh:/entrypoint.sh:ro
+      - ./supervisord.conf:/etc/supervisor/supervisord.conf:ro
+      - ./supervisor:/etc/supervisor/conf.d:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR}:${TM_RPC_PORT}:26657
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

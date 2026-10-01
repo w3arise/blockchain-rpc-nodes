@@ -75,6 +75,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Mode | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain. `op-node` v1.19.3+ required for Mode `--network` Karst gas configs | tag-only |
 | Monad | `MONAD_VERSION` | `category-labs/monad` + [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions). APT pin | needs-review |
 | Morph | `GETH_IMAGE`, `NODE_IMAGE` | `morph-l2/go-ethereum` (`morph-v*` tags vs compose `2.2.x`), `morph-l2/morph` | needs-review |
+| Mova | `MOVA_VERSION` | Docker Hub `movachain/movan-syncnode`. Genesis sync stays on the creation tag (`v0.0.1`, commit `6f0cc05`) until a newer tag's release notes say it can sync from height 0. Not chain 61900 `mainnet-syncnode`. | needs-review |
 | Neo X | `GETH_VERSION` | `bane-labs/go-ethereum` | tag-only |
 | opBNB | `OP_GETH_IMAGE_TAG`, `OP_NODE_IMAGE_TAG` | `bnb-chain/op-geth`, `bnb-chain/opbnb` | needs-review |
 | Optimism | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain | tag-only |
@@ -113,6 +114,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 - **op-node v1.19.2** is below the Mode/Metal/Zora Karst gas-config floor (`v1.19.3+`) for built-in `--network` configs.
 - **Nitro 3.8 / 3.10** one-way datadir (cannot open with 3.7.x / 3.9.x). Arbitrum One replica is pinned at `v3.11.3` and allowlisted for **`v3.11.*` patches** (`image_tag_from: release_body`). A `v3.12` series jump stays `needs-review`. See `arbitrum/README.md`.
 - **Pharos** image and `bin/VERSION` must stay paired (`./configure.sh` refreshes `mainnet.version`). v0.16 monitoring keys are `storage_cetina_*` (was `pamir_cetina_*`); this repo’s `pharos.conf` has no `monitor_config`. See `pharos/README.md`.
+- **Mova** genesis sync stays on `movachain/movan-syncnode:v0.0.1` (commit `6f0cc05`) until a newer tag's release notes say it can sync from height 0. The vendor supervisord flag `--pruning=nothing` is archive; this repo forces `syncable`. Chain 61900 is `mainnet-syncnode`, not this pin.
 
 ## After an upgrade (code)
 
