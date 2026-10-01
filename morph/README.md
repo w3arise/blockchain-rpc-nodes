@@ -6,7 +6,7 @@ Mainnet MPT full/archive node (morph-geth **2.2.6** + morph-node **0.6.3**, post
 
 ```bash
 ./configure.sh
-# edit .env — set L1_ETH_RPC
+# edit .env — set L1_ETH_RPC and L1_ETH_BEACON_RPC
 ./init-database.sh
 ./create-jwt.sh
 docker compose up -d
@@ -41,7 +41,7 @@ Bump **geth and node images together** — node **v0.6.3** requires the L1 contr
 
 ```bash
 ./configure.sh hoodi
-# edit .env — set L1_ETH_RPC (Ethereum Hoodi)
+# edit .env — set L1_ETH_RPC and L1_ETH_BEACON_RPC (Ethereum Hoodi)
 ./init-database.sh hoodi
 ./create-jwt.sh
 docker compose up -d

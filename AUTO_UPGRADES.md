@@ -11,18 +11,21 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Aptos | `aptos-node-v1.48.7-hotfix` | tag-only | **yes** — same-series `v1.48.*` | `./scripts/apply-tag-only.sh aptos` |
 | Arbitrum | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (docker tag from the GitHub release body, not the bare git tag) | `./scripts/apply-tag-only.sh arbitrum` |
 | Berachain | `bera-reth:v1.4.4` | tag-only | **yes** — same-series `v1.4.*`. beacon-kit stays `needs-review` | `./scripts/apply-tag-only.sh berachain` |
+| Celo | op-reth `celo-v1.0.*` | tag-only | **yes** — `celo-op-reth` only; op-node + EigenDA manual | `./scripts/apply-tag-only.sh celo` |
 | Bob | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: bob`) | `./scripts/apply-tag-only.sh bob` |
 | Core | `GETH_VERSION=v1.0.26` | tag-only | **yes** — same-series `v1.0.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh core` |
 | Gnosis Chain | `reth_gnosis` + `lighthouse` | tag-only | **yes** — same-series (`apply_group: gnosis`) | `./scripts/apply-tag-only.sh gnosis` |
 | Katana | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: katana`) | `./scripts/apply-tag-only.sh katana` |
 | Lisk | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: lisk`) | `./scripts/apply-tag-only.sh lisk` |
 | Mode | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: mode`) | `./scripts/apply-tag-only.sh mode` |
+| Morph | geth `2.2.*` + node `0.6.*` | tag-only | **yes** — paired `apply_group: morph` (post–L1 cutover series) | `./scripts/apply-tag-only.sh morph` |
 | Neo X | `GETH_VERSION=v0.6.2` | tag-only | **yes** — same-series `v0.6.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh neox` |
 | Optimism | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: optimism`) | `./scripts/apply-tag-only.sh optimism` |
 | Plume | `nitro-node:v3.9.5-*-validator` | tag-only | **yes** — same-series `v3.9.*-validator` (release body) | `./scripts/apply-tag-only.sh plume` |
 | Robinhood | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (release body, like Arbitrum) | `./scripts/apply-tag-only.sh robinhood` |
 | Ronin | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: ronin`). EigenDA stays `needs-review` | `./scripts/apply-tag-only.sh ronin` |
 | Sei | `SEID_VERSION=v6.6.3` | tag-only | **yes** — same-series `v6.6.*` | `./scripts/apply-tag-only.sh sei` |
+| Sonic | `SONIC_VERSION=v2.2.*` | tag-only | **yes** — same-series; host apply **builds** the local image | `./scripts/apply-tag-only.sh sonic` |
 | Tempo | `tempo:1.14.0` | tag-only | **yes** — same-series `1.14.*` (git tag `v*` → GHCR tag without `v`) | `./scripts/apply-tag-only.sh tempo` |
 | Worldchain | OP Labs `op-reth` + `op-node` | tag-only | **yes** — stock Superchain series (`apply_group: worldchain`) | `./scripts/apply-tag-only.sh worldchain` |
 | Zircuit | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: zircuit`) | `./scripts/apply-tag-only.sh zircuit` |

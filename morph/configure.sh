@@ -62,7 +62,7 @@ fi
 
 echo ""
 echo "Next:"
-echo "  edit .env — set L1_ETH_RPC"
+echo "  edit .env — set L1_ETH_RPC and L1_ETH_BEACON_RPC"
 echo "  ./init-database.sh ${NETWORK}"
 echo "  ./create-jwt.sh"
 echo "  docker compose up -d"

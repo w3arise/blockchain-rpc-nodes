@@ -54,6 +54,25 @@ chains:
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
 
+  # Celo L2 op-reth only (celo-v* registry tags from celo-kona git celo/reth-v*).
+  # OP_NODE_IMAGE and EIGENDA_PROXY_IMAGE stay manual — no same-series git feed for op-node.
+  - id: celo-op-reth
+    class: tag-only
+    env_file: celo/env.template
+    var: OP_RETH_IMAGE
+    image_prefix: "us-west1-docker.pkg.dev/devopsre/celo-blockchain-public/op-reth:"
+    compose_dir: celo
+    apply_group: celo
+    chain_links: false
+    source_type: github_releases
+    source_repo: celo-org/celo-kona
+    tag_prefix: celo/reth-v
+    strip_git_prefix: celo/reth-v
+    pin_tag_prefix: celo-v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
+
   # Conduit OP Stack: two pins per chain (execution + op-node). Host apply
   # uses apply_group (e.g. ./scripts/apply-tag-only.sh katana). Git tags
   # op-reth/v* and op-node/v* map to docker tags v* via strip_git_prefix.
@@ -216,6 +235,37 @@ chains:
     strip_git_prefix: "op-node/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
 
+  # Post–L1 cutover pair: bump geth + node together (apply_group morph).
+  - id: morph-geth
+    class: tag-only
+    env_file: morph/env.template
+    var: GETH_IMAGE
+    image_prefix: "ghcr.io/morph-l2/go-ethereum:"
+    compose_dir: morph
+    apply_group: morph
+    chain_links: false
+    source_type: github_releases
+    source_repo: morph-l2/go-ethereum
+    tag_prefix: morph-v
+    strip_git_prefix: morph-v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: HTTP_HOST_PORT
+
+  - id: morph-node
+    class: tag-only
+    env_file: morph/env.template
+    var: NODE_IMAGE
+    image_prefix: "ghcr.io/morph-l2/node:"
+    compose_dir: morph
+    apply_group: morph
+    chain_links: false
+    source_type: github_releases
+    source_repo: morph-l2/morph
+    tag_prefix: v
+    strip_git_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+
   # Version-only pin; local image neox-geth:${GETH_VERSION} is built on apply.
   - id: neox
     class: tag-only
@@ -333,6 +383,23 @@ chains:
     source_repo: sei-protocol/sei-chain
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
+
+  # Version-only pin; local sonicd image from SONIC_VERSION at build time.
+  - id: sonic
+    class: tag-only
+    env_file: sonic/env.template
+    var: SONIC_VERSION
+    image_prefix: ""
+    compose_dir: sonic
+    chain_links: false
+    source_type: github_releases
+    source_repo: 0xsoniclabs/sonic
+    tag_prefix: v
+    strip_git_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-i"
+    compose_build: true
     health_mode: block_time
     health_port_var: HTTP_PORT
 

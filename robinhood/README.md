@@ -8,6 +8,8 @@ The `nitro-node` image runs as **`user` (UID 1000, GID 1000)**. Datadir inside t
 
 `eth_sendRawTransaction` is forwarded to the Robinhood sequencer (`FORWARDING_TARGET` in `.env`). Reads are served locally from the archive datadir.
 
+Sequencer feeds: set `FEED_URL` and `SECONDARY_FEED_URL` (delayed backup). Compose passes both as `--node.feed.input.url` so the node runs dual-primary feeds and deduplicates by sequence number ([docs](https://docs.robinhood.com/chain/run-a-full-node/#recommended-run-both-feeds-simultaneously)).
+
 ## State retention
 
 PathDB archive: `STATE_SCHEME=path`, `STATE_HISTORY=0`, plus `--execution.caching.archive` in compose.
@@ -20,7 +22,7 @@ PathDB archive: `STATE_SCHEME=path`, `STATE_HISTORY=0`, plus `--execution.cachin
 mkdir -p "$HOME/robinhood-data"
 sudo chown -R 1000:1000 "$HOME/robinhood-data"   # skip if your UID is already 1000
 chmod o+r config/*
-cp env.template .env    # set L1_ETH_URL, L1_ETH_BEACON_URL
+cp env.template .env    # set L1_ETH_URL, L1_ETH_BEACON_URL (feeds default in template)
 docker compose up -d
 ```
 
