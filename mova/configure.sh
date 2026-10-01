@@ -31,14 +31,8 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   echo "created .env from env.template"
 fi
 
-# shellcheck disable=SC1090
-set -a
-source "${ENV_FILE}"
-set +a
-
-DATA_DIR="${HOST_DATADIR:-${HOME}/mova-data}"
-mkdir -p "${DATA_DIR}"
-
+# Replace the placeholder before sourcing. An unquoted EXT_IP=<YOUR_PUBLIC_IP>
+# is a redirect and makes `source .env` fail.
 PUBLIC_IP="$(curl -4 -sf ip.me | tr -d '[:space:]')"
 if [[ -z "${PUBLIC_IP}" ]]; then
   echo "ERROR: failed to fetch public IP from ip.me" >&2
@@ -46,12 +40,22 @@ if [[ -z "${PUBLIC_IP}" ]]; then
 fi
 
 CURRENT_EXT_IP="$(grep -E '^EXT_IP=' "${ENV_FILE}" | cut -d= -f2- || true)"
+CURRENT_EXT_IP="${CURRENT_EXT_IP%\"}"
+CURRENT_EXT_IP="${CURRENT_EXT_IP#\"}"
 if [[ "${CURRENT_EXT_IP}" != "${PUBLIC_IP}" ]]; then
   sed_inplace "s|^EXT_IP=.*|EXT_IP=${PUBLIC_IP}|" "${ENV_FILE}"
   echo "set EXT_IP=${PUBLIC_IP} in .env"
 else
   echo "EXT_IP already set to ${PUBLIC_IP}"
 fi
+
+# shellcheck disable=SC1090
+set -a
+source "${ENV_FILE}"
+set +a
+
+DATA_DIR="${HOST_DATADIR:-${HOME}/mova-data}"
+mkdir -p "${DATA_DIR}"
 
 BUILD_UID="$(id -u)"
 BUILD_GID="$(id -g)"
