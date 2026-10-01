@@ -8,5 +8,6 @@ alwaysApply: true
 Client version pins and chain upgrades go through a **GitHub pull request**. Never commit or push pin bumps (`env.template` image/tag/version, YAML allowlist, companion README / `CHAIN_LINKS.md`) directly to `main`/`master`.
 
 - Wait for the operator to pick the bump, then open a branch PR. Do not merge unless asked.
+- Put **release-specific** operator steps (migrations, backups, one-off flags, testnet-only builds) in the **PR description**, not in `<chain>/README.md`. Chain READMEs keep only durable upgrade mechanics; see `AGENTS.md` Chain README.
 - Host apply (`apply-tag-only.sh` or copying one pin line into `.env`) happens **after merge**, not from an unmerged branch.
 - Playbook: `CLIENT_UPDATES.md`, `AUTO_UPGRADES.md`, skill `check-client-updates`.

@@ -180,7 +180,7 @@ flowchart TB
 
 `apply-tag-only.sh` will refuse unknown chain ids. After a human pin bump is merged:
 
-1. Notes check already said needs-config (or needs-review + user picked). Follow `<chain>/README.md`.
+1. Notes check already said needs-config (or needs-review + user picked). Follow the merged pin PR and upstream upgrade docs; `<chain>/README.md` has durable apply mechanics only.
 2. On the host: `git pull --ff-only`. Copy **only** the pin var from `env.template` into existing `.env` (do not `cp env.template .env` — that wipes L1 URLs). Chains without `configure.sh` are the same: edit one line.
 3. If notes said one-way DB / cannot downgrade: stop the client and cold-copy the datadir first.
 4. `docker compose pull && docker compose up -d` in the chain directory.
@@ -318,7 +318,7 @@ Example timer (Monday 09:00, after the CI PR window):
 0 9 * * 1 cd /path/to/blockchain-rpc-nodes && ./scripts/apply-tag-only.sh aptos && ./scripts/apply-tag-only.sh arbitrum && ./scripts/apply-tag-only.sh katana
 ```
 
-Chain-specific apply notes stay in `<chain>/README.md` (see [aptos/README.md](aptos/README.md)).
+Durable apply mechanics stay in `<chain>/README.md` (see [aptos/README.md](aptos/README.md)); release-specific notes stay in the pin PR.
 
 ## Non-goals (v1)
 
