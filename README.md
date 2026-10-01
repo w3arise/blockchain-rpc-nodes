@@ -44,6 +44,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Etherlink           | `etherlink/`   | L2 (Tezos Smart Rollup)             | octez-evm-node (full)                     | [README](etherlink/README.md)   |
 | Fantom (FTM)        | `ftm/`         | L1                                  | go-opera (Sonic)                          | [README](ftm/README.md)         |
 | Gnosis Chain (xDai) | `gnosis/`      | L1                                  | reth_gnosis + lighthouse                  | [README](gnosis/README.md)      |
+| Gravity             | `gravity/`     | L1 (AptosBFT)                       | gravity-reth (archive, state-pruned)      | [README](gravity/README.md)     |
 | HashKey Chain       | `hashkey/`     | L2 (OP Stack / CGT)                 | op-geth + op-node                         | [README](hashkey/README.md)     |
 | Hedera              | `hedera/`      | L1 (Hashgraph / EVM)                | JSON-RPC Relay + Mirror Node              | [README](hedera/README.md)      |
 | Hemi                | `hemi/`        | L2 (OP Stack / Bitcoin)             | hemi op-geth + op-node + bssd             | [README](hemi/README.md)        |

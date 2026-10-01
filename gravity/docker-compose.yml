@@ -1,0 +1,28 @@
+# Gravity Mainnet public full node.
+# Host networking: upstream gravity_node advertises the listen address, and
+# bridge NAT makes that address unusable for P2P. RPC stays on RPC_BIND_ADDR.
+
+services:
+  gravity-node:
+    image: ${GRAVITY_IMAGE}
+    container_name: gravity-node
+    restart: unless-stopped
+    network_mode: host
+    stop_grace_period: 120s
+    stop_signal: SIGTERM
+    volumes:
+      - ./config:/gravity/config:ro
+      - ${HOST_DATADIR:-$HOME/gravity-data}:/gravity/data
+      - ${HOST_LOGDIR:-$HOME/gravity-logs}:/gravity/logs
+    environment:
+      RUST_BACKTRACE: "1"
+      RUST_LOG: ${RUST_LOG:-info}
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "10"
