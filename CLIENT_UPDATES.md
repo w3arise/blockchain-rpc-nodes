@@ -62,6 +62,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Etherlink | `EVM_IMAGE` | GitLab `tezos/tezos` tags `octez-evm-node-v*`; Docker Hub `tezos/tezos-bare` | needs-review |
 | Fantom (FTM) | `SONIC_VERSION` | Legacy Opera. Live chain is `sonic/` | needs-review |
 | Gnosis Chain | `GNOSIS_RETH_IMAGE`, `LIGHTHOUSE_IMAGE` | `gnosischain/reth_gnosis`, `sigp/lighthouse` | tag-only |
+| Gravity | `GRAVITY_IMAGE` | `Galxe/gravity-sdk` stable `v*` (`ghcr.io/galxe/gravity_node`). Skip pre-releases and `*-testnet`. Not `paradigmxyz/reth`. | needs-review |
 | HashKey Chain | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | `HashKeyChain/fullnode-sync` README required `NODE_IMAGE` — **not** generic Superchain op-node | needs-review |
 | Hedera | `MIRROR_NODE_VERSION`, `RELAY_VERSION` | `hiero-ledger/hiero-mirror-node`, `hiero-ledger/hiero-json-rpc-relay`. Run `hedera/check-upgrade.sh` when present | needs-review |
 | Hemi | `OP_GETH_IMAGE`, `OP_NODE_IMAGE`, `BSSD_IMAGE` | `hemilabs/hemi-node` `mainnet/docker-compose.yml` (SHA tags). `hemilabs/heminetwork` GitHub `v2` may not match compose | needs-review |
@@ -104,6 +105,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 - **HashKey / B²** freeze OP Labs tags in their own docs; bumping generic Superchain will desync from their genesis/rollup.
 - **Mantle** uses `mantlenetworkio/mantle-op-*` images. Upgrade mantle-op-geth before mantle-op-node; geth must be healthy before op-node starts.
 - **Celo** images are `celo-v*` on `us-west1-docker.pkg.dev/devopsre/celo-blockchain-public/`, not OP Labs.
+- **Gravity** is `ghcr.io/galxe/gravity_node` from `Galxe/gravity-sdk` stable tags. Hardfork times are compiled into that binary. Do not bump to `paradigmxyz/reth`.
 - **Aptos** release feed mixes node, CLI, and `-rc` tags — filter `aptos-node-v*` and skip `-rc` unless asked.
 - **Morph geth** GitHub tags are `morph-v2.2.x`; compose/GHCR often `2.2.x` without the prefix.
 - **Hemi** pins git SHAs with digests; `heminetwork` GitHub `v2.0.0` is not automatically the compose `bssd` tag.
