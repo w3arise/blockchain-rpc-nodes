@@ -1,0 +1,16 @@
+---
+description: Tendermint/CometBFT chains — init writes config.toml; patch, do not vendor full config
+alwaysApply: true
+---
+
+# Tendermint / CometBFT config
+
+For Cosmos SDK and CometBFT-style chains (`seid`, `tacchaind`, `movad`, …):
+
+- **`init` generates `config.toml` and `app.toml`.** Keep those files. Use **`patch-config.sh`** for operator fields (peers, pruning, indexer, listen addresses, RPC caps). Do **not** add or install a full vendored `config.toml` from an operator repo.
+- **Genesis:** replace init’s local genesis with the public chain file (download + sha256 + `chain_id` check). Do not commit genesis that contains operator IPs in gentx memos.
+- **Extra TOML** (e.g. Mova `noderpc.toml`): copy from repo only if init did not create it, then patch.
+- **Peers / genesis URLs:** may live in `.env` or init scripts; **do not link** non-official repos in README or `CHAIN_LINKS.md` (see `official-docs-only.mdc`). Do not pre-copy `pex=false` / zero inbound peers until amd64 init + sync proves it.
+- **Missing patch key:** fail loud; add specific flags after validating on the target arch — do not drop in a full config file.
+
+Full conventions: `AGENTS.md` → **Tendermint / CometBFT-style setup**.

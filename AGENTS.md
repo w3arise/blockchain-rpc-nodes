@@ -99,7 +99,7 @@ P2P (public TCP + UDP) and OP Stack extra ports: [Ports, connectivity, and P2P (
 
 ## Chain links (`CHAIN_LINKS.md`)
 
-When adding or updating a chain setup, add its **official** documentation and repositories to [`CHAIN_LINKS.md`](CHAIN_LINKS.md). Include links you rely on during setup (node run guides, network specs, client repos/releases).
+When adding or updating a chain setup, add **only official** documentation and repositories for **that network** to [`CHAIN_LINKS.md`](CHAIN_LINKS.md) (node run guides, network specs, vendor client repos/releases). Do **not** list community operator Docker repos, third-party genesis hosts, or docs for a **different** chain ID on the same brand. Scripts may download from non-official URLs when no official file exists — do not link those URLs in `CHAIN_LINKS.md` or chain READMEs.
 
 Use this table format — one row per chain:
 
@@ -121,13 +121,13 @@ Include:
 
 - One-line description (client, network role)
 - Host datadir path(s)
-- **Start** — numbered shell commands from a fresh setup (configure, build, init, compose up)
+- **Start** — numbered shell commands from a fresh setup (configure, build, init, compose up). CometBFT-style chains: init → patch → compose (see [Tendermint / CometBFT-style setup](#tendermint--cometbft-style-setup)).
 - **Snapshot** — restore path and which init steps to skip. When adding a chain, **prefer finding an official or community snapshot source** (chain docs, client repo, explorer/provider pages). Document the source URL and restore steps in the README; if none exists, state that explicitly and sync from genesis/P2P. Note whether recovery uses a tarball, genesis prime file, or both.
 - **Pruning Mode** or **State retention** — when the client has archive/pruning flags or init-time choices; see [Archive and state retention (general)](#archive-and-state-retention-general).
 - **Testnet** — only if the setup supports it
 - **Host ports** — document RPC (`RPC_BIND_ADDR`, `HTTP_PORT`) and inbound P2P ports; see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) and [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2)
 - **Upgrade** (when the chain has a pin or package version) — the **durable** host procedure only: stop services, copy the pin from `env.template` into `.env`, pull/build/install, recreate or start, verify. Link to the chain’s official upgrade docs. Do not copy release-specific migration steps into the README.
-- Link to official run docs
+- Link to **official** run docs only — no third-party operator repos or hoster guides in README prose (see [Official documentation in git](#official-documentation-in-git))
 
 Do not duplicate `env.template` comments or long troubleshooting guides.
 
@@ -437,6 +437,54 @@ For `restore-snapshot.sh` (and README snapshot steps that download tarballs):
 
 Do not change this for tiny `mktemp` usage in `configure.sh` (sed helpers, etc.).
 
+## Official documentation in git
+
+Committed **documentation** must cite **only official** sources for the chain being documented:
+
+| OK in README / `CHAIN_LINKS.md` / doc comments | Not in committed docs |
+| --- | --- |
+| Vendor client repo and releases, official node run docs, official explorer, official snapshot pages, published images from the chain/client publisher | Community Docker repos, hoster runbooks, third-party genesis or config mirrors, docs or repos for a **different** chain ID, aggregator listings unless maintained by the chain |
+
+Implementation detail (download URLs, peer enodes in `.env`) belongs in scripts and templates **without** naming non-official publishers in comments when avoidable. If official run docs do not exist for the network, say so and link only what is official (image, explorer, snapshot host).
+
+Cursor rule: `.cursor/rules/official-docs-only.mdc`.
+
+## Tendermint / CometBFT-style setup
+
+Cosmos SDK, Ethermint-style EVM, and similar chains in this repo use **`seid` / `tacchaind` / `movad` init** plus **`patch-config.sh`**. Reference: [`sei/`](sei/), [`tac/`](tac/), [`cronos/`](cronos/), [`mova/`](mova/).
+
+### Init generates config; patch operator fields
+
+1. **`init-database.sh`** runs `<binary> init … --home /data` (usually via `docker compose run` with `--entrypoint`).
+2. **Keep** the generated **`config.toml`** and **`app.toml`**. Do **not** commit or `cp` a full vendored mainnet `config.toml` over init output — that hides client default changes between versions and is not the Tendermint/CometBFT convention.
+3. **`patch-config.sh`** is **idempotent**: moniker, `persistent_peers`, P2P `laddr` / `external_address`, `[tx_index] indexer`, `app.toml` pruning, and chain-specific RPC caps (e.g. Tac `gas-cap`, Mova `noderpc.toml`). Values come from `.env`.
+4. If patch **errors on a missing key**, init did not emit that key — add **only that flag** (or section) after validating on **linux/amd64** (or the chain’s published arch). Do not restore a full copied config to silence the error.
+5. Do **not** pre-apply community-only P2P hardening (`pex = false`, `max_num_inbound_peers = 0`, etc.) until a real init + sync shows it is required. Persistent peers may live in `.env`; do **not** link third-party repos in README or `CHAIN_LINKS.md`.
+
+### Genesis is separate from config
+
+- Init always writes a **local** `genesis.json`. For a public network, **replace** it with the chain genesis: download at init time, **sha256-check**, verify `chain_id`. Do **not** commit genesis when gentx memos or validator metadata contain **operator IPs** or other sensitive host data.
+- Sei may ship genesis via init; Tac and Mova download after init — same rule: checksum + chain id, no committed file with operator IPs.
+
+### Chain-specific files init does not create
+
+Some clients use extra TOML (e.g. Mova **`noderpc.toml`** for `rpc_gas_limit` / log caps). Install from repo **`only when init did not create the file`**, then patch. Do not treat operator copies of those files as official chain publishes.
+
+### Sources: official in docs, scripts elsewhere
+
+- **Documentation** (README, `CHAIN_LINKS.md`, `env.template` comments, `AGENTS.md`, `CLIENT_UPDATES.md`): link **only official** publishers for that chain ID — see [Official documentation in git](#official-documentation-in-git).
+- **Scripts** may download genesis or seed peers from non-official URLs when the vendor publishes no file; keep URLs in code, checksum in script, genesis out of git. Do not copy those URLs into docs.
+- Verify network identity with live `eth_chainId` and the pinned image — do not assume docs or chainlist entries for another chain ID on the same brand apply.
+
+### Ports and health
+
+- Same as other L1s here: `RPC_BIND_ADDR` + `HTTP_PORT` / `WS_PORT`; P2P **TCP + UDP** on a public host port; CometBFT RPC on localhost (`26657` typical).
+- Some Ethermint gateways return **`eth_syncing` as an object** even when caught up — prefer **block head / block time** for health checks, not `result === false` alone.
+
+### Genesis binary pin
+
+Genesis sync must use the **binary the chain was created with** (image tag + commit in release notes or `web3_clientVersion`). Do not point a **fresh** datadir at a newer client tag unless upstream release notes say it can sync from height 0. Document the pin in `env.template` and [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) (`needs-review` when not tag-only).
+
 ### Snapshot source preference (Tendermint / Cosmos SDK)
 
 Same product goal as Geth: **full history** (blocks → logs / receipts), **not** full **state** history by default. On Tendermint / CosmoseVM chains, retaining full blocks (with a working tx indexer) is enough for historical logs/receipts; pruning old app state is fine.
@@ -642,4 +690,11 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 20. Use `STATE_SCHEME=path`, `STATE_HISTORY=0`, and `--execution.caching.archive` for archive defaults (see [Arbitrum Nitro (PathDB / PBSS)](#arbitrum-nitro-pathdb--pbss)).
 21. Add a **State retention** section to the chain README — warn that non-zero `state-history` prunes on change or snapshot restore.
 22. Wire **`FORWARDING_TARGET`** + `--execution.forwarding-target=${FORWARDING_TARGET}` for non-sequencer RPC nodes (see [Transaction forwarding (writes)](#transaction-forwarding-writes)). Do not use `null` unless the chain is intentionally read-only. Document in the chain README that writes are forwarded to the sequencer.
+
+### Tendermint / CometBFT (Cosmos SDK, Ethermint EVM)
+
+23. **`init-database.sh`**: binary `init` only; **do not** overwrite generated `config.toml` / `app.toml` with a vendored full config — [Tendermint / CometBFT-style setup](#tendermint--cometbft-style-setup).
+24. **`patch-config.sh`**: idempotent operator patches from `.env`; genesis download + checksum when init’s genesis is not the public chain.
+25. **`indexer = "kv"`** (or chain-required equivalent) for historical tx/log RPC unless documented otherwise; pruning in `app.toml` / CLI aligned with user choice — warn that pruning cannot change after first start when the client enforces it.
+26. **Official links only** in README and `CHAIN_LINKS.md`; genesis download URLs stay in scripts. Never commit genesis with operator IPs in gentx memos.
 

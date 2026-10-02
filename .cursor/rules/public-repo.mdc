@@ -7,12 +7,14 @@ alwaysApply: true
 
 This tree is **public**. Treat every edit, commit, and PR as world-readable.
 
-**Never** put in git (or in files that get committed): `.env` values, JWT/hex keys, GCP/cloud credentials, RPC URLs with tokens, operator public IPs, hostnames, Discord/webhook secrets, unpublished snapshot URLs with auth, or a living host-evidence / pinned-vs-latest table.
+**Never** put in git (or in files that get committed): `.env` values, JWT/hex keys, GCP/cloud credentials, RPC URLs with tokens, operator public IPs, hostnames, Discord/webhook secrets, unpublished snapshot URLs with auth, or a living host-evidence / pinned-vs-latest table. Do **not** commit **genesis.json** (or keyring exports) when gentx memos or validator metadata embed operator IPs — download at init with checksum instead.
 
 **Local only** (already gitignored or outside the repo): `.env`, `jwt.hex`, `scripts/.client-audit-cache.json`, Cursor canvases (`host-vs-repo-pins.canvas.tsx` and siblings). Do not copy those into the repo.
 
 `env.template` uses placeholders. Do not fill them with real endpoints or operator public IPs. Commit messages and PR bodies stay as generic as the code.
 
 If `configure.sh` **`source`s `.env`**, an unquoted `EXT_IP=<YOUR_PUBLIC_IP>` is a bash redirect and fails with `syntax error near unexpected token`. Quote it in the template (`EXT_IP="<YOUR_PUBLIC_IP>"`) and **replace that line with the host IP before the first `source`**, including on an `.env` already copied from the template. Same for `OP_NODE_P2P_ADVERTISE_IP`. Strip surrounding quotes when comparing. See `mova/configure.sh`.
+
+In README, `CHAIN_LINKS.md`, and other committed docs, link **only official** chain documentation — not community operator repos or third-party mirrors (see `official-docs-only.mdc`).
 
 Host version sheets belong in the local canvas, not in `CLIENT_UPDATES.md` or chain READMEs.

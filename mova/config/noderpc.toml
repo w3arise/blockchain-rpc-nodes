@@ -1,0 +1,82 @@
+# noderpc runtime configuration (TOML)
+#
+# Location resolution (highest priority first):
+#   1. Path from environment variable MOVA_NODERPC_CONFIG (if set)
+#   2. <node_home>/config/noderpc.toml  (alongside config.toml / genesis.json)
+#   3. ~/.movachain/noderpc.toml        (legacy fallback)
+#
+# To use it, copy this file to your node's consensus config directory:
+#   cp noderpc.toml.example <node_home>/config/noderpc.toml
+#
+# This file is optional. Any field left out falls back to a built-in default
+# (which itself honours the legacy MOVA_* environment variables). Invalid
+# values (e.g. a non-positive gas price) are ignored and the default is used.
+#
+# Reloading:
+#   * The server re-reads this file every `refresh_interval_seconds`.
+#   * You can force an immediate reload with the JSON-RPC method `config_reload`.
+#     Inspect the live values with `config_get` and the file path with `config_path`.
+#
+# Example:
+#   curl -s -X POST -H 'Content-Type: application/json' \
+#     --data '{"jsonrpc":"2.0","id":1,"method":"config_reload","params":[]}' \
+#     http://127.0.0.1:26660
+
+# --- Gas settings (applied immediately on reload) ---
+
+# gas_price: value (in wei) returned by eth_gasPrice, and the default price
+# used by eth_call / eth_estimateGas simulation.
+gas_price = 1000000000
+
+# rpc_gas_limit: default gas limit for eth_call / eth_estimateGas when the
+# caller does not specify one.
+rpc_gas_limit = 30000000
+
+# low_gas_limit: fallback low gas limit used by estimate paths.
+low_gas_limit = 2000000
+
+# --- Transaction guards (applied immediately on reload) ---
+
+# tx_blacklist_check: reject transactions whose sender/recipient is blacklisted.
+tx_blacklist_check = true
+
+# tx_recipient_check: reject transactions to reserved / system addresses.
+tx_recipient_check = true
+
+# --- Filter / logs caps (applied immediately on reload) ---
+
+# filter_cap: maximum number of concurrently registered filters.
+filter_cap = 10000
+
+# logs_cap: maximum number of logs returned from a single query.
+logs_cap = 3000
+
+# block_range_cap: maximum block range allowed for a logs query.
+block_range_cap = 1000
+
+# --- Trace settings ---
+
+# trace_max_bytes: cap on per-tx callTracer output size (0 disables the cap).
+# Applied immediately on reload.
+trace_max_bytes = 16777216
+
+# trace_limit: maximum number of concurrent debug trace requests.
+# NOTE: applied at startup only (requires restart to change).
+trace_limit = 50
+
+# --- Server settings (applied at startup only; require restart) ---
+
+# batch_request_limit: maximum number of requests in a JSON-RPC batch.
+batch_request_limit = 2048
+
+# batch_response_max_size: maximum bytes returned from a batched RPC call.
+batch_response_max_size = 16777216
+
+# filter_poll_interval_ms: how often the filter EventSystem polls the backend.
+filter_poll_interval_ms = 1000
+
+# --- Refresh behaviour ---
+
+# refresh_interval_seconds: how often this file is re-read in the background.
+# Set to 0 to disable periodic refresh (config_reload still works).
+refresh_interval_seconds = 30
