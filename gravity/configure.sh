@@ -137,20 +137,26 @@ reth = {
         "prune.account-history.distance": account,
         "prune.storage-history.distance": storage,
         "http": "",
-        "http.port": int(req("HTTP_PORT")),
+        # Container listen ports. Compose publishes HTTP_PORT / WS_PORT /
+        # METRICS_PORT on the host. 127.0.0.1 here would hide RPC from the proxy.
+        "http.port": 8545,
         "http.corsdomain": "*",
         "http.api": req("HTTP_API"),
-        "http.addr": req("RPC_BIND_ADDR"),
+        "http.addr": "0.0.0.0",
         "ws": "",
-        "ws.port": int(req("WS_PORT")),
+        "ws.port": 8546,
         "ws.origins": "*",
         "ws.api": "debug,eth,net,txpool,web3",
-        "ws.addr": req("RPC_BIND_ADDR"),
+        "ws.addr": "0.0.0.0",
         "rpc.gascap": int(req("GAS_CAP")),
         "port": int(req("RETH_P2P_PORT")),
+        "discovery.addr": "0.0.0.0",
+        "discovery.port": int(req("RETH_P2P_PORT")),
+        "discovery.v5.port": int(req("RETH_P2P_PORT")),
+        "nat": f"extip:{req('EXT_IP')}",
         "authrpc.port": int(req("AUTHRPC_PORT")),
         "authrpc.addr": "127.0.0.1",
-        "metrics": f"{req('METRICS_BIND_ADDR')}:{req('METRICS_PORT')}",
+        "metrics": "0.0.0.0:6060",
         "log.file.filter": "info",
         "log.stdout.filter": "error",
         "datadir": "/gravity/data/data/reth",
@@ -175,7 +181,9 @@ reth = {
 (cfg / "reth_config.json").write_text(json.dumps(reth, indent=2) + "\n")
 
 public_port = req("PUBLIC_PORT")
-inspection = req("INSPECTION_PORT")
+ext_ip = req("EXT_IP")
+if "<" in ext_ip or ext_ip == "":
+    raise SystemExit("ERROR: EXT_IP is still a placeholder")
 yaml = f"""base:
   role: "full_node"
   data_dir: "/gravity/data/data"
@@ -234,8 +242,8 @@ storage:
 log_file_path: "/gravity/logs/consensus_log/vfn.log"
 
 inspection_service:
-  port: {inspection}
-  address: 127.0.0.1
+  port: 12791
+  address: 0.0.0.0
 
 mempool:
   capacity_per_user: 20000
