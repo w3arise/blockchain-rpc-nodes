@@ -1,0 +1,37 @@
+name: ${COMPOSE_PROJECT_NAME:-polygon-heimdall}
+
+services:
+  heimdalld:
+    image: ${HEIMDALL_IMAGE}
+    container_name: ${CONTAINER_NAME:-heimdall}
+    restart: unless-stopped
+    stop_grace_period: 120s
+    network_mode: host
+    env_file: .env
+    user: "${BUILD_UID}:${BUILD_GID}"
+    volumes:
+      - ${HOST_DATADIR:-$HOME/polygon-heimdall-data}:/data
+      - ./entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    # Sentry: REST is on by default. Do not add --bridge (validators only; needs RabbitMQ).
+    command:
+      - start
+      - --home=/data
+      - --moniker=${MONIKER}
+      - --pruning=${PRUNING}
+      - --min-retain-blocks=${MIN_RETAIN_BLOCKS}
+      - --api.enable=true
+      - --api.address=tcp://${RPC_BIND_ADDR}:${API_PORT}
+      - --rpc.laddr=tcp://${RPC_BIND_ADDR}:${TM_RPC_PORT}
+      - --p2p.laddr=tcp://0.0.0.0:${P2P_PORT}
+      - --p2p.external-address=${EXT_IP}:${P2P_PORT}
+      - --p2p.seeds=${SEEDS}
+      - --p2p.persistent_peers=${SEEDS}
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
