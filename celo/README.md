@@ -27,6 +27,10 @@ Image pins follow [celo-l2-node-docker-compose](https://github.com/celo-org/celo
 
 For Celo Sepolia, set `OP_RETH_CHAIN=celo-sepolia`, `OP_NODE_NETWORK=celo-sepolia`, Sepolia L1 endpoints, and the Sepolia EigenDA / bootnode values commented in `env.template`. Use separate `$HOME` datadir mounts.
 
+## Upgrade
+
+Stop services, copy `OP_RETH_IMAGE`, `OP_NODE_IMAGE`, and `EIGENDA_PROXY_IMAGE` from `env.template` into `.env`, then `docker compose pull` and recreate containers. Compare pins to [celo-l2-node-docker-compose](https://github.com/celo-org/celo-l2-node-docker-compose) before bumping. Same-series **op-reth** tags (`celo-v1.0.*`) may use `./scripts/apply-tag-only.sh celo` after merge; **op-node** and **EigenDA** stay manual (not in the same auto feed).
+
 ## Host ports
 
 When running a public replica, allow inbound P2P (TCP + UDP): `RETH_PORT` (op-reth, default `10401`) and `OP_NODE_P2P_PORT` (default `10422`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
