@@ -24,6 +24,22 @@ sed_inplace() {
   mv "${tmp}" "${file}"
 }
 
+# chmod fails with "Operation not permitted" when Docker created the file as
+# root. Do not abort; print the sudo command and continue.
+chmod_or_sudo() {
+  local mode="$1"
+  shift
+  local path
+  if chmod "${mode}" "$@" 2>/dev/null; then
+    return 0
+  fi
+  echo "WARNING: chmod ${mode} failed (not permitted)." >&2
+  echo "Run manually:" >&2
+  for path in "$@"; do
+    echo "  sudo chmod ${mode} \"${path}\"" >&2
+  done
+}
+
 if [[ ! -f "${ENV_TEMPLATE}" ]]; then
   echo "ERROR: missing ${ENV_TEMPLATE}" >&2
   exit 1
@@ -76,7 +92,7 @@ WAYPOINT_URL="https://raw.githubusercontent.com/Galxe/gravity-sdk/${SDK_REF}/gen
 echo "==> Fetching mainnet genesis and waypoint (${SDK_REF})"
 curl -fsSL "${GENESIS_URL}" -o "${CONFIG_DIR}/genesis.json"
 curl -fsSL "${WAYPOINT_URL}" -o "${CONFIG_DIR}/waypoint.txt"
-chmod 644 "${CONFIG_DIR}/genesis.json" "${CONFIG_DIR}/waypoint.txt"
+chmod_or_sudo 644 "${CONFIG_DIR}/genesis.json" "${CONFIG_DIR}/waypoint.txt"
 
 if [[ ! -s "${CONFIG_DIR}/identity.yaml" ]]; then
   echo "==> Generating PFN identity (stays on this host; not committed)"
@@ -86,10 +102,10 @@ if [[ ! -s "${CONFIG_DIR}/identity.yaml" ]]; then
     genesis generate-key \
       --output-file /out/identity.yaml \
       --public-output-file /out/identity.public.yaml
-  chmod 600 "${CONFIG_DIR}/identity.yaml"
 else
   echo "identity.yaml already present; leaving it"
 fi
+chmod_or_sudo 600 "${CONFIG_DIR}/identity.yaml"
 
 export CONFIG_DIR DATA_DIR
 python3 - << 'PY'
@@ -232,7 +248,7 @@ print(f"rendered {cfg / 'reth_config.json'}")
 print(f"rendered {cfg / 'public_full_node.yaml'}")
 PY
 
-chmod 644 "${CONFIG_DIR}/reth_config.json" "${CONFIG_DIR}/public_full_node.yaml" "${CONFIG_DIR}/waypoint.txt"
+chmod_or_sudo 644 "${CONFIG_DIR}/reth_config.json" "${CONFIG_DIR}/public_full_node.yaml" "${CONFIG_DIR}/waypoint.txt"
 
 echo ""
 echo "Datadir: ${DATA_DIR}"
