@@ -12,6 +12,13 @@ services:
     restart: unless-stopped
     stop_grace_period: 120s
     stop_signal: SIGTERM
+    # Upstream entrypoint mkdirs log dirs under /gravity/data; PFN config uses /gravity/logs/.
+    entrypoint:
+      - /usr/bin/tini
+      - --
+      - /bin/bash
+      - -lc
+      - mkdir -p /gravity/logs/consensus_log /gravity/logs/execution_logs /gravity/data/data && exec /usr/local/bin/entrypoint.sh node
     ports:
       - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
       - ${RPC_BIND_ADDR}:${WS_PORT}:8546

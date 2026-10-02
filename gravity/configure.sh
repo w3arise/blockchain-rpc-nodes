@@ -83,7 +83,11 @@ fi
 
 DATA_DIR="${HOST_DATADIR:-${HOME}/gravity-data}"
 LOG_DIR="${HOST_LOGDIR:-${HOME}/gravity-logs}"
-mkdir -p "${DATA_DIR}" "${LOG_DIR}" "${CONFIG_DIR}"
+# public_full_node.yaml and reth_config.json write under /gravity/logs/{consensus_log,execution_logs}/.
+# The image entrypoint only mkdirs those names under /gravity/data, not the logs volume.
+mkdir -p "${DATA_DIR}/data" \
+  "${LOG_DIR}/consensus_log" "${LOG_DIR}/execution_logs" \
+  "${CONFIG_DIR}"
 
 SDK_REF="${GRAVITY_SDK_REF:-v1.9.3}"
 GENESIS_URL="https://raw.githubusercontent.com/Galxe/gravity-sdk/${SDK_REF}/genesis/mainnet/genesis.json"
