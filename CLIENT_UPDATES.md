@@ -72,7 +72,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Lens | `EN_VERSION` | `lens-protocol/lens-chain-node` `mainnet-external-node.yml` (often older than Matter Labs Docker) | needs-review |
 | Linea | `BESU_IMAGE`, `MARU_IMAGE`, `NETHERMIND_VERSION` | `Consensys/linea-monorepo` getting-started compose + `linea-besu-package` releases. Besu tags are `N.N.N-YYYYMMDD-sha`, not the old `beta-v4.4-rc*` scheme. Nethermind: Linea-recommended, not generic `NethermindEth/nethermind` | needs-review |
 | Lisk | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain (this repo uses op-reth; `LiskHQ/lisk-node` may still pin op-geth) | tag-only |
-| Mantle | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | `mantlenetworkio/networks` `docker-compose-mainnetv2-upgrade-beacon.yml` (`mantlenetworkio/mantle-op-geth`, `mantlenetworkio/mantle-op-node`). Pair with `mantlenetworkio/op-geth` + `mantlenetworkio/mantle-v2` releases — **not** generic OP Labs | needs-review |
+| Mantle | `OP_GETH_IMAGE`, `OP_NODE_IMAGE` | `mantlenetworkio/op-geth` + `mantlenetworkio/mantle-v2` git tags `v*` (images `mantlenetworkio/mantle-op-geth`, `mantlenetworkio/mantle-op-node`). Same-series auto (`apply_group: mantle`). Networks compose can lag — **not** generic OP Labs | tag-only |
 | Mode | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain. `op-node` v1.19.3+ required for Mode `--network` Karst gas configs | tag-only |
 | Monad | `MONAD_VERSION` | `category-labs/monad` + [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions). APT pin | needs-review |
 | Morph | `GETH_IMAGE`, `NODE_IMAGE` | `morph-l2/go-ethereum` (`morph-v*` tags vs compose `2.2.x`), `morph-l2/morph` | needs-review |
@@ -103,7 +103,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 - **Linea Besu** tags are `consensys/linea-besu-package:<semver>-<date>-<sha>`. Follow the getting-started compose pin (`2.0.0-…`), not Hub `2.2.0` until that compose moves. Start with `--profile=advanced-mainnet`.
 - **Worldchain** official compose uses `world-chain`, not stock `op-reth`.
 - **HashKey / B²** freeze OP Labs tags in their own docs; bumping generic Superchain will desync from their genesis/rollup.
-- **Mantle** uses `mantlenetworkio/mantle-op-*` images. Upgrade mantle-op-geth before mantle-op-node; geth must be healthy before op-node starts.
+- **Mantle** uses `mantlenetworkio/mantle-op-*` images. Auto-upgrade follows same-series `v*` git tags on `mantlenetworkio/op-geth` and `mantlenetworkio/mantle-v2` (`apply_group: mantle`); the networks compose file can lag those tags. A series jump stays manual. Upgrade mantle-op-geth before mantle-op-node; geth must be healthy before op-node starts.
 - **Celo** images are `celo-v*` on `us-west1-docker.pkg.dev/devopsre/celo-blockchain-public/`, not OP Labs.
 - **Gravity** is `ghcr.io/galxe/gravity_node` from `Galxe/gravity-sdk` stable tags. Hardfork times are compiled into that binary. Do not bump to `paradigmxyz/reth`.
 - **Aptos** release feed mixes node, CLI, and `-rc` tags — filter `aptos-node-v*` and skip `-rc` unless asked.
