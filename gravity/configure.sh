@@ -102,10 +102,10 @@ if [[ ! -s "${CONFIG_DIR}/identity.yaml" ]]; then
     genesis generate-key \
       --output-file /out/identity.yaml \
       --public-output-file /out/identity.public.yaml
-  chmod_or_sudo 600 "${CONFIG_DIR}/identity.yaml"
 else
   echo "identity.yaml already present; leaving it"
 fi
+chmod_or_sudo 600 "${CONFIG_DIR}/identity.yaml"
 
 export CONFIG_DIR DATA_DIR
 python3 - << 'PY'
