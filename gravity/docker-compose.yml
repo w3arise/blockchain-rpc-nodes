@@ -1,15 +1,25 @@
 # Gravity Mainnet public full node.
-# Host networking: upstream gravity_node advertises the listen address, and
-# bridge NAT makes that address unusable for P2P. RPC stays on RPC_BIND_ADDR.
+# Bridge network with published ports, same as the other chains in this repo.
+# Galxe's own compose uses host mode and says to switch to published ports
+# when advertised addresses are set explicitly. configure.sh sets EXT_IP and
+# gravity-reth advertises it with --nat=extip. In-container RPC listens on
+# 0.0.0.0; the host bind is RPC_BIND_ADDR.
 
 services:
   gravity-node:
     image: ${GRAVITY_IMAGE}
     container_name: gravity-node
     restart: unless-stopped
-    network_mode: host
     stop_grace_period: 120s
     stop_signal: SIGTERM
+    ports:
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${METRICS_BIND_ADDR}:${METRICS_PORT}:6060
+      - ${RPC_BIND_ADDR}:${INSPECTION_PORT}:12791
+      - ${PUBLIC_PORT}:${PUBLIC_PORT}
+      - ${RETH_P2P_PORT}:${RETH_P2P_PORT}
+      - ${RETH_P2P_PORT}:${RETH_P2P_PORT}/udp
     volumes:
       - ./config:/gravity/config:ro
       - ${HOST_DATADIR:-$HOME/gravity-data}:/gravity/data
