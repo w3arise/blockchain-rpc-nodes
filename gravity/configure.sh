@@ -34,6 +34,25 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   echo "created .env from env.template"
 fi
 
+# Replace the placeholder before sourcing. An unquoted EXT_IP=<YOUR_PUBLIC_IP>
+# is a redirect and makes `source .env` fail. Existing .env files from the
+# first template copy still have that line.
+PUBLIC_IP="$(curl -4 -sf ip.me | tr -d '[:space:]')"
+if [[ -z "${PUBLIC_IP}" ]]; then
+  echo "ERROR: failed to fetch public IP from ip.me" >&2
+  exit 1
+fi
+
+CURRENT_EXT_IP="$(grep -E '^EXT_IP=' "${ENV_FILE}" | cut -d= -f2- || true)"
+CURRENT_EXT_IP="${CURRENT_EXT_IP%\"}"
+CURRENT_EXT_IP="${CURRENT_EXT_IP#\"}"
+if [[ "${CURRENT_EXT_IP}" != "${PUBLIC_IP}" ]]; then
+  sed_inplace "s|^EXT_IP=.*|EXT_IP=${PUBLIC_IP}|" "${ENV_FILE}"
+  echo "set EXT_IP=${PUBLIC_IP} in .env"
+else
+  echo "EXT_IP already set to ${PUBLIC_IP}"
+fi
+
 # shellcheck disable=SC1090
 set -a
 source "${ENV_FILE}"
@@ -49,20 +68,6 @@ fi
 DATA_DIR="${HOST_DATADIR:-${HOME}/gravity-data}"
 LOG_DIR="${HOST_LOGDIR:-${HOME}/gravity-logs}"
 mkdir -p "${DATA_DIR}" "${LOG_DIR}" "${CONFIG_DIR}"
-
-PUBLIC_IP="$(curl -4 -sf ip.me | tr -d '[:space:]')"
-if [[ -z "${PUBLIC_IP}" ]]; then
-  echo "ERROR: failed to fetch public IP from ip.me" >&2
-  exit 1
-fi
-
-CURRENT_EXT_IP="$(grep -E '^EXT_IP=' "${ENV_FILE}" | cut -d= -f2- || true)"
-if [[ "${CURRENT_EXT_IP}" != "${PUBLIC_IP}" ]]; then
-  sed_inplace "s|^EXT_IP=.*|EXT_IP=${PUBLIC_IP}|" "${ENV_FILE}"
-  echo "set EXT_IP=${PUBLIC_IP} in .env"
-else
-  echo "EXT_IP already set to ${PUBLIC_IP}"
-fi
 
 SDK_REF="${GRAVITY_SDK_REF:-v1.9.3}"
 GENESIS_URL="https://raw.githubusercontent.com/Galxe/gravity-sdk/${SDK_REF}/genesis/mainnet/genesis.json"
