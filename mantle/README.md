@@ -41,6 +41,6 @@ When running a public replica, allow inbound P2P (TCP + UDP): `OP_NODE_P2P_PORT`
 
 ## Testnet
 
-Mantle Sepolia (chain ID **5003**): pin `v1.5.3` images, Sepolia L1 endpoints, `networks/sepolia/rollup.json`, and the Sepolia sequencer / static peer commented in `env.template`. Snapshot bucket: `snapshot.sepolia.mantle.xyz`.
+Mantle Sepolia (chain ID **5003**): same image tags, Sepolia L1 endpoints, `networks/sepolia/rollup.json`, and the Sepolia sequencer / static peer commented in `env.template`. Snapshot bucket: `snapshot.sepolia.mantle.xyz`.
 
 Docs: [Mainnet v1.5.4](https://docs.mantle.xyz/network/for-node-operators/deployment-guides/mainnet-v1.5.4) · [networks](https://github.com/mantlenetworkio/networks) · [run-node-mainnetv2.md](https://github.com/mantlenetworkio/networks/blob/main/run-node-mainnetv2.md)
