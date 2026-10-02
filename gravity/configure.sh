@@ -187,11 +187,11 @@ consensus:
     backend:
       type: "on_disk_storage"
       path: /gravity/data/data/secure_storage.json
-      initial_safety_rules_config:
-        from_file:
-          waypoint:
-            from_file: /gravity/config/waypoint.txt
-          identity_blob_path: /gravity/config/identity.yaml
+    initial_safety_rules_config:
+      from_file:
+        waypoint:
+          from_file: /gravity/config/waypoint.txt
+        identity_blob_path: /gravity/config/identity.yaml
   enable_pipeline: true
   max_sending_block_txns_after_filtering: 5000
   max_sending_block_txns: 5000
