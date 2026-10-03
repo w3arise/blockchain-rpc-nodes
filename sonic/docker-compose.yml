@@ -5,6 +5,8 @@ services:
       args:
         SONIC_VERSION: ${SONIC_VERSION}
     image: sonic-node:${SONIC_VERSION}
+    # Local tag only. A new SONIC_VERSION is built here, never pulled.
+    pull_policy: build
     container_name: sonic
     restart: unless-stopped
     mem_limit: ${MEM_LIMIT}
