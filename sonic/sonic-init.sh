@@ -247,5 +247,9 @@ docker run --rm -d \
   "sonic-node:${SONIC_VERSION}" \
   --datadir /data --cache "${CACHE_MB_RUN}" genesis "/config/$(basename "${GENESIS_FILE_ABS}")"
 
-echo "Genesis initialization started in background. Check logs with: docker logs sonic-init"
+echo
+echo "Genesis import is running in container sonic-init."
+echo "Ctrl+C or closing this session only stops these logs. The import keeps running."
+echo "Attach again with: docker logs -f sonic-init"
+echo
 docker logs -f --tail 100 sonic-init
