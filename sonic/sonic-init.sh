@@ -2,6 +2,7 @@
 #
 # Prime Sonic state DB from a genesis file (sonictool genesis).
 # Usage: ./sonic-init.sh [path/to/sonic.g]
+# Default path is GENESIS_FILE from .env (set by ./configure.sh), else $HOME/sonic.g.
 #
 set -euo pipefail
 
@@ -19,7 +20,7 @@ SONIC_VERSION="${SONIC_VERSION:-2.2.0}"
 HOST_DATADIR="${HOST_DATADIR:-$HOME/sonic-data}"
 GOMEMLIMIT_RUN="${GOMEMLIMIT:-28GiB}"
 CACHE_MB_RUN="${CACHE_MB:-16000}"
-GENESIS_FILE_INPUT="${1:-${HOME}/sonic.g}"
+GENESIS_FILE_INPUT="${1:-${GENESIS_FILE:-${HOME}/sonic.g}}"
 
 GENESIS_DIR_INPUT="$(dirname "${GENESIS_FILE_INPUT}")"
 if [[ ! -d "${GENESIS_DIR_INPUT}" ]]; then
