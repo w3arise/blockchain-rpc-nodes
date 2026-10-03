@@ -408,8 +408,27 @@ chain/
 ### env.template and configure.sh
 
 - **`env.template`** — setup steps in header comments; group vars (`### Network ###`, `### Ports ###`, `### RPC ###`, etc.); pin client versions; set `GAS_CAP=600000000` unless the chain requires otherwise. Host RPC bind/port: [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). P2P and public IP vars: [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2).
-- **`configure.sh`** — optional; creates `.env` from `env.template` and sets public IP. See [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2). Do not embed secrets.
+- **`configure.sh`** — optional; creates `.env` from `env.template` and sets public IP. See [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2). Do not embed secrets. It must stay safe to rerun on a live datadir — see [configure.sh vs init and snapshots](#configuresh-vs-init-and-snapshots).
 - **`docker-compose.yml`** — load `.env` with `env_file: .env` on services that need runtime vars (typically op-node); keep runtime services only (no init-container chown hacks). Set **`stop_grace_period: 120s`** (minimum) on every **execution client** service — geth, reth, op-geth, op-reth, Nitro, external-node, besu, nethermind, erigon, etc. Longer values (e.g. `5m`) are fine when the client needs more shutdown time. Does **not** apply to op-node, postgres, or monitoring sidecars.
+
+## configure.sh vs init and snapshots
+
+`./configure.sh` is the repeatable host setup. Operators rerun it after a public-IP change or to pick up new `.env` keys while the chain data is already on disk. A large download or an import in that script repeats work they do not want.
+
+| Script | Owns | Skip when |
+| --- | --- | --- |
+| **`configure.sh`** | `.env` from `env.template`, public IP, `mkdir` datadirs, small repeatable config (bootnodes, a KB–MB genesis JSON, waypoint) | Always safe to rerun. Replacing those files does not rebuild chain data. |
+| **`init-database.sh`**, **`sonic-init.sh`**, **`restore-snapshot.sh`** | Genesis prime files, snapshot tarballs, and the import that builds the datadir | The datadir is already initialized. Use the client’s own marker (`geth/`, Sonic `chaindata` **and** `carmen`, …). |
+
+Rules:
+
+- **configure.sh does not** download multi-GB genesis files or snapshot archives, prime or import a datadir, or run `docker compose up`. Print build / init / restore / up as **Next**.
+- **Init and restore download.** Put the URL in `.env` (`GENESIS_URL`, `SNAPSHOT_URL`). Stage with [Snapshot downloads (temp space)](#snapshot-downloads-temp-space). Resume and keep the archive.
+- **An initialized datadir skips both the download and the import.** An empty directory created by `configure.sh` is not initialized.
+- **A local path argument** (`./sonic-init.sh /path/to/file.g`) uses that file and does not contact the network.
+- **A partial import** (Sonic `chaindata/unfinished`, or only one of the two DB dirs) stays on disk. Say how to clear it and rerun. Do not fetch a new archive on top of it.
+
+Reference: [`sonic/configure.sh`](sonic/configure.sh) and [`sonic/sonic-init.sh`](sonic/sonic-init.sh). Cursor rule: `.cursor/rules/configure-vs-init.mdc`.
 
 ## Archive and state retention (general)
 
