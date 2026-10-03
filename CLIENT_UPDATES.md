@@ -84,6 +84,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Plasma | `RETH_IMAGE`, `CONSENSUS_IMAGE` | `PlasmaLaboratories/node-templates` (chain-official compose pins). Do not use generic Reth latest. | needs-review |
 | Plume | `NITRO_IMAGE` | Conduit/Plume docs first; mainline Nitro only if they track it (`*-validator` suffix) | tag-only |
 | Polygon PoS | `BOR_IMAGE` in `polygon-bor/env.template.mainnet` (and `.amoy`) | `0xPolygon/bor` | needs-review |
+| Polygon PoS (Heimdall) | `HEIMDALL_IMAGE` in `polygon-heimdall/env.template.mainnet` (and `.amoy`) | `0xPolygon/heimdall-v2` (image `0xpolygon/heimdall-v2`). Hardfork tags are mandatory; the Docker full-node guide's sample tag lags GitHub releases. | needs-review |
 | Robinhood Chain | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) | tag-only |
 | Ronin | `RONIN_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | Conduit op-reth + OP Labs op-node + EigenDA monorepo. Reth/op-node are tag-only; EigenDA stays needs-review | tag-only |
 | Sei | `SEID_VERSION` | `sei-protocol/sei-chain` | tag-only |
@@ -116,6 +117,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 - **op-node v1.19.2** is below the Mode/Metal/Zora Karst gas-config floor (`v1.19.3+`) for built-in `--network` configs.
 - **Nitro 3.8 / 3.10** one-way datadir (cannot open with 3.7.x / 3.9.x). Arbitrum One replica is pinned at `v3.11.3` and allowlisted for **`v3.11.*` patches** (`image_tag_from: release_body`). A `v3.12` series jump stays `needs-review`. See `arbitrum/README.md`.
 - **Pharos** image and `bin/VERSION` must stay paired (`./configure.sh` refreshes `mainnet.version`). v0.16 monitoring keys are `storage_cetina_*` (was `pamir_cetina_*`); this repo’s `pharos.conf` has no `monitor_config`. See `pharos/README.md`.
+- **Polygon Heimdall** hardfork releases are mandatory on every sentry. Compare `0xPolygon/heimdall-v2` tags to image `0xpolygon/heimdall-v2`. The Docker full-node guide's sample tag lags those releases.
 - **Mova (61901)** genesis sync stays on `movachain/movan-syncnode:v0.0.1` (commit `6f0cc05`, linux/amd64 only) until a newer tag's release notes say it can sync from height 0. Chain **61900** uses `movachain/mainnet-syncnode` (different network). Vendor supervisord uses `--pruning=nothing`; compose overrides to `syncable`. Config: `movad init` + `patch-config.sh` (no vendored full `config.toml`); genesis downloaded at init (checksum in `init-database.sh`). Gas cap in `noderpc.toml`, not geth-style flags. No separate official node-run doc for 61901 in repo links — image, explorer, and snapshot host only.
 
 ## After an upgrade (code)

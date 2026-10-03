@@ -66,6 +66,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Plasma              | `plasma/`      | L1 (PlasmaBFT)                      | reth + plasma-consensus                   | [README](plasma/README.md)      |
 | Plume               | `plume/`       | L2 (Arbitrum Nitro / Conduit Orbit) | nitro                                     | [README](plume/README.md)       |
 | Polygon PoS         | `polygon-bor/` | L2 (PoS)                            | bor (PBSS archive)                        | [README](polygon-bor/README.md) |
+| Polygon PoS (Heimdall) | `polygon-heimdall/` | L2 (PoS)                       | heimdalld (pruned sentry)                 | [README](polygon-heimdall/README.md) |
 | Robinhood Chain     | `robinhood/`   | L2 (Arbitrum Nitro)                 | nitro                                     | [README](robinhood/README.md)   |
 | Ronin               | `ronin/`       | L2 (OP Stack / EigenDA)             | conduit-op-reth + op-node + eigenda-proxy | [README](ronin/README.md)       |
 | Sei                 | `sei/`         | L1 (Cosmos + EVM)                   | seid (historical RPC)                     | [README](sei/README.md)         |
