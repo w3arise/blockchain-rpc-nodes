@@ -5,6 +5,8 @@ services:
       args:
         SONIC_VERSION: ${SONIC_VERSION}
     image: sonic-node:${SONIC_VERSION}
+    # Same local tag as the node. Build it; do not pull sonic-node from a registry.
+    pull_policy: build
     container_name: sonic-heal
     mem_limit: ${MEM_LIMIT}
     env_file:
