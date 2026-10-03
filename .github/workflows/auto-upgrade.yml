@@ -10,10 +10,11 @@ permissions:
   pull-requests: write
 
 jobs:
-  propose:
+  bump-pins:
+    name: Bump tag-only pins
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Check and write same-series pin bumps
         env:
