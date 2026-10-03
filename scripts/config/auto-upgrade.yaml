@@ -205,6 +205,37 @@ chains:
     strip_git_prefix: "op-node/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
 
+  # Paired mantle-op-geth + mantle-op-node. Git tags v* are the Docker Hub tags.
+  # Follows those tags on the pinned series; the networks compose file can lag.
+  - id: mantle-op-geth
+    class: tag-only
+    env_file: mantle/env.template
+    var: OP_GETH_IMAGE
+    image_prefix: "mantlenetworkio/mantle-op-geth:"
+    compose_dir: mantle
+    apply_group: mantle
+    chain_links: false
+    source_type: github_releases
+    source_repo: mantlenetworkio/op-geth
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-arm"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
+    health_bind_var: RPC_BIND_ADDR
+
+  - id: mantle-op-node
+    class: tag-only
+    env_file: mantle/env.template
+    var: OP_NODE_IMAGE
+    image_prefix: "mantlenetworkio/mantle-op-node:"
+    compose_dir: mantle
+    apply_group: mantle
+    chain_links: false
+    source_type: github_releases
+    source_repo: mantlenetworkio/mantle-v2
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-arm"
+
   - id: mode-op-reth
     class: tag-only
     env_file: mode/env.template
