@@ -27,6 +27,8 @@ The vendor image's supervisord passes `--pruning=nothing` (archive). This compos
 
 RPC: `http://127.0.0.1:8545` · WS: `ws://127.0.0.1:8546`
 
+Those host ports map to **movad** JSON-RPC inside the container (`9545` / `9546`). `movacli` still listens on `8545` / `8546` and is not published. Its `eth_getLogs` re-encodes the `latest` tag and the node returns `hex string without 0x prefix`. `earliest`, a hex block, and an omitted `toBlock` are unaffected. `safe` and `finalized` are rejected by this client on every method.
+
 ## Upgrade
 
 Stop the stack, copy `MOVA_VERSION` from `env.template` into `.env`, `docker compose pull`, recreate.
@@ -53,8 +55,8 @@ Do not use `node-snap.movachain.com` — that host is chain 61900.
 
 | Port | Bind | Role |
 | --- | --- | --- |
-| 8545 | localhost | EVM JSON-RPC HTTP (`movacli`) |
-| 8546 | localhost | EVM JSON-RPC WS |
+| 8545 | localhost | EVM JSON-RPC HTTP (container `9545`, movad) |
+| 8546 | localhost | EVM JSON-RPC WS (container `9546`, movad) |
 | 26657 | localhost | CometBFT RPC |
 | 26656 | public TCP+UDP | P2P |
 
