@@ -24,7 +24,7 @@ Same-series patch tags (`v3.12.*` while that is the pin) are **tag-only** — se
 ./scripts/apply-tag-only.sh arbitrum
 ```
 
-Nitro 3.8 and 3.10 apply **one-way** database schema; you cannot roll back to 3.7.x / 3.9.x without restoring a backup. Minor/major jumps (`v3.12` → `v3.13`) stay manual — stop compose, cold-copy `$HOME/arbitrum-data`, then pin and recreate.
+Series jumps (`v3.12` → `v3.13`) stay manual (`needs-review`) — pin via PR, then copy only `NITRO_IMAGE` into `.env` and recreate. **Do not** cold-copy `$HOME/arbitrum-data` on every jump; only when [Offchain Labs Nitro release notes](https://github.com/OffchainLabs/nitro/releases) or [node docs](https://docs.arbitrum.io/run-arbitrum-node/run-full-node) say the upgrade is one-way / cannot downgrade (historically Nitro 3.8 and 3.10).
 
 Keep `STATE_HISTORY=0` and `--execution.caching.archive` on this archive datadir.
 
