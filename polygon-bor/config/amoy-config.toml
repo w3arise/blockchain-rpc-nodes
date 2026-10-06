@@ -1,4 +1,4 @@
-# Polygon PoS Amoy Bor config (from 0xPolygon/bor v2.10.1 archive template,
+# Polygon PoS Amoy Bor config (from 0xPolygon/bor v2.10.2 archive template,
 # adapted for Docker). Network (chain / bootnodes / DNS), datadir, syncmode,
 # scheme, retention, NAT, Heimdall, ports, and HTTP/WS APIs come from compose
 # CLI flags.

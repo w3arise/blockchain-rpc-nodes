@@ -83,7 +83,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Pharos | `PHAROS_IMAGE` | `PharosNetwork/resources` + image tag `pharos_community_v*` | needs-review |
 | Plasma | `RETH_IMAGE`, `CONSENSUS_IMAGE` | `PlasmaLaboratories/node-templates` (chain-official compose pins). Do not use generic Reth latest. | needs-review |
 | Plume | `NITRO_IMAGE` | Conduit/Plume docs first; mainline Nitro only if they track it (`*-validator` suffix) | tag-only |
-| Polygon PoS | `BOR_IMAGE` in `polygon-bor/env.template.mainnet` (and `.amoy`) | `0xPolygon/bor` | needs-review |
+| Polygon PoS | `BOR_IMAGE` in `polygon-bor/env.template.mainnet` (and `.amoy`) | `0xPolygon/bor` releases. Image `ghcr.io/0xpolygon/bor:v*` (tag includes `v`). Docker Hub stopped after `2.10.1`. | needs-review |
 | Robinhood Chain | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) | tag-only |
 | Ronin | `RONIN_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | Conduit op-reth + OP Labs op-node + EigenDA monorepo. Reth/op-node are tag-only; EigenDA stays needs-review | tag-only |
 | Sei | `SEID_VERSION` | `sei-protocol/sei-chain` | tag-only |
