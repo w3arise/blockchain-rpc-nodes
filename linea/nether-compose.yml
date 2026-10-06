@@ -21,6 +21,8 @@ services:
       - --config
       - linea-mainnet
       - --JsonRpc.Enabled=true
+      # Nethermind's default module list includes Trace. List the rest so Trace stays off.
+      - --JsonRpc.EnabledModules=Eth,Subscribe,TxPool,Web3,Personal,Proof,Net,Parity,Health,Rpc
       - --JsonRpc.Host=${HTTP_ADDR}
       - --JsonRpc.Port=8545
       - --JsonRpc.WebSocketsPort=8546

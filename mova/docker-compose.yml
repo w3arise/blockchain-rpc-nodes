@@ -13,7 +13,7 @@ services:
       CHAIN_ID: ${CHAIN_ID:-61901}
       READ_TIMEOUT: ${READ_TIMEOUT:-60}
       WRITE_TIMEOUT: ${WRITE_TIMEOUT:-60}
-      RPC_API: ${RPC_API:-eth,net,web3,debug}
+      RPC_API: ${RPC_API:-eth,net,web3}
       EXT_IP: ${EXT_IP:-}
       P2P_PORT: ${P2P_PORT:-26656}
       MOVA_NODERPC_CONFIG: /data/config/noderpc.toml
