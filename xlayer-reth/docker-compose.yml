@@ -26,12 +26,12 @@ services:
       - --http.addr=0.0.0.0
       - --http.port=8545
       - --http.corsdomain=*
-      - --http.api=web3,debug,eth,txpool,net,miner
+      - --http.api=web3,eth,txpool,net,miner
       - --ws
       - --ws.addr=0.0.0.0
       - --ws.port=8546
       - --ws.origins=*
-      - --ws.api=debug,eth,txpool,net
+      - --ws.api=eth,txpool,net
       - --authrpc.addr=0.0.0.0
       - --authrpc.port=8552
       - --authrpc.jwtsecret=/jwt.txt

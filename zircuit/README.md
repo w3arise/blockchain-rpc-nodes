@@ -65,12 +65,12 @@ Probe a block well below the fork (e.g. **`0x1000064`** / 16777316) through **op
 curl -s http://127.0.0.1:11585 -X POST -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","method":"eth_getBalance","params":["0x0000000000000000000000000000000000000000","0x1000064"],"id":1}'
 
-# eth_call, eth_getTransactionReceipt, debug_traceBlockByNumber — same block; pick a block with txs for traces
+# eth_call, eth_getTransactionReceipt — same block; pick a block with txs
 ```
 
 Gotchas:
 
-- Many early Zircuit blocks are empty — an empty trace result can be legitimate; use a block that contains a transaction.
+- Many early Zircuit blocks are empty — an empty historical result can be legitimate; use a block that contains a transaction.
 - Compare a historical `eth_call` with the same call at head; identical values may mean you are silently receiving head state.
 - `eth_getLogs` is never forwarded: op-reth returns `[]` for pre-fork ranges. Query pre-fork logs on [`zircuit-legacy/`](../zircuit-legacy/README.md) directly — see [op-reth historical RPC](../AGENTS.md#op-reth-historical-rpc---rolluphistoricalrpc).
 

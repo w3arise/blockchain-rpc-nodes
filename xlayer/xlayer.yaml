@@ -19,6 +19,6 @@ zkevm.l1-query-delay: 1000
 zkevm.datastream-version: 3
 
 zkevm.rpc-ratelimit: 1000
-http.api: [eth, debug, net, trace, web3, erigon, zkevm]
+http.api: [eth, net, web3, erigon, zkevm]
 http.addr: 0.0.0.0
 http.port: 8545
