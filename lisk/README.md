@@ -24,7 +24,7 @@ docker compose up -d
 
 Skip a fresh genesis sync after restore. Snap sync without a snapshot: keep `OP_NODE_SYNCMODE=execution-layer` and `OP_RETH_BOOTNODES` (default in `env.template`).
 
-Same-series Superchain patches (`op-reth v2.4.*` / `op-node v1.19.*` while those are the pins) are **tag-only**. After a pin PR merges, apply on the host (do not re-run `configure.sh` just to pick up the images):
+Same-series Superchain patches (`op-reth v2.5.*` / `op-node v1.19.*` while those are the pins) are **tag-only**. After a pin PR merges, apply on the host (do not re-run `configure.sh` just to pick up the images):
 
 ```bash
 # from the repo root
