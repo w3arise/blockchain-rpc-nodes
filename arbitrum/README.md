@@ -24,7 +24,7 @@ Same-series patch tags (`v3.12.*` while that is the pin) are **tag-only** — se
 ./scripts/apply-tag-only.sh arbitrum
 ```
 
-Nitro 3.8 and 3.10 apply **one-way** database schema; you cannot roll back to 3.7.x / 3.9.x without restoring a backup. Minor/major jumps (`v3.12` → `v3.13`) stay manual — stop compose, then pin and recreate.
+Nitro 3.8 and 3.10 apply **one-way** database schema; you cannot roll back to 3.7.x / 3.9.x without restoring a backup. Minor/major jumps (`v3.11` → `v3.12`) stay manual — stop compose, then pin and recreate.
 
 Keep `STATE_HISTORY=0` and `--execution.caching.archive` on this archive datadir.
 
