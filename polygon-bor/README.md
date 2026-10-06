@@ -12,7 +12,7 @@ docker compose pull
 docker compose up -d
 ```
 
-Heimdall on this host: keep `HEIMDALL_URL=http://127.0.0.1:1317` (compose uses `network_mode: host`). Confirm `curl -s localhost:1317/bor/span/1` returns JSON before starting Bor.
+Heimdall on this host: [`polygon-heimdall/`](../polygon-heimdall/README.md). Keep `HEIMDALL_URL=http://127.0.0.1:1317` (compose uses `network_mode: host`). Confirm `curl -s localhost:1317/bor/span/1` returns JSON and Heimdall `catching_up` is false before starting Bor.
 
 ## Snapshot
 
