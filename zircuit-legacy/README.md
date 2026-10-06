@@ -4,11 +4,9 @@ Frozen **pre-Conduit** mainnet history on **`zircuit1/l2-geth`** only (**chain I
 
 **Not a live node.** No op-node, no L1, no P2P sync — serves RPC from a restored Liquify snapshot at head **32956468**. For current mainnet, use [`../zircuit/`](../zircuit/).
 
-**Pruning mode:** l2-geth **hash archive** (`--gcmode=archive`, `--state.scheme=hash`, `--txlookuplimit=0`) — full pre-fork history including state for proxied `eth_call` / traces.
+**Pruning mode:** l2-geth **hash archive** (`--gcmode=archive`, `--state.scheme=hash`, `--txlookuplimit=0`) — full pre-fork history including state for proxied `eth_call`.
 
 **Chain spec:** uses built-in **`--network=mainnet`** (original pre-fork genesis, `bedrockBlock: 0`). Do **not** point this node at [`../zircuit/config/genesis.json`](../zircuit/config/genesis.json) — op-reth needs the Conduit genesis with `bedrockBlock: 32956468`.
-
-**RPC APIs:** `debug` is required for pre-fork `debug_traceBlockByNumber` when op-reth forwards historical execution requests.
 
 ## Start
 

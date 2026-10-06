@@ -51,12 +51,12 @@ exec celo-reth node \
   --http.corsdomain="*" \
   --http.addr=0.0.0.0 \
   --http.port=8545 \
-  --http.api=web3,debug,eth,txpool,net \
+  --http.api=web3,eth,txpool,net \
   --ws \
   --ws.addr=0.0.0.0 \
   --ws.port=8546 \
   --ws.origins="*" \
-  --ws.api=debug,eth,txpool,net,web3 \
+  --ws.api=eth,txpool,net,web3 \
   --metrics=0.0.0.0:9001 \
   --authrpc.addr=0.0.0.0 \
   --authrpc.port=8551 \

@@ -32,12 +32,12 @@ services:
       - --syncmode=full
       - --http
       - --http.addr=0.0.0.0
-      - --http.api=eth,net,web3,debug,txpool
+      - --http.api=eth,net,web3,txpool
       - --http.port=8545
       - --http.vhosts=*
       - --ws
       - --ws.addr=0.0.0.0
-      - --ws.api=eth,net,web3,debug,txpool
+      - --ws.api=eth,net,web3,txpool
       - --ws.origins=*
       - --ws.port=8546
     restart: unless-stopped

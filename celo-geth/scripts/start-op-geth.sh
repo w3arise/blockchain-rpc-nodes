@@ -44,12 +44,12 @@ exec geth \
   --http.vhosts="*" \
   --http.addr=0.0.0.0 \
   --http.port=8545 \
-  --http.api=web3,debug,eth,txpool,net,engine \
+  --http.api=web3,eth,txpool,net,engine \
   --ws \
   --ws.addr=0.0.0.0 \
   --ws.port=8546 \
   --ws.origins="*" \
-  --ws.api=debug,eth,txpool,net,engine,web3 \
+  --ws.api=eth,txpool,net,engine,web3 \
   --metrics \
   --syncmode="$OP_GETH__SYNCMODE" \
   --gcmode="$NODE_TYPE" \
