@@ -43,6 +43,8 @@ Offline prune reads `$DATADIR/reth.toml` only (`celo-reth prune --chain=celo --d
 
 Pre-migration Celo L1 state is not in the op-reth datadir (migrated op-geth data cannot be reused). Set `OP_RETH_HISTORICAL_RPC` in `.env` to a legacy Celo L1 archive; op-reth proxies pre-L2 requests there. To reach a node on the Docker host, use `http://host.docker.internal:<port>` (not `127.0.0.1`). See [Running an archive node](https://docs.celo.org/operate/operators/archive-node).
 
+op-reth does **not** forward `eth_getLogs` (it returns `[]`), and older builds return `null` for `eth_getBlockReceipts`. Query pre-L2 logs on the legacy node directly — e.g. [`celo-geth/`](../celo-geth/) — see [op-reth historical RPC](../AGENTS.md#op-reth-historical-rpc---rolluphistoricalrpc).
+
 ## Testnet
 
 For Celo Sepolia, set `OP_RETH_CHAIN=celo-sepolia`, `OP_NODE_NETWORK=celo-sepolia`, Sepolia L1 endpoints, and the Sepolia EigenDA / bootnode values commented in `env.template`. Use separate `$HOME` datadir mounts.

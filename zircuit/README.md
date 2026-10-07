@@ -78,6 +78,7 @@ Gotchas:
 
 - Many early Zircuit blocks are empty — an empty trace result can be legitimate; use a block that contains a transaction.
 - Compare a historical `eth_call` with the same call at head; identical values may mean you are silently receiving head state.
+- `eth_getLogs` is never forwarded: op-reth returns `[]` for pre-fork ranges. Query pre-fork logs on [`zircuit-legacy/`](../zircuit-legacy/README.md) directly — see [op-reth historical RPC](../AGENTS.md#op-reth-historical-rpc---rolluphistoricalrpc).
 
 If `bedrockBlock` is correct but history still fails, confirm op-reth can reach `HISTORICAL_RPC` from inside its container and the legacy node is fully synced.
 
