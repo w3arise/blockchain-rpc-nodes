@@ -38,7 +38,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Bob                 | `bob/`         | L2 (OP Stack)                       | op-reth + op-node                         | [README](bob/README.md)         |
 | BSC                 | `bsc/`         | L1                                  | bsc-geth                                  | [README](bsc/README.md)         |
 | Celo                | `celo/`        | L2 (OP Stack / EigenDA)             | celo-op-reth + op-node + eigenda-proxy    | [README](celo/README.md)        |
-| Celo (op-geth)      | `celo-geth/`   | L2 (OP Stack / EigenDA, deprecated) | op-geth + op-node + eigenda-proxy         | [README](celo-geth/README.md)   |
+| Celo (op-geth)      | `celo-geth/`   | L2 (historical, frozen)             | op-geth (mainnet, read-only)              | [README](celo-geth/README.md)   |
 | Core                | `core/`        | L1                                  | core-chain geth (hash-full)               | [README](core/README.md)        |
 | Cronos              | `cronos/`      | L1 (Ethermint)                      | cronosd                                   | [README](cronos/README.md)      |
 | Etherlink           | `etherlink/`   | L2 (Tezos Smart Rollup)             | octez-evm-node (full)                     | [README](etherlink/README.md)   |
