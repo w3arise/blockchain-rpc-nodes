@@ -2,7 +2,8 @@
 #
 # Create .env, set EXT_IP, fetch mainnet genesis, generate a PFN identity,
 # and render gravity_node config. Archive receipts/logs, with account and
-# storage history pruned (same idea as celo/scripts/start-op-reth.sh).
+# storage history pruned via PRUNE_*_DISTANCE (Celo uses archive tier without
+# those flags — see celo/README.md State retention).
 #
 # Usage: ./configure.sh
 #

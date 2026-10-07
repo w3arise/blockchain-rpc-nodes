@@ -55,7 +55,35 @@ Most preferred → least preferred:
 1. **A. Archive** — only stock mode that keeps **full receipts and logs**. Default choice for reth when historical log RPC is required.
 2. **B. `--full`** — prunes receipts/logs to ~last 10k blocks. Use only when historical logs are explicitly not needed.
 
-**Operator preference (reth):** start from **archive**, then prune **only** `states.history` (or equivalent) if the admin wants to drop historical state while **keeping full receipts and logs**. Do not use default `--full` pruning for that goal — it removes receipt/log history too.
+**Operator preference (reth):** start from **archive**, then bound **account/storage history** only if the admin wants Geth-style “full receipts/logs, pruned state.” Do not use Reth **`--full`** for that — it prunes receipts/logs too. See [Reth / op-reth state pruning](#reth--op-reth-state-pruning).
+
+### Reth / op-reth state pruning
+
+**Policy:** Default archive, no extra prune flags. Optional state window: edit `$DATADIR/reth.toml` → offline **`reth prune` / `op-reth prune`** (execution client **stopped**) → start **`node`** with the same segment config; do not rely on live prune alone to shrink an archive datadir.
+
+**Defaults for new setups**
+
+- Run **`node`** in **archive** mode (no `--full` / `--minimal`) when historical log/receipt RPC is the goal.
+- Match **snapshot tier** to runtime: an **archive** snapshot with archive runtime; a **full** or **minimal** publisher snapshot with `--full` or `--minimal` on `node`. Do **not** bootstrap from an **archive** snapshot and then add `--prune.account-history.distance` / `--prune.storage-history.distance` on live **`node`** — that forces a huge online Prune backlog and can stall the head (fix is tier alignment or offline prune, not lowering distance below **10064**).
+- **`NODE_TYPE=archive` (or archive runtime) plus state-pruning flags or `[prune.segments.account_history]` / `storage_history` in `$DATADIR/reth.toml` is only admitted when the datadir is built by sync from scratch** (genesis / P2P, no archive-tier snapshot import). Pruning then happens incrementally during sync. After an **archive snapshot** restore, use plain archive **without** those segments on first start, or a **full/minimal** snapshot tier, or **offline `prune`** once import is done — not archive snapshot + state-prune config on bootstrap.
+
+**Geth-style full (receipts/logs kept, state windowed)**
+
+- Use **only** `[prune.segments.account_history]` and `[prune.segments.storage_history]` with the same `distance` (≥ **10064**, Reth minimum unwind distance). Leave receipts, bodies, sender recovery, and transaction lookup segments unset unless the chain README says otherwise.
+- **Offline:** put segments in **`$DATADIR/reth.toml`**, stop the client, run **`prune`** with **`--chain`**, **`--datadir`**, and storage flags (e.g. **`--storage.v2=true`**). On some forks (e.g. **celo-reth**), **`prune` does not accept `--prune.*`** — config must be in **`reth.toml`**. **`node`** still accepts `--prune.*` for ongoing policy; keep it aligned with what offline **`prune`** applied.
+- **Do not** use Reth **`--full`** or **`--minimal`** when the goal is state-only shrink; **`--full`** also windows receipts/logs.
+
+**Pruned replica from day one**
+
+- Restore a publisher **pruned full** snapshot and use the matching **`--full`** (+ segment flags required by that snapshot). Conduit OP Stack layout and checkpoint rules: [`docs/op-reth-storage-v2.md`](docs/op-reth-storage-v2.md).
+
+**OP Stack L2**
+
+- Do not prune **block bodies** below what **op-node** EL sync needs (L1-info deposit tx in retained bodies). Avoid **`--minimal`** where chain or Optimism docs forbid it.
+
+**Documentation**
+
+- Chain **`README.md`**: **State retention** — default mode, snapshot tier, and optional offline prune pointer when the chain uses op-reth/reth (example: [`celo/README.md`](celo/README.md)).
 
 ### Checklist reminder
 
@@ -438,7 +466,7 @@ Some clients prune history at **startup flags**, **init/priming time**, or **bot
 
 For any chain with non-obvious retention behavior:
 
-- Add a **Pruning Mode** or **State retention** section to `<chain>/README.md` — which flags/modes keep **receipts/logs**, which only affect **state**, and what triggers pruning.
+- Add a **Pruning Mode** or **State retention** section to `<chain>/README.md` — which flags/modes keep **receipts/logs**, which only affect **state**, and what triggers pruning. **Reth / op-reth:** follow [Reth / op-reth state pruning](#reth--op-reth-state-pruning).
 - **Do not re-run init/priming** (genesis import, snapshot restore script, etc.) against an existing **archive** datadir using a **pruned** source unless you intend to discard history.
 - When documenting snapshots, distinguish **chaindata tarballs** from **genesis/state prime files** (`.g`, vendor-specific exports) if the chain uses the latter. Note whether a snapshot is **PBSS/path vs hash**, and whether it is **receipt/log-complete** vs tip-pruned.
 
