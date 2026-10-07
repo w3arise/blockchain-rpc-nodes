@@ -197,6 +197,11 @@ fi
 
 url="http://${health_bind}:${health_port}"
 
+# A fast compose recreate can still be serving the previous process. Wait so
+# the first probe cannot pass on that process before the new one is up.
+echo "Waiting 10s before health check (avoid a false pass on a fast restart)"
+sleep 10
+
 # block_time: healthy when the latest block timestamp is fresh. Catches a node
 # that is up but stalled (broken L1 / Engine API / op-node) — its latest block
 # time goes stale even though the HTTP port still answers.

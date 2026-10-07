@@ -53,6 +53,8 @@ chains:
     source_repo: berachain/bera-reth
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   # Celo L2 op-reth only (celo-v* registry tags from celo-kona git celo/reth-v*).
   # OP_NODE_IMAGE and EIGENDA_PROXY_IMAGE stay manual — no same-series git feed for op-node.
@@ -89,6 +91,8 @@ chains:
     tag_prefix: op-reth/v
     strip_git_prefix: "op-reth/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: bob-op-node
     class: tag-only
@@ -117,6 +121,8 @@ chains:
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
     compose_build: true
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: gnosis-reth
     class: tag-only
@@ -310,6 +316,8 @@ chains:
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
     compose_build: true
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: optimism-op-reth
     class: tag-only
