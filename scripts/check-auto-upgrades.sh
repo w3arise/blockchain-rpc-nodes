@@ -8,8 +8,8 @@
 #   ./scripts/check-auto-upgrades.sh --write   # bump env.template (+ CHAIN_LINKS)
 #
 # When AUTO_UPGRADE_PR_BODY is set and upgrades exist, write a markdown PR
-# body (table of chain / from / to) to that path. The GitHub workflow uses
-# this for the weekly PR description. The file is not committed.
+# body (table of chain / from / to / release notes) to that path. The GitHub
+# workflow uses this for the weekly PR description. The file is not committed.
 #
 # Auto only follows the currently pinned major.minor series. Crossing a
 # minor/major line is always needs-review.
@@ -155,13 +155,21 @@ restore_write() {
   fi
 }
 
+release_notes_url() {
+  local repo="$1"
+  local tag="$2"
+  local encoded
+  encoded="$(python3 -c 'import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "${tag}")"
+  printf 'https://github.com/%s/releases/tag/%s' "${repo}" "${encoded}"
+}
+
 bump_table_md() {
-  echo "| Chain | From | To |"
-  echo "| --- | --- | --- |"
-  local row bump_id bump_from bump_to
+  echo "| Chain | From | To | Release notes |"
+  echo "| --- | --- | --- | --- |"
+  local row bump_id bump_from bump_to bump_notes
   for row in "${SUMMARY[@]}"; do
-    IFS=$'\t' read -r bump_id bump_from bump_to <<< "${row}"
-    echo "| ${bump_id} | \`${bump_from}\` | \`${bump_to}\` |"
+    IFS=$'\t' read -r bump_id bump_from bump_to bump_notes <<< "${row}"
+    echo "| ${bump_id} | \`${bump_from}\` | \`${bump_to}\` | [notes](${bump_notes}) |"
   done
 }
 
@@ -319,7 +327,7 @@ for chain_id in "${CHAIN_IDS[@]}"; do
   echo "  latest: ${latest_image}  (upgrade available)"
   echo
   BUMPS=$((BUMPS + 1))
-  SUMMARY+=("${chain_id}"$'\t'"${current_tag}"$'\t'"${latest_tag}")
+  SUMMARY+=("${chain_id}"$'\t'"${current_tag}"$'\t'"${latest_tag}"$'\t'"$(release_notes_url "${AUTO_SOURCE_REPO}" "${latest_git_tag}")")
 
   if [[ "${WRITE}" -eq 1 ]]; then
     set_env_value "${env_path}" "${AUTO_VAR}" "${latest_image}"
