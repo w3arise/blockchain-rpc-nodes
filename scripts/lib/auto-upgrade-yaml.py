@@ -149,6 +149,38 @@ def pin_form(tag: str, strip_prefix: str, pin_tag_prefix: str = "") -> str:
     return body
 
 
+# Docker tag grammar. Also keeps quotes, $, spaces and @digest out of .env.
+TAG_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$")
+
+
+def pin_problem(chain: dict, current: str, new: str) -> str:
+    """Why NEW may not replace CURRENT for this pin, or "" when it may.
+
+    Host apply only accepts a same-series tag from the pin's image_prefix,
+    judged against the pin already applied on the host.
+    """
+    prefix = chain["image_prefix"]
+    if not new.startswith(prefix):
+        return f"does not start with image_prefix {prefix!r}"
+    tag = new[len(prefix) :]
+    if not TAG_RE.match(tag):
+        return f"tag {tag!r} is not a plain image tag"
+    if not current.startswith(prefix):
+        return f"applied pin {current!r} does not start with image_prefix {prefix!r}"
+    match = re.search(r"^(.*?)(\d+)\.(\d+)", current[len(prefix) :])
+    if not match:
+        return f"cannot derive major.minor series from applied pin {current!r}"
+    series = f"{match.group(1)}{match.group(2)}.{match.group(3)}"
+    if not same_series(tag, series):
+        return f"tag {tag!r} is outside the applied series {series}.*"
+    if excluded(tag, chain.get("exclude", "")):
+        return f"tag {tag!r} matches exclude {chain.get('exclude')!r}"
+    suffix = chain.get("image_tag_suffix", "")
+    if suffix and not tag.endswith(suffix):
+        return f"tag {tag!r} lacks image_tag_suffix {suffix!r}"
+    return ""
+
+
 def docker_tag_from_release_body(
     body: str, image_prefix: str, git_tag: str, suffix: str = ""
 ) -> str:
@@ -242,6 +274,10 @@ def main() -> int:
     filter_p.add_argument("--exclude", default="")
     filter_p.add_argument("--strip-prefix", default="")
     filter_p.add_argument("--pin-tag-prefix", default="")
+    validate_p = sub.add_parser("validate-pin")
+    validate_p.add_argument("id")
+    validate_p.add_argument("--current", required=True)
+    validate_p.add_argument("--new", required=True)
     body_p = sub.add_parser("docker-tag-from-body")
     body_p.add_argument("--image-prefix", required=True)
     body_p.add_argument("--git-tag", required=True)
@@ -306,6 +342,12 @@ def main() -> int:
         raise SystemExit(f"unknown chain id: {args.id}")
     if args.cmd == "export":
         dump_export(match)
+        return 0
+    if args.cmd == "validate-pin":
+        problem = pin_problem(match, args.current, args.new)
+        if problem:
+            print(problem)
+            return 1
         return 0
     print(json.dumps(match, sort_keys=True))
     return 0
