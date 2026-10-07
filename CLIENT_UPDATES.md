@@ -6,7 +6,7 @@ When adding a chain, add a row to [Sources](#sources). Pin values live in `env.t
 
 ## Procedure
 
-1. Extract pins from `**/env.template*` (`*_IMAGE`, `*_VERSION`, `*_IMAGE_TAG`) and from compose when a chain has no env pin (e.g. `celo-geth/`).
+1. Extract pins from `**/env.template*` (`*_IMAGE`, `*_VERSION`, `*_IMAGE_TAG`) and from compose when a chain has no env pin.
 2. Compare each pin using the [policy](#comparison-policy) and the [Sources](#sources) row — not a generic GitHub “latest” if the chain publishes its own images.
 3. Present findings (chain, client, pinned, latest stable, **inferred class**, notes). For each bump, read release notes / git compare (pin → latest) and class **pin-only** vs **needs-config** — see [AUTO_UPGRADES.md](AUTO_UPGRADES.md#agent-release-notes-check). **Do not bump `needs-review` or needs-config until the user picks.** YAML `tag-only` chains may also get a CI pin PR (`scripts/check-auto-upgrades.sh`); that script does not read notes.
 4. After the user picks: update `env.template` (and README / `CHAIN_LINKS.md` only for **lasting** setup or doc-link changes) **on a branch and open a GitHub PR**. Never push pin bumps to `main`/`master`; do not merge unless asked. Release-specific steps (migrations, genesis, JWT one-offs) go in the **PR body**, not the chain README — see `AGENTS.md` Chain README. Hosts apply **after merge**: tag-only with [`scripts/apply-tag-only.sh`](scripts/apply-tag-only.sh).
@@ -56,7 +56,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Bob | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain (OP Labs) | tag-only |
 | BSC | `BSC_IMAGE` | `bnb-chain/bsc` (`ghcr.io/bnb-chain/bsc`) | needs-review |
 | Celo | `OP_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | `celo-org/celo-l2-node-docker-compose` (`celo-v*` on Celo registry). EigenDA: Celo compose, not monorepo latest | tag-only (op-reth auto; op-node + EigenDA manual) |
-| Celo (op-geth) | `celo-geth/docker-compose.yml` | Deprecated stack — prefer `celo/` | needs-review |
+| Celo (op-geth) | `OP_GETH_IMAGE` | Deprecated frozen mainnet read-only op-geth — prefer `celo/` | needs-review |
 | Core | `GETH_VERSION` | `coredao-org/core-chain` | tag-only |
 | Cronos | `CRONOS_VERSION` | `crypto-org-chain/cronos` | needs-review |
 | Etherlink | `EVM_IMAGE` | GitLab `tezos/tezos` tags `octez-evm-node-v*`; Docker Hub `tezos/tezos-bare` | needs-review |
