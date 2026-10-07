@@ -616,6 +616,23 @@ If the chain spec must change, either:
 
 Genesis in the datadir (`$HOME/op-reth-data/genesis.json`) is what op-reth reads with the file-based approach. Files under `config/` are not used unless explicitly mounted and referenced.
 
+### op-reth historical RPC (`--rollup.historicalrpc`)
+
+op-reth has **no data** below the chain's migration boundary (`bedrockBlock` in the rollup/genesis config). With `--rollup.historicalrpc`, it forwards only **some** requests for older blocks to a legacy node. This is op-reth behavior ([`historical.rs`](https://github.com/ethereum-optimism/optimism/blob/develop/rust/op-reth/crates/rpc/src/historical.rs)), so it applies to every op-reth fork that uses it (e.g. celo-reth, Zircuit). Stock L1 reth has no such layer.
+
+| Request | Forwarded below the boundary |
+| --- | --- |
+| By tx hash: `eth_getTransactionByHash`, `eth_getTransactionReceipt`, `eth_getRawTransactionByHash`, `debug_traceTransaction` | Yes |
+| By one block id: `eth_getBlockBy*`, `eth_getBalance`, `eth_getCode`, `eth_call`, `eth_estimateGas`, `eth_getStorageAt`, `eth_getProof`, `debug_trace*` | Yes |
+| `eth_getBlockReceipts`, `eth_getHeaderBy*`, `eth_getBlockTransactionCountBy*`, `eth_getTransactionByBlock*AndIndex` | Only on builds with [optimism#21955](https://github.com/ethereum-optimism/optimism/pull/21955). Older builds answer locally with `null` |
+| **`eth_getLogs`** (block range) | **Never.** It is answered locally and returns `[]` with no error |
+
+- `bedrockBlock` must be set to the real boundary. If it is `0` or missing, nothing is forwarded (see [`zircuit/README.md`](zircuit/README.md)).
+- An empty `eth_getLogs` result does not mean "no events". Log indexers and backfills that read pre-boundary ranges through op-reth silently miss data. Send those ranges straight to the legacy node, or put a JSON-RPC-aware router in front that splits ranges at the boundary. A plain `proxy_pass` cannot do this.
+- op-geth keeps a **migrated** datadir that stores pre-boundary blocks and receipts locally and forwards only state calls, so `eth_getLogs` works there. op-reth cannot reuse that datadir.
+- Verify with one pre-boundary block: `eth_getBlockReceipts` and a single-block `eth_getLogs` against the legacy node and against op-reth. Results that are non-empty on the legacy node and `null` / `[]` on op-reth confirm the gap.
+- Chain README (**Pre-L2 history** or equivalent): state that pre-boundary logs come from the legacy node, not op-reth.
+
 ## JWT (Engine API)
 
 Generate once per deployment:
@@ -720,7 +737,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 12. `create-jwt.sh` and mount shared JWT for Engine API auth.
 13. Use `OP_NODE_L1_*` env vars in a single `.env`.
 14. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
-15. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
+15. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir. With `--rollup.historicalrpc`, document which pre-boundary calls are forwarded — see [op-reth historical RPC](#op-reth-historical-rpc---rolluphistoricalrpc).
 16. Follow [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) and [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2): `RPC_BIND_ADDR` + `HTTP_PORT` / `WS_PORT`, public P2P (TCP + UDP), op-node admin RPC on localhost, `configure.sh` for `EXT_IP` / `OP_NODE_P2P_ADVERTISE_IP`. Wire `OP_NODE_P2P_LISTEN_TCP_PORT` / `OP_NODE_P2P_LISTEN_UDP_PORT` from `${OP_NODE_P2P_PORT}` in compose — do not duplicate listen ports in `env.template`.
 
 ### Conduit OP Stack (additional)
