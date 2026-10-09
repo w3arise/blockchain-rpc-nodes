@@ -101,6 +101,7 @@ services:
       - --p2p.listen.udp=${OP_NODE_P2P_PORT}
       - --p2p.advertise.ip=${OP_NODE_P2P_ADVERTISE_IP}
       - --p2p.static=${OP_NODE_P2P_STATIC}
+      - --syncmode=execution-layer
       - --sequencer.enabled=false
       - --verifier.l1-confs=${OP_NODE_L1_CONFS}
       - --altda.enabled=true
