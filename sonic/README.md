@@ -17,7 +17,7 @@ RPC: `http://127.0.0.1:18545` · WS: `ws://127.0.0.1:18546`
 
 ## Upgrade
 
-Copy `SONIC_VERSION` into `.env`, `docker compose build`, recreate the container. [v2.2.2](https://github.com/0xsoniclabs/sonic/releases/tag/v2.2.2) is a stability release (shutdown races, memory, `eth_feeHistory` API fields). No genesis re-import on an existing datadir.
+Copy `SONIC_VERSION` from `env.template` into `.env`, `docker compose build`, recreate the container. No genesis re-import on an existing datadir. Release notes: [0xsoniclabs/sonic](https://github.com/0xsoniclabs/sonic/releases).
 
 ## Snapshot
 
