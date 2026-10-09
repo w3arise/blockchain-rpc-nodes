@@ -96,7 +96,7 @@ services:
           --l1.rpckind=standard \
           --conductor.enabled=false \
           --safedb.path=/data/safedb \
-          --syncmode=execution-layer \
+          --syncmode=${OP_NODE_SYNCMODE} \
           2>&1 | tee /var/log/op-node/op-node.log
     restart: unless-stopped
     stop_grace_period: 60s
