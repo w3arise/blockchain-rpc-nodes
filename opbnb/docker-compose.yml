@@ -90,7 +90,7 @@ services:
       - --l1.trustrpc
       - --l2=http://op-geth:8551
       - --l2.jwt-secret=/jwt.txt
-      - --syncmode=execution-layer
+      - --syncmode=${OP_NODE_SYNCMODE}
       - --l1.max-concurrency=20
     env_file: .env
     ports:
