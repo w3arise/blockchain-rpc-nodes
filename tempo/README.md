@@ -25,7 +25,7 @@ docker compose up -d        # skip restore-snapshot.sh when datadir is already p
 
 Use `./restore-snapshot.sh --force` only when intentionally replacing snapshot data in an existing datadir.
 
-Same-series `1.14.*` image tags are **tag-only**. After a pin PR merges: `./scripts/apply-tag-only.sh tempo`
+Same-series `1.16.*` image tags are **tag-only**. After a pin PR merges: `./scripts/apply-tag-only.sh tempo`
 
 ## State retention
 

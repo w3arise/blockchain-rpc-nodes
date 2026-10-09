@@ -472,7 +472,7 @@ chains:
     strip_git_prefix: "op-node/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
 
-  # GHCR tags omit the git "v" prefix (tempo:1.14.0 from tag v1.14.0).
+  # GHCR tags omit the git "v" prefix (tempo:1.16.0 from tag v1.16.0).
   - id: tempo
     class: tag-only
     env_file: tempo/env.template
