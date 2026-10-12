@@ -17,7 +17,7 @@ RPC: `http://127.0.0.1:7545` (HTTP), `ws://127.0.0.1:7546` (WS).
 
 With `OP_RETH_SNAPSHOT=true` (default), an empty `$HOME/celo-op-reth-data` is bootstrapped from [snapshots.celo.org](https://snapshots.celo.org/) via `celo-reth download` on first start (`NODE_TYPE` selects minimal / full / archive). Skipped once `db/` exists. Mainnet **full** tier ≈ 215 GB download / ≈ 355 GB on disk; **archive** is larger. op-geth datadirs cannot be reused.
 
-Image pins follow [celo-l2-node-docker-compose](https://github.com/celo-org/celo-l2-node-docker-compose) (`celo-v1.0.5` op-reth, `celo-v2.2.1` op-node, EigenDA **v2.6.0**). After a pin bump, `docker compose pull` and recreate **op-reth** (and op-node if its tag changed).
+Image pins follow [celo-l2-node-docker-compose](https://github.com/celo-org/celo-l2-node-docker-compose). After a pin bump, `docker compose pull` and recreate **op-reth** (and op-node if its tag changed).
 
 ## State retention
 
@@ -51,7 +51,7 @@ For Celo Sepolia, set `OP_RETH_CHAIN=celo-sepolia`, `OP_NODE_NETWORK=celo-sepoli
 
 ## Upgrade
 
-Stop services, copy `OP_RETH_IMAGE`, `OP_NODE_IMAGE`, and `EIGENDA_PROXY_IMAGE` from `env.template` into `.env`, then `docker compose pull` and recreate containers. Compare pins to [celo-l2-node-docker-compose](https://github.com/celo-org/celo-l2-node-docker-compose) before bumping. Same-series **op-reth** tags (`celo-v1.0.*`) may use `./scripts/apply-tag-only.sh celo` after merge; **op-node** and **EigenDA** stay manual (not in the same auto feed).
+Stop services, copy `OP_RETH_IMAGE`, `OP_NODE_IMAGE`, and `EIGENDA_PROXY_IMAGE` from `env.template` into `.env`, then `docker compose pull` and recreate containers. Compare pins to [celo-l2-node-docker-compose](https://github.com/celo-org/celo-l2-node-docker-compose) before bumping. Same-series **op-reth** tags may use `./scripts/apply-tag-only.sh celo` after merge; **op-node** and **EigenDA** stay manual (not in the same auto feed).
 
 ## Host ports
 

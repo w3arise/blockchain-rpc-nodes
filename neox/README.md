@@ -11,7 +11,7 @@ docker compose build
 docker compose up -d
 ```
 
-Same-series `v0.6.*` binaries are **tag-only**. After a pin PR merges, apply rebuilds the local image:
+Same-series binaries are **tag-only**. After a pin PR merges, apply rebuilds the local image:
 
 ```bash
 ./scripts/apply-tag-only.sh neox
