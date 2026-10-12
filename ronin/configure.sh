@@ -38,6 +38,8 @@ if [[ -z "${PUBLIC_IP}" ]]; then
 fi
 
 CURRENT_EXT_IP="$(grep -E '^EXT_IP=' "${ENV_FILE}" | cut -d= -f2- || true)"
+CURRENT_EXT_IP="${CURRENT_EXT_IP%\"}"
+CURRENT_EXT_IP="${CURRENT_EXT_IP#\"}"
 if [[ "${CURRENT_EXT_IP}" != "${PUBLIC_IP}" ]]; then
   sed_inplace "s|^EXT_IP=.*|EXT_IP=${PUBLIC_IP}|" "${ENV_FILE}"
   echo "set EXT_IP=${PUBLIC_IP} in .env"
@@ -46,6 +48,8 @@ else
 fi
 
 CURRENT_P2P_IP="$(grep -E '^OP_NODE_P2P_ADVERTISE_IP=' "${ENV_FILE}" | cut -d= -f2- || true)"
+CURRENT_P2P_IP="${CURRENT_P2P_IP%\"}"
+CURRENT_P2P_IP="${CURRENT_P2P_IP#\"}"
 if [[ "${CURRENT_P2P_IP}" != "${PUBLIC_IP}" ]]; then
   sed_inplace "s|^OP_NODE_P2P_ADVERTISE_IP=.*|OP_NODE_P2P_ADVERTISE_IP=${PUBLIC_IP}|" "${ENV_FILE}"
   echo "set OP_NODE_P2P_ADVERTISE_IP=${PUBLIC_IP} in .env"
