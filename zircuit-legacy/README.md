@@ -6,7 +6,7 @@ Frozen **pre-Conduit** mainnet history on **`zircuit1/l2-geth`** only (**chain I
 
 **Pruning mode:** l2-geth **hash archive** (`--gcmode=archive`, `--state.scheme=hash`, `--txlookuplimit=0`) — full pre-fork history including state for proxied `eth_call` / traces.
 
-**Chain spec:** uses built-in **`--network=mainnet`** (original pre-fork genesis, `bedrockBlock: 0`). Do **not** point this node at [`../zircuit/config/genesis.json`](../zircuit/config/genesis.json) — op-reth needs the Conduit genesis with `bedrockBlock: 32956468`.
+**Chain spec:** uses built-in **`--network=mainnet`** (original pre-fork genesis, `bedrockBlock: 0`). Do **not** point this node at [`../zircuit/config/genesis.json`](../zircuit/config/genesis.json) — that file is the Conduit op-reth genesis.
 
 **RPC APIs:** `debug` is required for pre-fork `debug_traceBlockByNumber` when op-reth forwards historical execution requests.
 

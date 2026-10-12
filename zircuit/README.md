@@ -12,7 +12,7 @@ Mainnet OP Stack L2 on **Conduit** infrastructure (chain ID **48900**). Chain da
 
 ## Derivation anchor and genesis
 
-`config/rollup.json` anchors derivation at the Conduit migration point, L2 block **32956468** (`genesis.l2.number` — must match `config.bedrockBlock` in `genesis.json`). op-node derives forward from that anchor only, so op-reth must **already contain that block** (Conduit snapshot required):
+`config/rollup.json` anchors derivation at the Conduit migration point, L2 block **32956468** (`genesis.l2.number`). op-node derives forward from that anchor only, so op-reth must **already contain that block** (Conduit snapshot required):
 
 ```
 failed to find the L2 Heads to start from: ... could not get payload: not found
@@ -20,19 +20,11 @@ failed to find the L2 Heads to start from: ... could not get payload: not found
 
 Blocks below **32956468** are not in the op-reth datadir and are not derivable from L1 under this rollup config.
 
-### `bedrockBlock` (required for historical RPC)
+### Historical RPC
 
-op-reth only proxies to `--rollup.historicalrpc` when the requested block is **below** `config.bedrockBlock`. If it is `0` or missing, pre-fork queries return `null` / header-not-found locally and are **never** forwarded.
+`--rollup.historicalrpc` forwards blocks **below** `--rollup.historicalrpc.block` (**32956468**). That block is the rollup anchor and is served by op-reth. Published `config/genesis.json` keeps `bedrockBlock: 0` and `config.conduit.migrationBlock` **32956469**. The CLI cutoff overrides `migrationBlock`.
 
-For Zircuit mainnet, `config/genesis.json` must have:
-
-```json
-"bedrockBlock": 32956468
-```
-
-This must match `genesis.l2.number` in `config/rollup.json`. Conduit's API download may still ship `bedrockBlock: 0` — keep **`32956468`** in this repo's genesis after refreshing from Conduit.
-
-**Do not reuse the same genesis for both clients.** Legacy l2-geth uses the original pre-fork chain spec (`bedrockBlock: 0`, built-in `--network=mainnet`). op-reth uses this Conduit genesis with **`32956468`**.
+**Do not reuse the same genesis for both clients.** Legacy l2-geth uses built-in `--network=mainnet`. op-reth uses this Conduit genesis as published.
 
 Set **`HISTORICAL_RPC`** in `.env` to a full pre-fork archive (local legacy node: `http://host.docker.internal:11565` or `http://172.17.0.1:11565` from the default bridge). Restart op-reth after genesis or URL changes — **no resync required**.
 
@@ -48,7 +40,7 @@ docker compose up -d
 
 When L1 runs on the Docker host, `host.docker.internal` works for L1 URLs (compose sets `extra_hosts`).
 
-After Conduit network upgrades, run `./check-genesis.sh` (or refresh from the [Conduit API](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes), slug **`zircuit-mainnet`**) and re-apply **`bedrockBlock: 32956468`** if the download resets it. `./check-genesis.sh` also prints `OP_NODE_OVERRIDE_*` hints from Conduit `forkTimestamps` — copy those into `.env` when they change. Restart op-node + op-reth after genesis or override changes (no resync).
+After Conduit network upgrades, run `./check-genesis.sh` (slug **`zircuit-mainnet`**, or refresh from the [Conduit API](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes)). Keep the published genesis (`bedrockBlock: 0`, `config.conduit.migrationBlock`). Copy any new `OP_NODE_OVERRIDE_*` hints into `.env`. Restart op-node + op-reth after genesis or override changes (no resync).
 
 ## Snapshot
 
@@ -80,7 +72,7 @@ Gotchas:
 - Compare a historical `eth_call` with the same call at head; identical values may mean you are silently receiving head state.
 - `eth_getLogs` is never forwarded: op-reth returns `[]` for pre-fork ranges. Query pre-fork logs on [`zircuit-legacy/`](../zircuit-legacy/README.md) directly — see [op-reth historical RPC](../AGENTS.md#op-reth-historical-rpc---rolluphistoricalrpc).
 
-If `bedrockBlock` is correct but history still fails, confirm op-reth can reach `HISTORICAL_RPC` from inside its container and the legacy node is fully synced.
+If pre-fork calls still fail, confirm op-reth can reach `HISTORICAL_RPC` from inside its container and the legacy node is fully synced.
 
 ## Testnet (Garfield)
 
