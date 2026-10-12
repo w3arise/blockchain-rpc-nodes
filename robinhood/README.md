@@ -26,7 +26,7 @@ cp env.template .env    # set L1_ETH_URL, L1_ETH_BEACON_URL (feeds default in te
 docker compose up -d
 ```
 
-Same-series Nitro `v3.11.*` patches are **tag-only**: `./scripts/apply-tag-only.sh robinhood`
+Same-series Nitro patches are **tag-only**: `./scripts/apply-tag-only.sh robinhood`
 
 ## Snapshot
 

@@ -11,7 +11,7 @@ Mainnet rollup node. Chain data: `$HOME/optimism-op-reth-data`, `$HOME/optimism-
 docker compose up -d
 ```
 
-Same-series Superchain patches (`op-reth v2.4.*` / `op-node v1.19.*` while those are the pins) are **tag-only**: `./scripts/apply-tag-only.sh optimism`
+Same-series Superchain patches are **tag-only**: `./scripts/apply-tag-only.sh optimism`
 
 ## Snapshot
 
