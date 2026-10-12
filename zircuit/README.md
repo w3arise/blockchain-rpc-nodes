@@ -6,6 +6,8 @@ Mainnet OP Stack L2 on **Conduit** infrastructure (chain ID **48900**). Chain da
 
 **Sync mode:** `OP_NODE_SYNCMODE=execution-layer` — op-node drives op-reth over the Engine API.
 
+**Peers:** op-reth dials `OP_RETH_TRUSTED_PEERS` (Conduit [`elPeers`](https://api.conduit.xyz/public/network/elPeers/zircuit-mainnet) for `zircuit-mainnet`). There is no execution-layer discovery mesh, so `net_peerCount` of 1 is expected. op-node follows the tip from `OP_NODE_P2P_STATIC` ([`staticPeers`](https://api.conduit.xyz/public/network/staticPeers/zircuit-mainnet)) with `OP_NODE_P2P_NO_DISCOVERY=true`. Copy both values from `env.template` into an existing `.env` and recreate the containers when they change. The trusted peer closes gaps; it does not replace the snapshot.
+
 **Migration (Aug 2026):** Zircuit mainnet moved from `zircuit1/l2-geth` to Conduit. Pre-Conduit history is served via [`../zircuit-legacy/`](../zircuit-legacy/README.md) + `--rollup.historicalrpc`. Wipe pre-migration l2-geth datadirs before using op-reth; layouts are incompatible.
 
 **Pruning mode:** op-reth **archive** (no `--full` / `--prune.*` flags) — full block, receipt, and log history plus historical state from the Conduit snapshot tip forward.
@@ -76,7 +78,7 @@ If pre-fork calls still fail, confirm op-reth can reach `HISTORICAL_RPC` from in
 
 ## Testnet (Garfield)
 
-Chain ID **48898**. Conduit slug **`zircuit-garfield-testnet`**. Refresh `config/` from the Conduit API, set L1 to Sepolia, `SEQUENCER_HTTP=https://garfield-testnet.zircuit.com`, update P2P bootnodes/static peers, and snapshot `gs://conduit-networks-snapshots/zircuit-garfield-testnet/latest.tar`.
+Chain ID **48898**. Conduit slug **`zircuit-garfield-testnet`**. Refresh `config/` from the Conduit API, set L1 to Sepolia, `SEQUENCER_HTTP=https://garfield-testnet.zircuit.com`, update the trusted EL peer and the op-node static peer from the Conduit API, and snapshot `gs://conduit-networks-snapshots/zircuit-garfield-testnet/latest.tar`.
 
 ## Host ports
 
