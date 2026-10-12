@@ -657,6 +657,14 @@ https://api.conduit.xyz/file/v1/optimism/forkTimestamps/<network-slug>
 
 Local copies drift quickly (missing fork timestamps). An outdated genesis causes subtle sync failures near fork boundaries.
 
+## Conduit OP Stack upstream sample
+
+[conduitxyz/conduit-optimism-external-node](https://github.com/conduitxyz/conduit-optimism-external-node) is Conduit’s sample for any Conduit OP Stack rollup (`make setup NETWORK=<network-slug>`). It is not a Zircuit guide, and this repo does not run that Makefile or `./data` layout. Our deployment stays `<chain>/docker-compose.yml`.
+
+When a **conduit-op-reth** node stalls, loses peers, fails a snapshot restore, or historical RPC stops matching the chain, diff our flags against that repo and [Run an OP Stack node](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes). Check image tags, `OP_NODE_SYNCMODE`, static peer vs bootnodes, a trusted execution-layer peer in `config/reth.toml`, snapshot layout, and `--rollup.historicalrpc` / `--rollup.historicalrpc.block`. Do not replace our compose with theirs.
+
+Applies to chains pinned to `ghcr.io/conduitxyz/conduit-op-reth` (Katana, Ronin, Zircuit). Plume is Nitro. Tempo uses its own client. Bob and Mode pin OP Labs `op-reth`, so this sample is not their runtime.
+
 ## op-node persistence (SafeDB)
 
 ```
@@ -689,6 +697,7 @@ Head block unchanged for >1–2 hours while L1 origin advances:
 3. **Missing L1 env** — `OP_NODE_L1_ETH_RPC` / `OP_NODE_L1_BEACON` not loaded into container.
 4. **JWT mismatch** — Engine API auth failure (usually total failure, not partial stall).
 5. **Outdated fork overrides** — manual op-node fork flags out of sync with the network.
+6. **Conduit OP Stack drift** — for `conduit-op-reth` chains, compare peers, sync mode, snapshot, and historical RPC with [Conduit OP Stack upstream sample](#conduit-op-stack-upstream-sample).
 
 Diagnostic commands:
 
@@ -743,7 +752,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 ### Conduit OP Stack (additional)
 
 17. Fetch bootnodes/static peers — [Conduit bootnodes (OP Stack)](#conduit-bootnodes-op-stack).
-18. Fetch genesis/rollup from Conduit API; verify before committing.
+18. Fetch genesis/rollup from Conduit API; verify before committing. On a later stall, diff against [Conduit OP Stack upstream sample](#conduit-op-stack-upstream-sample). Keep this repo’s compose.
 
 ### ZK Stack (external node, when applicable)
 
