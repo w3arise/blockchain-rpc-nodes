@@ -115,7 +115,7 @@ Examples:
 - Aptos `aptos-node-v1.48.5-hotfix` → `v1.48.7-hotfix` — tag-only (allowlisted).
 - Aptos `v1.48` → `v1.49` — human bump onto the new series first; then auto can follow `v1.49.*`.
 - Abstract `v29` → `v31` — never auto (snapshot wipe).
-- Arbitrum Nitro `3.7` → `3.11` — done as needs-review (one-way DB). Pin is `v3.11.3`; allowlisted for **`v3.11.*` patches only**. A `v3.12` git tag is ignored until a human bumps the pin onto that series.
+- Arbitrum Nitro series jumps (e.g. `3.11` → `3.12`) — needs-review until a human bumps the pin; then auto follows **that** series’ patches only. Cold-copy the datadir only when Offchain Labs notes/docs say one-way / cannot downgrade (not on every series jump).
 
 ## Agent release-notes check
 
@@ -183,7 +183,7 @@ flowchart TB
 
 1. Notes check already said needs-config (or needs-review + user picked). Follow the merged pin PR and upstream upgrade docs; `<chain>/README.md` has durable apply mechanics only.
 2. On the host: `git pull --ff-only`. Copy **only** the pin var from `env.template` into existing `.env` (do not `cp env.template .env` — that wipes L1 URLs). Chains without `configure.sh` are the same: edit one line.
-3. If notes said one-way DB / cannot downgrade: stop the client and cold-copy the datadir first.
+3. Cold-copy the datadir **only** when upstream release notes or official upgrade docs say one-way DB / cannot downgrade (do not invent a backup step for every series jump).
 4. `docker compose pull && docker compose up -d` in the chain directory.
 
 ## Allowlist
