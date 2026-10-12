@@ -73,6 +73,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Sonic               | `sonic/`       | L1                                  | sonic-node                                | [README](sonic/README.md)       |
 | Tac                 | `tac/`         | L1 (CosmoseVM / Ethermint)          | tacchaind                                 | [README](tac/README.md)         |
 | Tempo               | `tempo/`       | L1                                  | tempo (Reth SDK + Simplex BFT)            | [README](tempo/README.md)       |
+| Unichain            | `unichain/`    | L2 (OP Stack)                       | op-reth + op-node                         | [README](unichain/README.md)    |
 | Worldchain          | `worldchain/`  | L2 (OP Stack)                       | op-reth + op-node                         | [README](worldchain/README.md)  |
 | XDC                 | `xdc/`         | L1                                  | XDPoSChain (hash-full)                    | [README](xdc/README.md)         |
 | XLayer              | `xlayer/`      | L2 (OP Stack)                       | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md)      |
