@@ -295,30 +295,98 @@ After the PR is merged, a host with a clean `<chain>/` checkout:
 ```mermaid
 flowchart TD
   clean{Tracked files in compose_dir clean?}
+  owner{Compose project only from this dir?}
   pull[git pull --ff-only]
   sync[Copy allowlisted pin var from env.template into .env]
   up[docker compose pull and up -d]
   health[Wait for health URL]
   done[Node running new tag]
   stop[Refuse: stash or commit local edits]
+  clash[Refuse: project also runs from another dir]
 
   clean -->|no| stop
-  clean -->|yes| pull --> sync --> up --> health --> done
+  clean -->|yes| owner
+  owner -->|no| clash
+  owner -->|yes| pull --> sync --> up --> health --> done
 ```
 
 - Requires an existing `.env` (first start is still `./configure.sh` or `cp env.template .env`).
 - Syncs **only** the YAML pin var (e.g. `APTOS_IMAGE`, `NITRO_IMAGE`).
+- Refuses, before touching `.env`, when the compose project name also has containers from another directory (e.g. another user's checkout of the same chain). `compose up` there would recreate those containers. Give one checkout a distinct `COMPOSE_PROJECT_NAME` in `.env`.
 - After compose up, wait **10s** before the first health probe. A fast recreate can still answer from the previous process and look healthy.
 - Aptos health: GET `http://127.0.0.1:${HTTP_PORT}/v1`. Every EVM execution pin uses `health_mode: block_time` (`eth_getBlockByNumber`, latest block ≤10s old) on `HTTP_PORT` (Ronin: `RONIN_RETH_HTTP_PORT`, Morph geth: `HTTP_HOST_PORT`). op-node and Lighthouse pins have no check of their own; an apply group uses the execution pin. Applying only one of those pins skips the probe.
 - OP Stack: pass the **apply group** (`katana`, `zircuit`, `ronin`, `bob`, `mode`, `lisk`, `optimism`, `worldchain`) to sync both execution and op-node pins in one compose up. Pin ids (`katana-op-reth`) still work for a single var.
 - Core / Neo X: `compose_build: true` — apply runs `docker compose up -d --build` (the binary is baked from `GETH_VERSION`, not pulled).
 - Optional: `SKIP_PULL=1`, `SKIP_COMPOSE=1`, `HEALTH_TIMEOUT=180`.
 
-Example timer (Monday 09:00, after the CI PR window):
+### Apply on merge (cron)
 
+[`scripts/auto-apply-if-merged.sh`](scripts/auto-apply-if-merged.sh) runs the apply step after a merge. Flowcharts: [docs/auto-apply.md](docs/auto-apply.md). Run it from cron as the user that owns the checkout and its chains:
+
+```cron
+*/5 * * * * $HOME/blockchain-rpc-nodes/scripts/auto-apply-if-merged.sh >> $HOME/auto-apply.log 2>&1
 ```
-0 9 * * 1 cd /path/to/blockchain-rpc-nodes && ./scripts/apply-tag-only.sh aptos && ./scripts/apply-tag-only.sh arbitrum && ./scripts/apply-tag-only.sh katana
+
+Each run fetches `origin/main`, fast-forwards only if the new commits are pin-safe, compares each allowlisted pin var (the YAML `var`) in `env.template` with `.env`, validates the new pin, and runs `apply-tag-only.sh` (with `SKIP_PULL=1`) for targets that differ.
+
+**Merge gate.** The checkout fast-forwards only when every changed file is one of:
+
+- `*.md`
+- `<dir>/env.template` (a regular file, not a symlink)
+- a file in a chain dir (has `docker-compose.yml` at the current HEAD) with no `.env` in this checkout
+
+Anything else blocks the merge: `scripts/` (including `auto-upgrade.yaml`), repo root files, and any other file in a chain dir set up here. Chain dirs come from the current HEAD, so a new commit cannot turn `scripts/` into a chain dir. Nothing is merged until a human reviews and runs `git pull --ff-only`. Pins already on disk still apply. After a manual pull, the next run applies pending pins together with what you pulled; restart that chain yourself or set `AUTO_APPLY_HOLD=1` first.
+
+**Pin validation.** Each new pin is checked against the reviewed `auto-upgrade.yaml` and the pin applied in `.env`:
+
+- starts with the pin's `image_prefix`
+- the tag is a plain image tag (`[A-Za-z0-9_][A-Za-z0-9_.-]*`, no digest, quotes, `$` or spaces)
+- same `major.minor` series as the applied pin
+- not in `exclude`; ends with `image_tag_suffix` when set
+
+So the only change that reaches a node without a human pull is a same-series tag from the expected publisher.
+
+| Rule | Why |
+| --- | --- |
+| Only targets with `<compose_dir>/.env` in this checkout | Chains set up elsewhere are not this checkout's job |
+| Only when containers run from this checkout (compose `working_dir` label) | A stopped node is never started; it stays pending and applies once it runs |
+| `.env` is the record of what is applied | A pin skipped while the node was down is not lost when HEAD moves on |
+| A `.env` pin that never appeared in `env.template` history is left alone | Manual overrides survive |
+| A pin var missing from `.env` is not added | First setup stays manual (`configure.sh`) |
+| `AUTO_APPLY_HOLD=1` in `<compose_dir>/.env` skips the target | Hold one chain without editing cron |
+| `apply-tag-only.sh` refuses (exit 3) when the compose project name also has containers from another directory | Another user's checkout of the same chain would be recreated |
+| A failed or refused apply writes `.git/auto-apply/failed/<target>` and holds it | No restart loop. Remove the marker once fixed |
+| Checkout must be on `main`, fast-forward only; `flock` blocks overlapping runs | Diverged or hand-edited checkouts need a human |
+
+**Logging.** Every refusal is one line, `DENY <merge|target>: <reason>`, on stderr and in syslog (`logger -t auto-apply`, `journalctl -t auto-apply`). Blocked merges, rejected pins, a pin var missing from `.env`, project collisions and held failures exit 1 on every run until fixed. A manual override and `AUTO_APPLY_HOLD=1` are logged and exit 0.
+
+Commands:
+
+```bash
+./scripts/auto-apply-if-merged.sh --dry-run     # fetch, report every target, change nothing
+./scripts/auto-apply-if-merged.sh aptos katana  # limit to these targets
+journalctl -t auto-apply --since today          # denies and errors
 ```
+
+Start compose from the checkout path itself (not a symlinked path) so the `working_dir` label matches.
+
+Several users on one host: one crontab per user, or [`scripts/auto-apply-dispatcher.sh`](scripts/auto-apply-dispatcher.sh) from root cron or by hand. The dispatcher reads `/etc/blockchain-nodes.conf` (`user:repo_path` per line), checks that the user owns `.git`, and runs the script once per checkout via `runuser -l`. Each checkout fetches as its own user. Nothing runs git as root.
+
+Root must never run the copy inside a user's checkout: that user could edit it and get root. Install a root-owned copy and run that:
+
+```bash
+sudo install -o root -g root -m 0755 scripts/auto-apply-dispatcher.sh /usr/local/sbin/auto-apply-dispatcher
+sudo auto-apply-dispatcher --dry-run   # by hand: report only
+sudo auto-apply-dispatcher             # by hand: apply
+```
+
+```cron
+*/5 * * * * /usr/local/sbin/auto-apply-dispatcher >> /var/log/auto-apply-dispatcher.log 2>&1
+```
+
+The dispatcher refuses (`DENY`, exit 1, syslog tag `auto-apply-dispatcher`) when its own file, its directory, or the config file is not root-owned or is group/world-writable, and skips config lines whose user is uid 0. Re-run the `install` line after you review and pull a dispatcher change. For one chain, run the per-checkout script as its user: `sudo -iu <user> sh -c 'cd ~/blockchain-rpc-nodes && ./scripts/auto-apply-if-merged.sh --dry-run aptos'`.
+
+Script and YAML changes reach a host only through a human `git pull`. Pin bumps still need the [release-notes check](#agent-release-notes-check) before merge, and `main` needs branch protection and required review: validation limits *which* tag can land, not whether the upstream image is trustworthy.
 
 Durable apply mechanics stay in `<chain>/README.md` (see [aptos/README.md](aptos/README.md)); release-specific notes stay in the pin PR.
 

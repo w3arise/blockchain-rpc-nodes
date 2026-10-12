@@ -12,6 +12,9 @@
 # Does not rewrite other .env keys (L1 URLs, passwords). First-start still
 # uses <chain>/configure.sh. Does not run configure.sh.
 #
+# Exit 3: refused because the compose project name also has containers from
+# another directory. Other failures exit 1.
+#
 # Optional:
 #   SKIP_PULL=1       do not git pull --ff-only
 #   SKIP_COMPOSE=1    sync .env only
@@ -79,6 +82,32 @@ if [[ -n "${dirty}" ]]; then
   echo "ERROR: ${AUTO_COMPOSE_DIR}/ has local tracked changes; commit or stash before apply" >&2
   echo "${dirty}" >&2
   exit 1
+fi
+
+if [[ "${SKIP_COMPOSE}" != "1" ]]; then
+  for cmd in docker curl; do
+    if ! command -v "${cmd}" >/dev/null 2>&1; then
+      echo "ERROR: required command not found: ${cmd}" >&2
+      exit 1
+    fi
+  done
+
+  # compose up acts on every container of the project name, wherever it was
+  # started. Refuse when another directory (e.g. another user's checkout of
+  # the same chain) owns containers under that name. Check before .env changes.
+  compose_path="$(cd "${COMPOSE_DIR}" && pwd -P)"
+  project="$(cd "${COMPOSE_DIR}" && docker compose config 2>/dev/null | sed -n 's/^name: //p' | head -n1)"
+  project="${project:-$(basename "${compose_path}" | tr '[:upper:]' '[:lower:]')}"
+  other_dirs="$(docker ps -a \
+    --filter "label=com.docker.compose.project=${project}" \
+    --format '{{.Label "com.docker.compose.project.working_dir"}}' \
+    | sort -u | grep -vxF -- "${compose_path}" | grep -v '^$' || true)"
+  if [[ -n "${other_dirs}" ]]; then
+    echo "ERROR: compose project '${project}' has containers from another directory:" >&2
+    echo "${other_dirs}" | sed 's/^/  /' >&2
+    echo "Applying here would recreate them. Set a distinct COMPOSE_PROJECT_NAME in .env or apply from that checkout." >&2
+    exit 3
+  fi
 fi
 
 if [[ "${SKIP_PULL}" != "1" ]]; then
@@ -157,15 +186,6 @@ done
 if [[ "${SKIP_COMPOSE}" == "1" ]]; then
   echo "SKIP_COMPOSE=1 — not running docker compose"
   exit 0
-fi
-
-if ! command -v docker >/dev/null 2>&1; then
-  echo "ERROR: docker not found" >&2
-  exit 1
-fi
-if ! command -v curl >/dev/null 2>&1; then
-  echo "ERROR: required command not found: curl" >&2
-  exit 1
 fi
 
 (
