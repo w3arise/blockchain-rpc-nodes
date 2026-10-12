@@ -27,7 +27,7 @@ To shrink state only, stop op-reth, set `[prune.segments.account_history]` and `
 
 ## Upgrade
 
-Stop the stack, copy `OP_RETH_IMAGE` and `OP_NODE_IMAGE` from `env.template` into `.env`, then `docker compose pull && docker compose up -d`. Same-series Superchain patches (`op-reth v2.5.*` / `op-node v1.19.*` while those are the pins) are tag-only. After the pin PR merges, from the repo root:
+Stop the stack, copy `OP_RETH_IMAGE` and `OP_NODE_IMAGE` from `env.template` into `.env`, then `docker compose pull && docker compose up -d`. Same-series Superchain patches are tag-only. After the pin PR merges, from the repo root:
 
 ```bash
 ./scripts/apply-tag-only.sh unichain

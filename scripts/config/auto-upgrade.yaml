@@ -511,6 +511,7 @@ chains:
 
   - id: unichain-op-reth
     class: tag-only
+    allow_series_jump: true
     env_file: unichain/env.template
     var: OP_RETH_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
@@ -527,6 +528,7 @@ chains:
 
   - id: unichain-op-node
     class: tag-only
+    allow_series_jump: true
     env_file: unichain/env.template
     var: OP_NODE_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
