@@ -195,7 +195,7 @@ Machine-readable source of truth: [`scripts/config/auto-upgrade.yaml`](scripts/c
 - `tag-only` — also a YAML row; CI may open a pin PR. Host apply after a [notes check](#agent-release-notes-check) says pin-only.
 - `needs-review` — agent playbook only; do not bump until a human picks.
 
-Adding a chain is one YAML object (id, pin file/var, image prefix, GitHub repo, tag prefix, compose dir, optional health URL, optional `image_tag_from: release_body` when the docker tag is not the git tag, optional `strip_git_prefix` when git tags include a component prefix, optional `apply_group` when two pins share a compose dir). Auto only follows tags that share major.minor with **whatever is currently pinned**.
+Adding a chain is one YAML object (id, pin file/var, image prefix, GitHub repo, tag prefix, compose dir, optional health URL, optional `image_tag_from: release_body` when the docker tag is not the git tag, optional `strip_git_prefix` when git tags include a component prefix, optional `apply_group` when two pins share a compose dir, optional `allow_series_jump: true` when host apply may cross major.minor). Auto only follows tags that share major.minor with **whatever is currently pinned**. `allow_series_jump` does not change that; it only lets a merged series jump pass host `validate-pin`.
 
 v1 allowlist: **Aptos**, **Arbitrum**, **Robinhood**, Superchain OP Stack (**Bob**, **Lisk**, **Mode**, **Optimism**, **Worldchain**), Conduit (**Katana**, **Plume**, **Ronin**, **Zircuit**), plus **Berachain** (bera-reth only), **Core**, **Gnosis Chain** (reth_gnosis + lighthouse), **Mantle** (mantle-op-geth + mantle-op-node), **Neo X**, **Sei**, and **Tempo**. OP Stack rows are one pin each (`*-op-reth` / `*-op-node`) with a shared `apply_group` so hosts run `./scripts/apply-tag-only.sh katana` once. OP Labs git tags are `op-reth/v*` / `op-node/v*`; `strip_git_prefix` maps those to docker tags `v*`. Tempo strips the git `v` (`v1.16.0` → GHCR `1.16.0`). Conduit execution uses `conduitxyz/conduit-op-reth` tags `v*`. Plume is Nitro `image_tag_from: release_body` with `image_tag_suffix: -validator`. Core and Neo X set `compose_build: true` (version-only `GETH_VERSION`; apply rebuilds the local image). Auto only follows tags that share major.minor with **whatever is currently pinned**.
 
@@ -341,10 +341,12 @@ Anything else blocks the merge: `scripts/` (including `auto-upgrade.yaml`), repo
 
 - starts with the pin's `image_prefix`
 - the tag is a plain image tag (`[A-Za-z0-9_][A-Za-z0-9_.-]*`, no digest, quotes, `$` or spaces)
-- same `major.minor` series as the applied pin
+- same `major.minor` series as the applied pin, unless that row sets `allow_series_jump: true`
 - not in `exclude`; ends with `image_tag_suffix` when set
 
-So the only change that reaches a node without a human pull is a same-series tag from the expected publisher.
+`allow_series_jump` is host apply only. Weekly CI still opens pin PRs inside the series currently pinned in git. A series jump still lands as a human PR. After that PR is merged, a host that has pulled the YAML flag applies the new pin without a same-series deny. Set the flag on every row of an `apply_group`. The YAML change itself is under `scripts/`, so the checkout will not fast-forward it; pull that commit by hand once.
+
+Without the flag, the only change that reaches a node without a human pull is a same-series tag from the expected publisher.
 
 | Rule | Why |
 | --- | --- |

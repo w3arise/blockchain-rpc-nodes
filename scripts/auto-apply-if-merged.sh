@@ -12,7 +12,8 @@
 #      (<compose_dir>/.env exists), compare each pin var (the YAML `var`) in
 #      env.template with .env. A difference is a pending upgrade.
 #   3. Validate each new pin against the YAML: image_prefix, same series as
-#      the pin applied in .env, exclude list, plain tag characters.
+#      the pin applied in .env (unless allow_series_jump), exclude list,
+#      plain tag characters.
 #   4. Apply with apply-tag-only.sh (SKIP_PULL=1), only when that target's
 #      containers run from this checkout.
 #
