@@ -10,6 +10,7 @@ services:
       - --datadir=/data
       - --rollup.sequencer=${SEQUENCER_HTTP}
       - --rollup.historicalrpc=${HISTORICAL_RPC}
+      - --rollup.historicalrpc.block=32956468
       - --rollup.disable-tx-pool-gossip
       - --http
       - --http.addr=0.0.0.0

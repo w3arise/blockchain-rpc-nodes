@@ -618,7 +618,7 @@ Genesis in the datadir (`$HOME/op-reth-data/genesis.json`) is what op-reth reads
 
 ### op-reth historical RPC (`--rollup.historicalrpc`)
 
-op-reth has **no data** below the chain's migration boundary (`bedrockBlock` in the rollup/genesis config). With `--rollup.historicalrpc`, it forwards only **some** requests for older blocks to a legacy node. This is op-reth behavior ([`historical.rs`](https://github.com/ethereum-optimism/optimism/blob/develop/rust/op-reth/crates/rpc/src/historical.rs)), so it applies to every op-reth fork that uses it (e.g. celo-reth, Zircuit). Stock L1 reth has no such layer.
+op-reth has **no data** below the chain's migration boundary. Stock op-reth uses `bedrockBlock` in genesis. conduit-op-reth v2.3.0+ uses `--rollup.historicalrpc.block`, then genesis `config.conduit.migrationBlock`, then that Bedrock behavior. The cutoff block is served locally; blocks below it are forwarded. With `--rollup.historicalrpc`, it forwards only **some** requests for older blocks to a legacy node. This is op-reth behavior ([`historical.rs`](https://github.com/ethereum-optimism/optimism/blob/develop/rust/op-reth/crates/rpc/src/historical.rs)), so it applies to every op-reth fork that uses it (e.g. celo-reth, Zircuit). Stock L1 reth has no such layer.
 
 | Request | Forwarded below the boundary |
 | --- | --- |
@@ -627,7 +627,7 @@ op-reth has **no data** below the chain's migration boundary (`bedrockBlock` in 
 | `eth_getBlockReceipts`, `eth_getHeaderBy*`, `eth_getBlockTransactionCountBy*`, `eth_getTransactionByBlock*AndIndex` | Only on builds with [optimism#21955](https://github.com/ethereum-optimism/optimism/pull/21955). Older builds answer locally with `null` |
 | **`eth_getLogs`** (block range) | **Never.** It is answered locally and returns `[]` with no error |
 
-- `bedrockBlock` must be set to the real boundary. If it is `0` or missing, nothing is forwarded (see [`zircuit/README.md`](zircuit/README.md)).
+- On stock op-reth, `bedrockBlock` must be the real boundary. If it is `0` or missing, nothing is forwarded. conduit-op-reth v2.3.0+ can leave `bedrockBlock` at `0` and set the cutoff with `--rollup.historicalrpc.block` or `config.conduit.migrationBlock` (see [`zircuit/README.md`](zircuit/README.md)).
 - An empty `eth_getLogs` result does not mean "no events". Log indexers and backfills that read pre-boundary ranges through op-reth silently miss data. Send those ranges straight to the legacy node, or put a JSON-RPC-aware router in front that splits ranges at the boundary. A plain `proxy_pass` cannot do this.
 - op-geth keeps a **migrated** datadir that stores pre-boundary blocks and receipts locally and forwards only state calls, so `eth_getLogs` works there. op-reth cannot reuse that datadir.
 - Verify with one pre-boundary block: `eth_getBlockReceipts` and a single-block `eth_getLogs` against the legacy node and against op-reth. Results that are non-empty on the legacy node and `null` / `[]` on op-reth confirm the gap.
