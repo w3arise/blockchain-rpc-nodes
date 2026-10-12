@@ -33,6 +33,7 @@ ALLOWED_KEYS = {
     "image_tag_suffix",
     "compose_build",
     "pin_tag_prefix",
+    "allow_series_jump",
 }
 
 REQUIRED_KEYS = {
@@ -106,6 +107,11 @@ def load_chains(path: Path) -> list[dict]:
             raise SystemExit(
                 f"{chain['id']}: image_tag_suffix requires image_tag_from: release_body"
             )
+        jump = chain.get("allow_series_jump")
+        if jump is not None and not isinstance(jump, bool):
+            raise SystemExit(
+                f"{chain['id']}: allow_series_jump must be true or false (got {jump!r})"
+            )
         group = chain.get("apply_group")
         if group:
             groups.setdefault(group, []).append(chain)
@@ -156,8 +162,8 @@ TAG_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$")
 def pin_problem(chain: dict, current: str, new: str) -> str:
     """Why NEW may not replace CURRENT for this pin, or "" when it may.
 
-    Host apply only accepts a same-series tag from the pin's image_prefix,
-    judged against the pin already applied on the host.
+    Host apply accepts a tag from the pin's image_prefix. It must stay on the
+    applied major.minor series unless allow_series_jump is true.
     """
     prefix = chain["image_prefix"]
     if not new.startswith(prefix):
@@ -167,12 +173,13 @@ def pin_problem(chain: dict, current: str, new: str) -> str:
         return f"tag {tag!r} is not a plain image tag"
     if not current.startswith(prefix):
         return f"applied pin {current!r} does not start with image_prefix {prefix!r}"
-    match = re.search(r"^(.*?)(\d+)\.(\d+)", current[len(prefix) :])
-    if not match:
-        return f"cannot derive major.minor series from applied pin {current!r}"
-    series = f"{match.group(1)}{match.group(2)}.{match.group(3)}"
-    if not same_series(tag, series):
-        return f"tag {tag!r} is outside the applied series {series}.*"
+    if not chain.get("allow_series_jump"):
+        match = re.search(r"^(.*?)(\d+)\.(\d+)", current[len(prefix) :])
+        if not match:
+            return f"cannot derive major.minor series from applied pin {current!r}"
+        series = f"{match.group(1)}{match.group(2)}.{match.group(3)}"
+        if not same_series(tag, series):
+            return f"tag {tag!r} is outside the applied series {series}.*"
     if excluded(tag, chain.get("exclude", "")):
         return f"tag {tag!r} matches exclude {chain.get('exclude')!r}"
     suffix = chain.get("image_tag_suffix", "")
