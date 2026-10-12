@@ -22,7 +22,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Morph | geth `2.2.*` + node `0.6.*` | tag-only | **yes** — paired `apply_group: morph` (post–L1 cutover series) | `./scripts/apply-tag-only.sh morph` |
 | Neo X | `GETH_VERSION=v0.6.2` | tag-only | **yes** — same-series `v0.6.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh neox` |
 | Optimism | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: optimism`) | `./scripts/apply-tag-only.sh optimism` |
-| Plume | `nitro-node:v3.9.5-*-validator` | tag-only | **yes** — same-series `v3.9.*-validator` (release body) | `./scripts/apply-tag-only.sh plume` |
+| Plume | `nitro-node:v3.11.4-*-validator` | tag-only | **yes** — same-series `v3.11.*-validator` (release body) | `./scripts/apply-tag-only.sh plume` |
 | Robinhood | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (release body, like Arbitrum) | `./scripts/apply-tag-only.sh robinhood` |
 | Ronin | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: ronin`). EigenDA stays `needs-review` | `./scripts/apply-tag-only.sh ronin` |
 | Sei | `SEID_VERSION=v6.6.3` | tag-only | **yes** — same-series `v6.6.*` | `./scripts/apply-tag-only.sh sei` |
