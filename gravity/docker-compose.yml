@@ -34,6 +34,8 @@ services:
     environment:
       RUST_BACKTRACE: "1"
       RUST_LOG: ${RUST_LOG:-info}
+      # Read by gravity_node (aptos consensus). Compose project .env interpolates.
+      ENABLE_FORWARD_EPOCH_SYNC: ${ENABLE_FORWARD_EPOCH_SYNC:-true}
     ulimits:
       nofile:
         soft: 1048576
