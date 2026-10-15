@@ -91,6 +91,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Sonic | `SONIC_VERSION` | `0xsoniclabs/sonic` | tag-only |
 | Tac | `TACCHAIN_VERSION` | `TacBuild/tacchain` (ignore `-beta` / `-manual` unless requested) | needs-review |
 | Tempo | `TEMPO_IMAGE` | `tempoxyz/tempo` releases; `ghcr.io/tempoxyz/tempo` (image tag omits git `v`) | tag-only |
+| Unichain | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain (OP Labs). `Uniswap/unichain-node` compose lags; Karst is active (`keep_karst_upgrade_gas`) so stay on op-node v1.19.3+ with a matching op-reth | tag-only |
 | Worldchain | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Stock Superchain pins in this repo. Official compose uses `ghcr.io/worldcoin/world-chain`, not stock op-reth | tag-only |
 | XDC | `XDC_VERSION` | `XinFinOrg/XDPoSChain` (ignore `*-testnet`) | needs-review |
 | XLayer | `OP_STACK_IMAGE_TAG`, `OP_GETH_IMAGE_TAG`, `ERIGON_VERSION` | Docker Hub `xlayer/op-node`, `xlayer/op-geth`. `okx/xlayer-erigon` may be private | needs-review |
@@ -113,7 +114,8 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 - **EigenDA v2** releases are on `Layr-Labs/eigenda`, not the archived proxy repo.
 - **Nitro Orbit** (ApeChain, Plume) may require a vendor tag (`apechain-3.9.9` / older `apechain-v*`, `*-validator`).
 - **Monad** APT `MONAD_VERSION`. Release-specific steps (TrieDB timeline, testnet-only builds) stay in that release’s [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions) and in the pin PR.
-- **op-node v1.19.2** is below the Mode/Metal/Zora Karst gas-config floor (`v1.19.3+`) for built-in `--network` configs.
+- **op-node v1.19.2** is below the Mode/Metal/Zora Karst gas-config floor (`v1.19.3+`) for built-in `--network` configs. Unichain has the same `keep_karst_upgrade_gas` flag.
+- **Unichain** uses stock OP Labs images (`--chain=unichain` / `OP_NODE_NETWORK=unichain-mainnet`). `Uniswap/unichain-node` still documents op-geth and pins older images.
 - **Nitro** series jumps stay `needs-review`. Cold-copy / backup the datadir only when Offchain Labs release notes or docs say one-way / cannot downgrade (historically **3.8 / 3.10**). Do not recommend a backup on every minor jump. Arbitrum One replica is pinned at `v3.12.1` and allowlisted for **`v3.12.*` patches** (`image_tag_from: release_body`). See `arbitrum/README.md`.
 - **Pharos** image and `bin/VERSION` must stay paired (`./configure.sh` refreshes `mainnet.version`). v0.16 monitoring keys are `storage_cetina_*` (was `pamir_cetina_*`); this repo’s `pharos.conf` has no `monitor_config`. See `pharos/README.md`.
 - **Mova (61901)** genesis sync stays on `movachain/movan-syncnode:v0.0.1` (commit `6f0cc05`, linux/amd64 only) until a newer tag's release notes say it can sync from height 0. Chain **61900** uses `movachain/mainnet-syncnode` (different network). Vendor supervisord uses `--pruning=nothing`; compose overrides to `syncable`. Config: `movad init` + `patch-config.sh` (no vendored full `config.toml`); genesis downloaded at init (checksum in `init-database.sh`). Gas cap in `noderpc.toml`, not geth-style flags. No separate official node-run doc for 61901 in repo links — image, explorer, and snapshot host only.

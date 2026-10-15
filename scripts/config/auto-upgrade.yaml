@@ -509,6 +509,38 @@ chains:
     health_mode: block_time
     health_port_var: HTTP_PORT
 
+  - id: unichain-op-reth
+    class: tag-only
+    allow_series_jump: true
+    env_file: unichain/env.template
+    var: OP_RETH_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
+    compose_dir: unichain
+    apply_group: unichain
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-reth/v
+    strip_git_prefix: "op-reth/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
+
+  - id: unichain-op-node
+    class: tag-only
+    allow_series_jump: true
+    env_file: unichain/env.template
+    var: OP_NODE_IMAGE
+    image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
+    compose_dir: unichain
+    apply_group: unichain
+    chain_links: false
+    source_type: github_releases
+    source_repo: ethereum-optimism/optimism
+    tag_prefix: op-node/v
+    strip_git_prefix: "op-node/"
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
+
   - id: worldchain-op-reth
     class: tag-only
     allow_series_jump: true
