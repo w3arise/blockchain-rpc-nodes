@@ -151,7 +151,7 @@ reth = {
         "ws": "",
         "ws.port": 8546,
         "ws.origins": "*",
-        "ws.api": "debug,eth,net,txpool,web3",
+        "ws.api": "eth,net,txpool,web3",
         "ws.addr": "0.0.0.0",
         "rpc.gascap": int(req("GAS_CAP")),
         "port": int(req("RETH_P2P_PORT")),

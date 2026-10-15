@@ -28,11 +28,11 @@ services:
       - --http
       - --http.addr=0.0.0.0
       - --http.port=9045
-      - --http.api=admin,net,eth,web3,debug,trace
+      - --http.api=admin,net,eth,web3
       - --ws
       - --ws.addr=0.0.0.0
       - --ws.port=9046
-      - --ws.api=admin,net,eth,web3,debug,trace
+      - --ws.api=admin,net,eth,web3
       - --authrpc.addr=0.0.0.0
       - --authrpc.port=8661
       - --authrpc.jwtsecret=/config/jwt.hex
