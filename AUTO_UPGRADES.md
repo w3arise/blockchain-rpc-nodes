@@ -8,7 +8,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 
 | Chain | Git pin | Upgrade class | Allowlist (`auto-upgrade.yaml`) | Host apply |
 | --- | --- | --- | --- | --- |
-| Aptos | `aptos-node-v1.48.7-hotfix` | tag-only | **yes** — same-series `v1.48.*` | `./scripts/apply-tag-only.sh aptos` |
+| Aptos | `aptos-node-v1.49.6` | tag-only | **yes** — same-series `v1.49.*` | `./scripts/apply-tag-only.sh aptos` |
 | Arbitrum | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (docker tag from the GitHub release body, not the bare git tag) | `./scripts/apply-tag-only.sh arbitrum` |
 | Berachain | `bera-reth:v1.4.4` | tag-only | **yes** — same-series `v1.4.*`. beacon-kit stays `needs-review` | `./scripts/apply-tag-only.sh berachain` |
 | Celo | op-reth `celo-v1.0.*` | tag-only | **yes** — `celo-op-reth` only; op-node + EigenDA manual | `./scripts/apply-tag-only.sh celo` |
@@ -112,8 +112,8 @@ flowchart TD
 
 Examples:
 
-- Aptos `aptos-node-v1.48.5-hotfix` → `v1.48.7-hotfix` — tag-only (allowlisted).
-- Aptos `v1.48` → `v1.49` — human bump onto the new series first; then auto can follow `v1.49.*`.
+- Aptos `v1.48` → `v1.49.6` — human series bump; then auto follows `v1.49.*`.
+- Aptos `v1.49` → `v1.50` — human bump onto the new series first; then auto can follow `v1.50.*`.
 - Abstract `v29` → `v31` — never auto (snapshot wipe).
 - Arbitrum Nitro series jumps (e.g. `3.11` → `3.12`) — needs-review until a human bumps the pin; then auto follows **that** series’ patches only. Cold-copy the datadir only when Offchain Labs notes/docs say one-way / cannot downgrade (not on every series jump).
 
