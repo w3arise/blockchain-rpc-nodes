@@ -12,7 +12,7 @@ docker compose build      # image runs as your host user
 docker compose up -d
 ```
 
-`patch-config.sh` is **idempotent** — safe to re-run after snapshots or `.env` changes. It sets `app.toml` to `pruning = "default"`, `minimum-gas-prices = "1basecro"`, `logs-cap` / `block-range-cap = 100000`, and `gas-cap = 600000000`. Start uses `--home /data` (host `$HOME/cronos-data`). Peer discovery often takes 1–2 minutes after each restart.
+`patch-config.sh` is **idempotent** — safe to re-run after snapshots or `.env` changes. It sets `app.toml` to `pruning = "default"`, `minimum-gas-prices = "1basecro"`, `logs-cap` / `block-range-cap = 100000`, `gas-cap = 600000000`, and `txfee-cap = 0` (required for JSON-RPC writes since v1.8). Start uses `--home /data` (host `$HOME/cronos-data`). Peer discovery often takes 1–2 minutes after each restart.
 
 RPC: `http://127.0.0.1:8545` · WS: `ws://127.0.0.1:8546`
 
@@ -55,5 +55,14 @@ Change only on a fresh datadir or matching snapshot type. Do not switch an archi
 | 26656 | public TCP+UDP | CometBFT P2P |
 
 Change `RPC_BIND_ADDR` in `.env` to `0.0.0.0` only if you need LAN access to RPC. Open inbound **26656/tcp** and **26656/udp** for peers.
+
+## Upgrade
+
+1. Stop: `docker compose down`
+2. Copy the new `CRONOS_VERSION` (and any new keys such as `TXFEE_CAP`) from `env.template` into `.env` — do not recopy the whole template
+3. `./patch-config.sh` then `docker compose build && docker compose up -d`
+4. Confirm: `docker compose exec cronosd cronosd version` and a test `eth_sendRawTransaction` / `eth_blockNumber`
+
+Swap the binary only at the chain upgrade height (plan name `v1.8`). Do not regenerate `config.toml` / `app.toml` from scratch. Migration details: [v1.7 → v1.8](https://github.com/crypto-org-chain/cronos/blob/main/docs/migrations/v1.7-to-v1.8.md).
 
 Docs: [Cronos mainnet](https://docs.cronos.com/for-node-hosts/running-nodes/cronos-mainnet) · [Native snapshots](https://docs.cronos.com/for-node-hosts/running-nodes/cronos-evm-snapshots/cronos-native-snapshots) · [crypto-org-chain/cronos](https://github.com/crypto-org-chain/cronos)
