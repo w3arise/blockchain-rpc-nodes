@@ -66,8 +66,8 @@ services:
       - --ws.addr=0.0.0.0
       - --ws.port=8546
       - --ws.origins=*
-      - --http.api=debug,eth,net,trace,txpool,web3,rpc,reth
-      - --ws.api=debug,eth,net,trace,txpool,web3,rpc,reth
+      - --http.api=eth,net,txpool,web3,rpc,reth
+      - --ws.api=eth,net,txpool,web3,rpc,reth
       - --http.corsdomain=*
       - --rpc.max-logs-per-response=1100000
       - --rpc.gascap=${GAS_CAP}
