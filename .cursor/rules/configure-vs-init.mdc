@@ -1,0 +1,25 @@
+---
+description: configure.sh stays rerunnable; large genesis and snapshot downloads belong in init or restore
+alwaysApply: true
+---
+
+# configure.sh vs init and snapshots
+
+`./configure.sh` is rerun on a live node (public IP, new `.env` keys). It must not download or import chain data.
+
+**configure.sh**
+
+- Create `.env`, set the public IP, `mkdir` datadirs.
+- Small repeatable config is fine (bootnodes, a KB–MB genesis JSON, waypoint). Replacing it does not rebuild the datadir.
+- Do not download multi-GB genesis prime files or snapshot archives.
+- Do not prime or import the datadir, and do not run `docker compose up`. Print build / init / restore / up as **Next**.
+
+**init-database.sh / sonic-init.sh / restore-snapshot.sh**
+
+- Own the genesis or snapshot download and the import.
+- Skip **both** the download and the import when the datadir is already initialized. Use the client’s marker (`geth/`, Sonic `chaindata` and `carmen`, …). An empty dir from `configure.sh` is not initialized.
+- A path argument uses that local file and does not contact the network.
+- A partial import stays on disk (Sonic `chaindata/unfinished`). Tell the operator how to clear it and rerun. Do not fetch a new archive on top of it.
+- Staging: `.cursor/rules/snapshot-keep.mdc`.
+
+Full conventions: `AGENTS.md` → **configure.sh vs init and snapshots**.

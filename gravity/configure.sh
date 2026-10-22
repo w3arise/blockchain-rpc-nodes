@@ -2,7 +2,8 @@
 #
 # Create .env, set EXT_IP, fetch mainnet genesis, generate a PFN identity,
 # and render gravity_node config. Archive receipts/logs, with account and
-# storage history pruned (same idea as celo/scripts/start-op-reth.sh).
+# storage history pruned via PRUNE_*_DISTANCE (Celo uses archive tier without
+# those flags — see celo/README.md State retention).
 #
 # Usage: ./configure.sh
 #
@@ -24,6 +25,22 @@ sed_inplace() {
   mv "${tmp}" "${file}"
 }
 
+# chmod fails with "Operation not permitted" when Docker created the file as
+# root. Do not abort; print the sudo command and continue.
+chmod_or_sudo() {
+  local mode="$1"
+  shift
+  local path
+  if chmod "${mode}" "$@" 2>/dev/null; then
+    return 0
+  fi
+  echo "WARNING: chmod ${mode} failed (not permitted)." >&2
+  echo "Run manually:" >&2
+  for path in "$@"; do
+    echo "  sudo chmod ${mode} \"${path}\"" >&2
+  done
+}
+
 if [[ ! -f "${ENV_TEMPLATE}" ]]; then
   echo "ERROR: missing ${ENV_TEMPLATE}" >&2
   exit 1
@@ -32,6 +49,25 @@ fi
 if [[ ! -f "${ENV_FILE}" ]]; then
   cp "${ENV_TEMPLATE}" "${ENV_FILE}"
   echo "created .env from env.template"
+fi
+
+# Replace the placeholder before sourcing. An unquoted EXT_IP=<YOUR_PUBLIC_IP>
+# is a redirect and makes `source .env` fail. Existing .env files from the
+# first template copy still have that line.
+PUBLIC_IP="$(curl -4 -sf ip.me | tr -d '[:space:]')"
+if [[ -z "${PUBLIC_IP}" ]]; then
+  echo "ERROR: failed to fetch public IP from ip.me" >&2
+  exit 1
+fi
+
+CURRENT_EXT_IP="$(grep -E '^EXT_IP=' "${ENV_FILE}" | cut -d= -f2- || true)"
+CURRENT_EXT_IP="${CURRENT_EXT_IP%\"}"
+CURRENT_EXT_IP="${CURRENT_EXT_IP#\"}"
+if [[ "${CURRENT_EXT_IP}" != "${PUBLIC_IP}" ]]; then
+  sed_inplace "s|^EXT_IP=.*|EXT_IP=${PUBLIC_IP}|" "${ENV_FILE}"
+  echo "set EXT_IP=${PUBLIC_IP} in .env"
+else
+  echo "EXT_IP already set to ${PUBLIC_IP}"
 fi
 
 # shellcheck disable=SC1090
@@ -48,21 +84,11 @@ fi
 
 DATA_DIR="${HOST_DATADIR:-${HOME}/gravity-data}"
 LOG_DIR="${HOST_LOGDIR:-${HOME}/gravity-logs}"
-mkdir -p "${DATA_DIR}" "${LOG_DIR}" "${CONFIG_DIR}"
-
-PUBLIC_IP="$(curl -4 -sf ip.me | tr -d '[:space:]')"
-if [[ -z "${PUBLIC_IP}" ]]; then
-  echo "ERROR: failed to fetch public IP from ip.me" >&2
-  exit 1
-fi
-
-CURRENT_EXT_IP="$(grep -E '^EXT_IP=' "${ENV_FILE}" | cut -d= -f2- || true)"
-if [[ "${CURRENT_EXT_IP}" != "${PUBLIC_IP}" ]]; then
-  sed_inplace "s|^EXT_IP=.*|EXT_IP=${PUBLIC_IP}|" "${ENV_FILE}"
-  echo "set EXT_IP=${PUBLIC_IP} in .env"
-else
-  echo "EXT_IP already set to ${PUBLIC_IP}"
-fi
+# public_full_node.yaml and reth_config.json write under /gravity/logs/{consensus_log,execution_logs}/.
+# The image entrypoint only mkdirs those names under /gravity/data, not the logs volume.
+mkdir -p "${DATA_DIR}/data" \
+  "${LOG_DIR}/consensus_log" "${LOG_DIR}/execution_logs" \
+  "${CONFIG_DIR}"
 
 SDK_REF="${GRAVITY_SDK_REF:-v1.9.3}"
 GENESIS_URL="https://raw.githubusercontent.com/Galxe/gravity-sdk/${SDK_REF}/genesis/mainnet/genesis.json"
@@ -71,7 +97,7 @@ WAYPOINT_URL="https://raw.githubusercontent.com/Galxe/gravity-sdk/${SDK_REF}/gen
 echo "==> Fetching mainnet genesis and waypoint (${SDK_REF})"
 curl -fsSL "${GENESIS_URL}" -o "${CONFIG_DIR}/genesis.json"
 curl -fsSL "${WAYPOINT_URL}" -o "${CONFIG_DIR}/waypoint.txt"
-chmod 644 "${CONFIG_DIR}/genesis.json" "${CONFIG_DIR}/waypoint.txt"
+chmod_or_sudo 644 "${CONFIG_DIR}/genesis.json" "${CONFIG_DIR}/waypoint.txt"
 
 if [[ ! -s "${CONFIG_DIR}/identity.yaml" ]]; then
   echo "==> Generating PFN identity (stays on this host; not committed)"
@@ -81,10 +107,10 @@ if [[ ! -s "${CONFIG_DIR}/identity.yaml" ]]; then
     genesis generate-key \
       --output-file /out/identity.yaml \
       --public-output-file /out/identity.public.yaml
-  chmod 600 "${CONFIG_DIR}/identity.yaml"
 else
   echo "identity.yaml already present; leaving it"
 fi
+chmod_or_sudo 600 "${CONFIG_DIR}/identity.yaml"
 
 export CONFIG_DIR DATA_DIR
 python3 - << 'PY'
@@ -116,20 +142,26 @@ reth = {
         "prune.account-history.distance": account,
         "prune.storage-history.distance": storage,
         "http": "",
-        "http.port": int(req("HTTP_PORT")),
+        # Container listen ports. Compose publishes HTTP_PORT / WS_PORT /
+        # METRICS_PORT on the host. 127.0.0.1 here would hide RPC from the proxy.
+        "http.port": 8545,
         "http.corsdomain": "*",
         "http.api": req("HTTP_API"),
-        "http.addr": req("RPC_BIND_ADDR"),
+        "http.addr": "0.0.0.0",
         "ws": "",
-        "ws.port": int(req("WS_PORT")),
+        "ws.port": 8546,
         "ws.origins": "*",
-        "ws.api": "debug,eth,net,txpool,web3",
-        "ws.addr": req("RPC_BIND_ADDR"),
+        "ws.api": "eth,net,txpool,web3",
+        "ws.addr": "0.0.0.0",
         "rpc.gascap": int(req("GAS_CAP")),
         "port": int(req("RETH_P2P_PORT")),
+        "discovery.addr": "0.0.0.0",
+        "discovery.port": int(req("RETH_P2P_PORT")),
+        "discovery.v5.port": int(req("RETH_P2P_PORT")),
+        "nat": f"extip:{req('EXT_IP')}",
         "authrpc.port": int(req("AUTHRPC_PORT")),
         "authrpc.addr": "127.0.0.1",
-        "metrics": f"{req('METRICS_BIND_ADDR')}:{req('METRICS_PORT')}",
+        "metrics": "0.0.0.0:6060",
         "log.file.filter": "info",
         "log.stdout.filter": "error",
         "datadir": "/gravity/data/data/reth",
@@ -154,7 +186,9 @@ reth = {
 (cfg / "reth_config.json").write_text(json.dumps(reth, indent=2) + "\n")
 
 public_port = req("PUBLIC_PORT")
-inspection = req("INSPECTION_PORT")
+ext_ip = req("EXT_IP")
+if "<" in ext_ip or ext_ip == "":
+    raise SystemExit("ERROR: EXT_IP is still a placeholder")
 yaml = f"""base:
   role: "full_node"
   data_dir: "/gravity/data/data"
@@ -166,11 +200,11 @@ consensus:
     backend:
       type: "on_disk_storage"
       path: /gravity/data/data/secure_storage.json
-      initial_safety_rules_config:
-        from_file:
-          waypoint:
-            from_file: /gravity/config/waypoint.txt
-          identity_blob_path: /gravity/config/identity.yaml
+    initial_safety_rules_config:
+      from_file:
+        waypoint:
+          from_file: /gravity/config/waypoint.txt
+        identity_blob_path: /gravity/config/identity.yaml
   enable_pipeline: true
   max_sending_block_txns_after_filtering: 5000
   max_sending_block_txns: 5000
@@ -213,8 +247,8 @@ storage:
 log_file_path: "/gravity/logs/consensus_log/vfn.log"
 
 inspection_service:
-  port: {inspection}
-  address: 127.0.0.1
+  port: 12791
+  address: 0.0.0.0
 
 mempool:
   capacity_per_user: 20000
@@ -227,7 +261,7 @@ print(f"rendered {cfg / 'reth_config.json'}")
 print(f"rendered {cfg / 'public_full_node.yaml'}")
 PY
 
-chmod 644 "${CONFIG_DIR}/reth_config.json" "${CONFIG_DIR}/public_full_node.yaml" "${CONFIG_DIR}/waypoint.txt"
+chmod_or_sudo 644 "${CONFIG_DIR}/reth_config.json" "${CONFIG_DIR}/public_full_node.yaml" "${CONFIG_DIR}/waypoint.txt"
 
 echo ""
 echo "Datadir: ${DATA_DIR}"

@@ -5,7 +5,7 @@ set -e
 
 DATADIR=/data
 CHAIN="${OP_RETH_CHAIN:-celo}"
-NODE_TYPE="${NODE_TYPE:-full}"
+NODE_TYPE="${NODE_TYPE:-archive}"
 RETH_PORT="${RETH_PORT:-10401}"
 EXTENDED_ARG="${EXTENDED_ARG:-}"
 
@@ -45,18 +45,16 @@ exec celo-reth node \
   --chain="$CHAIN" \
   --datadir="$DATADIR" \
   --storage.v2=true \
-  --prune.account-history.distance 10064 \
-  --prune.storage-history.distance 10064 \
   --http \
   --http.corsdomain="*" \
   --http.addr=0.0.0.0 \
   --http.port=8545 \
-  --http.api=web3,debug,eth,txpool,net \
+  --http.api=web3,eth,txpool,net \
   --ws \
   --ws.addr=0.0.0.0 \
   --ws.port=8546 \
   --ws.origins="*" \
-  --ws.api=debug,eth,txpool,net,web3 \
+  --ws.api=eth,txpool,net,web3 \
   --metrics=0.0.0.0:9001 \
   --authrpc.addr=0.0.0.0 \
   --authrpc.port=8551 \

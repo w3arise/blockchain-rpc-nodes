@@ -37,21 +37,33 @@ if [[ -z "${PUBLIC_IP}" ]]; then
   exit 1
 fi
 
-CURRENT_EXT_IP="$(grep -E '^EXT_IP=' "${ENV_FILE}" | cut -d= -f2- || true)"
-if [[ "${CURRENT_EXT_IP}" != "${PUBLIC_IP}" ]]; then
-  sed_inplace "s|^EXT_IP=.*|EXT_IP=${PUBLIC_IP}|" "${ENV_FILE}"
-  echo "set EXT_IP=${PUBLIC_IP} in .env"
-else
-  echo "EXT_IP already set to ${PUBLIC_IP}"
-fi
+# Append keys added to env.template since .env was created (keeps existing values).
+[[ -z "$(tail -c1 "${ENV_FILE}")" ]] || echo >> "${ENV_FILE}"
+while IFS= read -r line; do
+  key="${line%%=*}"
+  if ! grep -qE "^${key}=" "${ENV_FILE}"; then
+    printf '%s\n' "${line}" >> "${ENV_FILE}"
+    echo "added ${key} to .env from env.template"
+  fi
+done < <(grep -E '^[A-Za-z_][A-Za-z0-9_]*=' "${ENV_TEMPLATE}")
 
-CURRENT_P2P_IP="$(grep -E '^OP_NODE_P2P_ADVERTISE_IP=' "${ENV_FILE}" | cut -d= -f2- || true)"
-if [[ "${CURRENT_P2P_IP}" != "${PUBLIC_IP}" ]]; then
-  sed_inplace "s|^OP_NODE_P2P_ADVERTISE_IP=.*|OP_NODE_P2P_ADVERTISE_IP=${PUBLIC_IP}|" "${ENV_FILE}"
-  echo "set OP_NODE_P2P_ADVERTISE_IP=${PUBLIC_IP} in .env"
-else
-  echo "OP_NODE_P2P_ADVERTISE_IP already set to ${PUBLIC_IP}"
-fi
+# Set KEY=PUBLIC_IP in .env unless it already holds that value.
+set_public_ip() {
+  local key="$1"
+  local current
+  current="$(grep -E "^${key}=" "${ENV_FILE}" | tail -n1 | cut -d= -f2- || true)"
+  current="${current%%#*}"
+  current="${current//[[:space:]\"\']/}"
+  if [[ "${current}" != "${PUBLIC_IP}" ]]; then
+    sed_inplace "s|^${key}=.*|${key}=${PUBLIC_IP}|" "${ENV_FILE}"
+    echo "set ${key}=${PUBLIC_IP} in .env"
+  else
+    echo "${key} already set to ${PUBLIC_IP}"
+  fi
+}
+
+set_public_ip EXT_IP
+set_public_ip OP_NODE_P2P_ADVERTISE_IP
 
 echo ""
 echo "Next:"

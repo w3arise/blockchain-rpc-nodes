@@ -24,8 +24,11 @@ services:
       - ./supervisor:/etc/supervisor/conf.d:ro
     entrypoint: ["/bin/sh", "/entrypoint.sh"]
     ports:
-      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
-      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      # movad JSON-RPC (noderpc). Not movacli on 8545/8546: that gateway
+      # re-encodes eth_getLogs "latest" as a signed hex quantity and the
+      # node rejects it.
+      - ${RPC_BIND_ADDR}:${HTTP_PORT}:9545
+      - ${RPC_BIND_ADDR}:${WS_PORT}:9546
       - ${RPC_BIND_ADDR}:${TM_RPC_PORT}:26657
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp

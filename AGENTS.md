@@ -55,7 +55,35 @@ Most preferred → least preferred:
 1. **A. Archive** — only stock mode that keeps **full receipts and logs**. Default choice for reth when historical log RPC is required.
 2. **B. `--full`** — prunes receipts/logs to ~last 10k blocks. Use only when historical logs are explicitly not needed.
 
-**Operator preference (reth):** start from **archive**, then prune **only** `states.history` (or equivalent) if the admin wants to drop historical state while **keeping full receipts and logs**. Do not use default `--full` pruning for that goal — it removes receipt/log history too.
+**Operator preference (reth):** start from **archive**, then bound **account/storage history** only if the admin wants Geth-style “full receipts/logs, pruned state.” Do not use Reth **`--full`** for that — it prunes receipts/logs too. See [Reth / op-reth state pruning](#reth--op-reth-state-pruning).
+
+### Reth / op-reth state pruning
+
+**Policy:** Default archive, no extra prune flags. Optional state window: edit `$DATADIR/reth.toml` → offline **`reth prune` / `op-reth prune`** (execution client **stopped**) → start **`node`** with the same segment config; do not rely on live prune alone to shrink an archive datadir.
+
+**Defaults for new setups**
+
+- Run **`node`** in **archive** mode (no `--full` / `--minimal`) when historical log/receipt RPC is the goal.
+- Match **snapshot tier** to runtime: an **archive** snapshot with archive runtime; a **full** or **minimal** publisher snapshot with `--full` or `--minimal` on `node`. Do **not** bootstrap from an **archive** snapshot and then add `--prune.account-history.distance` / `--prune.storage-history.distance` on live **`node`** — that forces a huge online Prune backlog and can stall the head (fix is tier alignment or offline prune, not lowering distance below **10064**).
+- **`NODE_TYPE=archive` (or archive runtime) plus state-pruning flags or `[prune.segments.account_history]` / `storage_history` in `$DATADIR/reth.toml` is only admitted when the datadir is built by sync from scratch** (genesis / P2P, no archive-tier snapshot import). Pruning then happens incrementally during sync. After an **archive snapshot** restore, use plain archive **without** those segments on first start, or a **full/minimal** snapshot tier, or **offline `prune`** once import is done — not archive snapshot + state-prune config on bootstrap.
+
+**Geth-style full (receipts/logs kept, state windowed)**
+
+- Use **only** `[prune.segments.account_history]` and `[prune.segments.storage_history]` with the same `distance` (≥ **10064**, Reth minimum unwind distance). Leave receipts, bodies, sender recovery, and transaction lookup segments unset unless the chain README says otherwise.
+- **Offline:** put segments in **`$DATADIR/reth.toml`**, stop the client, run **`prune`** with **`--chain`**, **`--datadir`**, and storage flags (e.g. **`--storage.v2=true`**). On some forks (e.g. **celo-reth**), **`prune` does not accept `--prune.*`** — config must be in **`reth.toml`**. **`node`** still accepts `--prune.*` for ongoing policy; keep it aligned with what offline **`prune`** applied.
+- **Do not** use Reth **`--full`** or **`--minimal`** when the goal is state-only shrink; **`--full`** also windows receipts/logs.
+
+**Pruned replica from day one**
+
+- Restore a publisher **pruned full** snapshot and use the matching **`--full`** (+ segment flags required by that snapshot). Conduit OP Stack layout and checkpoint rules: [`docs/op-reth-storage-v2.md`](docs/op-reth-storage-v2.md).
+
+**OP Stack L2**
+
+- Do not prune **block bodies** below what **op-node** EL sync needs (L1-info deposit tx in retained bodies). Avoid **`--minimal`** where chain or Optimism docs forbid it.
+
+**Documentation**
+
+- Chain **`README.md`**: **State retention** — default mode, snapshot tier, and optional offline prune pointer when the chain uses op-reth/reth (example: [`celo/README.md`](celo/README.md)).
 
 ### Checklist reminder
 
@@ -348,16 +376,16 @@ When the chain exposes P2P, **`configure.sh`** must fetch the host public IP (e.
 | `EXT_IP` | Execution client NAT (e.g. op-reth `--nat=extip`) |
 | `OP_NODE_P2P_ADVERTISE_IP` | op-node P2P advertise (OP Stack only) |
 
-Write the placeholder explicitly in `env.template` so it is obvious the operator must supply a public IP:
+Write the placeholder explicitly in `env.template` so it is obvious the operator must supply a public IP. Quote it. If `configure.sh` `source`s `.env`, replace the line **before** that `source`:
 
 ```
-EXT_IP=<YOUR_PUBLIC_IP>
-OP_NODE_P2P_ADVERTISE_IP=<YOUR_PUBLIC_IP>
+EXT_IP="<YOUR_PUBLIC_IP>"
+OP_NODE_P2P_ADVERTISE_IP="<YOUR_PUBLIC_IP>"
 ```
 
-When `configure.sh` **`source`s `.env` on first run**, unquoted placeholders break bash (`EXT_IP=<YOUR_PUBLIC_IP>` treats `<` as a redirect). Quote the placeholder in the template (e.g. `EXT_IP="<YOUR_PUBLIC_IP>"`), strip quotes when comparing, rewrite to a bare `EXT_IP=<ip>` before sourcing, or replace the line before the first `source`.
+An unquoted `EXT_IP=<YOUR_PUBLIC_IP>` is a bash redirect (`syntax error near unexpected token`). Quoting the template does not fix an `.env` already copied from an older template: rewrite `^EXT_IP=` / `^OP_NODE_P2P_ADVERTISE_IP=` to the host IP first, then `source`. Strip quotes when comparing. Reference: `mova/configure.sh`.
 
-`./configure.sh` replaces those lines (`^EXT_IP=.*` / `^OP_NODE_P2P_ADVERTISE_IP=.*`) with the host public IP before first start. Re-run after a public IP change. Do not commit a real address.
+`./configure.sh` replaces those lines with the host public IP before first start. Re-run after a public IP change. Do not commit a real address.
 
 Document inbound P2P ports (`P2P_PORT`, `OP_NODE_P2P_PORT` — TCP + UDP) in `<chain>/README.md` when the node is a public replica. RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
 
@@ -408,8 +436,27 @@ chain/
 ### env.template and configure.sh
 
 - **`env.template`** — setup steps in header comments; group vars (`### Network ###`, `### Ports ###`, `### RPC ###`, etc.); pin client versions; set `GAS_CAP=600000000` unless the chain requires otherwise. Host RPC bind/port: [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). P2P and public IP vars: [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2).
-- **`configure.sh`** — optional; creates `.env` from `env.template` and sets public IP. See [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2). Do not embed secrets.
+- **`configure.sh`** — optional; creates `.env` from `env.template` and sets public IP. See [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2). Do not embed secrets. It must stay safe to rerun on a live datadir — see [configure.sh vs init and snapshots](#configuresh-vs-init-and-snapshots).
 - **`docker-compose.yml`** — load `.env` with `env_file: .env` on services that need runtime vars (typically op-node); keep runtime services only (no init-container chown hacks). Set **`stop_grace_period: 120s`** (minimum) on every **execution client** service — geth, reth, op-geth, op-reth, Nitro, external-node, besu, nethermind, erigon, etc. Longer values (e.g. `5m`) are fine when the client needs more shutdown time. Does **not** apply to op-node, postgres, or monitoring sidecars.
+
+## configure.sh vs init and snapshots
+
+`./configure.sh` is the repeatable host setup. Operators rerun it after a public-IP change or to pick up new `.env` keys while the chain data is already on disk. A large download or an import in that script repeats work they do not want.
+
+| Script | Owns | Skip when |
+| --- | --- | --- |
+| **`configure.sh`** | `.env` from `env.template`, public IP, `mkdir` datadirs, small repeatable config (bootnodes, a KB–MB genesis JSON, waypoint) | Always safe to rerun. Replacing those files does not rebuild chain data. |
+| **`init-database.sh`**, **`sonic-init.sh`**, **`restore-snapshot.sh`** | Genesis prime files, snapshot tarballs, and the import that builds the datadir | The datadir is already initialized. Use the client’s own marker (`geth/`, Sonic `chaindata` **and** `carmen`, …). |
+
+Rules:
+
+- **configure.sh does not** download multi-GB genesis files or snapshot archives, prime or import a datadir, or run `docker compose up`. Print build / init / restore / up as **Next**.
+- **Init and restore download.** Put the URL in `.env` (`GENESIS_URL`, `SNAPSHOT_URL`). Stage with [Snapshot downloads (temp space)](#snapshot-downloads-temp-space). Resume and keep the archive.
+- **An initialized datadir skips both the download and the import.** An empty directory created by `configure.sh` is not initialized.
+- **A local path argument** (`./sonic-init.sh /path/to/file.g`) uses that file and does not contact the network.
+- **A partial import** (Sonic `chaindata/unfinished`, or only one of the two DB dirs) stays on disk. Say how to clear it and rerun. Do not fetch a new archive on top of it.
+
+Reference: [`sonic/configure.sh`](sonic/configure.sh) and [`sonic/sonic-init.sh`](sonic/sonic-init.sh). Cursor rule: `.cursor/rules/configure-vs-init.mdc`.
 
 ## Archive and state retention (general)
 
@@ -419,7 +466,7 @@ Some clients prune history at **startup flags**, **init/priming time**, or **bot
 
 For any chain with non-obvious retention behavior:
 
-- Add a **Pruning Mode** or **State retention** section to `<chain>/README.md` — which flags/modes keep **receipts/logs**, which only affect **state**, and what triggers pruning.
+- Add a **Pruning Mode** or **State retention** section to `<chain>/README.md` — which flags/modes keep **receipts/logs**, which only affect **state**, and what triggers pruning. **Reth / op-reth:** follow [Reth / op-reth state pruning](#reth--op-reth-state-pruning).
 - **Do not re-run init/priming** (genesis import, snapshot restore script, etc.) against an existing **archive** datadir using a **pruned** source unless you intend to discard history.
 - When documenting snapshots, distinguish **chaindata tarballs** from **genesis/state prime files** (`.g`, vendor-specific exports) if the chain uses the latter. Note whether a snapshot is **PBSS/path vs hash**, and whether it is **receipt/log-complete** vs tip-pruned.
 
@@ -569,6 +616,23 @@ If the chain spec must change, either:
 
 Genesis in the datadir (`$HOME/op-reth-data/genesis.json`) is what op-reth reads with the file-based approach. Files under `config/` are not used unless explicitly mounted and referenced.
 
+### op-reth historical RPC (`--rollup.historicalrpc`)
+
+op-reth has **no data** below the chain's migration boundary. Stock op-reth uses `bedrockBlock` in genesis. conduit-op-reth v2.3.0+ uses `--rollup.historicalrpc.block`, then genesis `config.conduit.migrationBlock`, then that Bedrock behavior. The cutoff block is served locally; blocks below it are forwarded. With `--rollup.historicalrpc`, it forwards only **some** requests for older blocks to a legacy node. This is op-reth behavior ([`historical.rs`](https://github.com/ethereum-optimism/optimism/blob/develop/rust/op-reth/crates/rpc/src/historical.rs)), so it applies to every op-reth fork that uses it (e.g. celo-reth, Zircuit). Stock L1 reth has no such layer.
+
+| Request | Forwarded below the boundary |
+| --- | --- |
+| By tx hash: `eth_getTransactionByHash`, `eth_getTransactionReceipt`, `eth_getRawTransactionByHash`, `debug_traceTransaction` | Yes |
+| By one block id: `eth_getBlockBy*`, `eth_getBalance`, `eth_getCode`, `eth_call`, `eth_estimateGas`, `eth_getStorageAt`, `eth_getProof`, `debug_trace*` | Yes |
+| `eth_getBlockReceipts`, `eth_getHeaderBy*`, `eth_getBlockTransactionCountBy*`, `eth_getTransactionByBlock*AndIndex` | Only on builds with [optimism#21955](https://github.com/ethereum-optimism/optimism/pull/21955). Older builds answer locally with `null` |
+| **`eth_getLogs`** (block range) | **Never.** It is answered locally and returns `[]` with no error |
+
+- On stock op-reth, `bedrockBlock` must be the real boundary. If it is `0` or missing, nothing is forwarded. conduit-op-reth v2.3.0+ can leave `bedrockBlock` at `0` and set the cutoff with `--rollup.historicalrpc.block` or `config.conduit.migrationBlock` (see [`zircuit/README.md`](zircuit/README.md)).
+- An empty `eth_getLogs` result does not mean "no events". Log indexers and backfills that read pre-boundary ranges through op-reth silently miss data. Send those ranges straight to the legacy node, or put a JSON-RPC-aware router in front that splits ranges at the boundary. A plain `proxy_pass` cannot do this.
+- op-geth keeps a **migrated** datadir that stores pre-boundary blocks and receipts locally and forwards only state calls, so `eth_getLogs` works there. op-reth cannot reuse that datadir.
+- Verify with one pre-boundary block: `eth_getBlockReceipts` and a single-block `eth_getLogs` against the legacy node and against op-reth. Results that are non-empty on the legacy node and `null` / `[]` on op-reth confirm the gap.
+- Chain README (**Pre-L2 history** or equivalent): state that pre-boundary logs come from the legacy node, not op-reth.
+
 ## JWT (Engine API)
 
 Generate once per deployment:
@@ -592,6 +656,14 @@ https://api.conduit.xyz/file/v1/optimism/forkTimestamps/<network-slug>
 ```
 
 Local copies drift quickly (missing fork timestamps). An outdated genesis causes subtle sync failures near fork boundaries.
+
+## Conduit OP Stack upstream sample
+
+[conduitxyz/conduit-optimism-external-node](https://github.com/conduitxyz/conduit-optimism-external-node) is Conduit’s sample for any Conduit OP Stack rollup (`make setup NETWORK=<network-slug>`). It is not a Zircuit guide, and this repo does not run that Makefile or `./data` layout. Our deployment stays `<chain>/docker-compose.yml`.
+
+When a **conduit-op-reth** node stalls, loses peers, fails a snapshot restore, or historical RPC stops matching the chain, diff our flags against that repo and [Run an OP Stack node](https://docs.conduit.xyz/chains/getting-started/run-a-node/op-stack-nodes). Check image tags, `OP_NODE_SYNCMODE`, static peer vs bootnodes, a trusted execution-layer peer in `config/reth.toml`, snapshot layout, and `--rollup.historicalrpc` / `--rollup.historicalrpc.block`. Do not replace our compose with theirs.
+
+Applies to chains pinned to `ghcr.io/conduitxyz/conduit-op-reth` (Katana, Ronin, Zircuit). Plume is Nitro. Tempo uses its own client. Bob and Mode pin OP Labs `op-reth`, so this sample is not their runtime.
 
 ## op-node persistence (SafeDB)
 
@@ -625,6 +697,7 @@ Head block unchanged for >1–2 hours while L1 origin advances:
 3. **Missing L1 env** — `OP_NODE_L1_ETH_RPC` / `OP_NODE_L1_BEACON` not loaded into container.
 4. **JWT mismatch** — Engine API auth failure (usually total failure, not partial stall).
 5. **Outdated fork overrides** — manual op-node fork flags out of sync with the network.
+6. **Conduit OP Stack drift** — for `conduit-op-reth` chains, compare peers, sync mode, snapshot, and historical RPC with [Conduit OP Stack upstream sample](#conduit-op-stack-upstream-sample).
 
 Diagnostic commands:
 
@@ -657,7 +730,7 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 2. **Pick client + retention mode** using [Client selection (historical receipts & logs)](#client-selection-historical-receipts--logs). Present viable Reth A–B / Geth A–E options (receipts/logs vs state, snapshots, HW); **prefer Reth when both families work, but wait for the user to choose** before scaffolding. Avoid reth `--full` and short-pruned geth snapshots for historical log RPC.
 3. Pin client versions in `env.template` (image tags, release versions, etc.). Add a lookup row to [`CLIENT_UPDATES.md`](CLIENT_UPDATES.md) (source of truth for *where* to check — not a “latest” snapshot). If the pin is a same-series image swap with no compose/datadir work, also add a `tag-only` row to [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml).
 4. Store datadirs under `$HOME`.
-5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap). Wire **`RPC_BIND_ADDR`** (default `127.0.0.1`) and **`HTTP_PORT`** in `env.template` / compose — see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). Published metrics use **`METRICS_BIND_ADDR`**. On `network_mode: host`, add `RPC_BIND_ADDR` only when a listen flag reads it. Public IP placeholders are `EXT_IP=<YOUR_PUBLIC_IP>` (and `OP_NODE_P2P_ADVERTISE_IP=<YOUR_PUBLIC_IP>` when that var exists). Quote placeholders when `configure.sh` sources `.env` before replacing them — see [Public IP and `configure.sh`](#public-ip-and-configuresh). Do not hardcode host RPC IP or port.
+5. Set RPC **`GAS_CAP=600000000`** (env + client flag) unless the chain requires a different value — see [RPC gas cap](#rpc-gas-cap). Wire **`RPC_BIND_ADDR`** (default `127.0.0.1`) and **`HTTP_PORT`** in `env.template` / compose — see [RPC host bind and HTTP port](#rpc-host-bind-and-http-port). Published metrics use **`METRICS_BIND_ADDR`**. On `network_mode: host`, add `RPC_BIND_ADDR` only when a listen flag reads it. Public IP placeholders are `EXT_IP="<YOUR_PUBLIC_IP>"` (and `OP_NODE_P2P_ADVERTISE_IP="<YOUR_PUBLIC_IP>"` when that var exists). Replace them before `source`. Do not hardcode host RPC IP or port.
 6. **Research snapshot sources** — check official docs, client repos, and node-operator guides for mainnet (and testnet, if supported) snapshots. Prefer documenting a restore path over full genesis sync when a reliable source exists. Match snapshot scheme (path vs hash) to the chosen mode. For Tendermint/Cosmos chains, prefer official **`full`** (block/log/receipt history) first, then **archive** (full state); use [Polkachu](https://www.polkachu.com/tendermint_snapshots) only as a **pruned last resort** — see [Snapshot source preference (Tendermint / Cosmos SDK)](#snapshot-source-preference-tendermint--cosmos-sdk). Download/extract staging must follow [Snapshot downloads (temp space)](#snapshot-downloads-temp-space) — never default large tarballs to `/tmp`.
 7. **Add** `<chain>/README.md` — minimal start/snapshot/testnet steps (see Chain README above); include **Pruning Mode** / **State retention** when applicable (receipts/logs vs state).
 8. **Update** root `README.md` — **Ready** and **Planned** tables (type, execution client); remove from Planned when the chain is ready. Keep both tables sorted alphabetically by **Chain** (case-insensitive).
@@ -673,13 +746,13 @@ Apply every item that fits the chain type. Skip sections that do not apply (e.g.
 12. `create-jwt.sh` and mount shared JWT for Engine API auth.
 13. Use `OP_NODE_L1_*` env vars in a single `.env`.
 14. Set `OP_NODE_SAFEDB_PATH` and persist op-node datadir under `$HOME`.
-15. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir.
+15. Choose chain spec strategy (built-in `--chain=<name>` vs datadir genesis) and **do not mix** on an existing datadir. With `--rollup.historicalrpc`, document which pre-boundary calls are forwarded — see [op-reth historical RPC](#op-reth-historical-rpc---rolluphistoricalrpc).
 16. Follow [RPC host bind and HTTP port](#rpc-host-bind-and-http-port) and [Ports, connectivity, and P2P (L2)](#ports-connectivity-and-p2p-l2): `RPC_BIND_ADDR` + `HTTP_PORT` / `WS_PORT`, public P2P (TCP + UDP), op-node admin RPC on localhost, `configure.sh` for `EXT_IP` / `OP_NODE_P2P_ADVERTISE_IP`. Wire `OP_NODE_P2P_LISTEN_TCP_PORT` / `OP_NODE_P2P_LISTEN_UDP_PORT` from `${OP_NODE_P2P_PORT}` in compose — do not duplicate listen ports in `env.template`.
 
 ### Conduit OP Stack (additional)
 
 17. Fetch bootnodes/static peers — [Conduit bootnodes (OP Stack)](#conduit-bootnodes-op-stack).
-18. Fetch genesis/rollup from Conduit API; verify before committing.
+18. Fetch genesis/rollup from Conduit API; verify before committing. On a later stall, diff against [Conduit OP Stack upstream sample](#conduit-op-stack-upstream-sample). Keep this repo’s compose.
 
 ### ZK Stack (external node, when applicable)
 

@@ -96,8 +96,10 @@ rmdir "${EXTRACT}" 2>/dev/null || true
 alert_kept_snapshot
 echo ""
 echo "Snapshot databases are in ${STORAGE}."
+LOG_DIR="${HOST_LOGDIR:-${HOME}/gravity-logs}"
+mkdir -p "${LOG_DIR}/consensus_log" "${LOG_DIR}/execution_logs"
 echo "The container runs as uid 10001. Before start:"
-echo "  sudo chown -R 10001:10001 \"${DATA_DIR}\""
+echo "  sudo chown -R 10001:10001 \"${DATA_DIR}\" \"${LOG_DIR}\""
 echo ""
 echo "Docs do not say whether this cut is archive or --full."
 echo "This repo starts archive mode (receipts/logs kept, state history pruned)."

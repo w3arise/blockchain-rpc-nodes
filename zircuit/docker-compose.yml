@@ -10,16 +10,17 @@ services:
       - --datadir=/data
       - --rollup.sequencer=${SEQUENCER_HTTP}
       - --rollup.historicalrpc=${HISTORICAL_RPC}
+      - --rollup.historicalrpc.block=32956468
       - --rollup.disable-tx-pool-gossip
       - --http
       - --http.addr=0.0.0.0
       - --http.port=8545
-      - --http.api=web3,debug,eth,txpool,net,trace
+      - --http.api=web3,eth,txpool,net
       - --http.corsdomain=*
       - --ws
       - --ws.addr=0.0.0.0
       - --ws.port=8546
-      - --ws.api=web3,debug,eth,txpool,net,trace
+      - --ws.api=web3,eth,txpool,net
       - --ws.origins=*
       - --authrpc.addr=0.0.0.0
       - --authrpc.port=9551
@@ -30,7 +31,7 @@ services:
       - --discovery.addr=0.0.0.0
       - --discovery.port=${P2P_PORT}
       - --discovery.v5.port=${P2P_PORT}
-      - --bootnodes=${OP_RETH_BOOTNODES}
+      - --trusted-peers=${OP_RETH_TRUSTED_PEERS}
     volumes:
       - ${HOST_DATADIR:-$HOME/zircuit-op-reth-data}:/data
       - ./config:/config:ro

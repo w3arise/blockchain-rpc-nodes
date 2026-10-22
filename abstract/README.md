@@ -39,7 +39,7 @@ docker compose up -d
 
 Pin is Abstract helm `image.tag` + `image.digest` (not `.env.mainnet`, not Docker Hub latest). Copy `EN_VERSION` and `EN_DIGEST` into an existing `.env` — do not recopy the whole template.
 
-Same-series SHA bumps on an already-v31 datadir: `docker compose pull && docker compose up -d`. Protocol-major jumps (EN v29 → v31) need a Reset first.
+Same-series SHA bumps on an already-initialized datadir: `docker compose pull && docker compose up -d`. Protocol-major EN jumps need a Reset first.
 
 ## Reset
 

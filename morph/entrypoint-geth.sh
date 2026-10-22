@@ -25,12 +25,12 @@ set -- "${GETH_BIN}" \
   --http.vhosts="*" \
   --http.addr=0.0.0.0 \
   --http.port=8545 \
-  --http.api=web3,debug,eth,txpool,net,morph,engine,admin \
+  --http.api=web3,eth,txpool,net,morph,engine,admin \
   --ws \
   --ws.addr=0.0.0.0 \
   --ws.port=8546 \
   --ws.origins="*" \
-  --ws.api=web3,debug,eth,txpool,net,morph,engine,admin \
+  --ws.api=web3,eth,txpool,net,morph,engine,admin \
   --authrpc.addr=0.0.0.0 \
   --authrpc.port=8551 \
   --authrpc.vhosts="*" \

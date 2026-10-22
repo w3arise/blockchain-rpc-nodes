@@ -47,6 +47,10 @@ Both can run on one host: different container name, compose project, datadir, an
 
 Amoy snapshots: [All4nodes](https://all4nodes.io/Polygon) / [PublicNode](https://publicnode.com/snapshots#polygon) — pick **amoy bor**, pebble+path. Docs suggest ~1 TB disk.
 
+## Upgrade
+
+Stop Bor, copy `BOR_IMAGE` from `env.template.mainnet` or `env.template.amoy` into `.env`, then `docker compose pull` and `docker compose up -d`. Confirm Heimdall is healthy before restart. See [0xPolygon/bor releases](https://github.com/0xPolygon/bor/releases) for operator notes (not YAML auto-upgraded).
+
 ## Host ports
 
 Host network. Mainnet P2P **30304** TCP+UDP, HTTP/WS **8745** / **8746** on all interfaces. Amoy: P2P **31304**, HTTP/WS **8755** / **8756** on all interfaces.

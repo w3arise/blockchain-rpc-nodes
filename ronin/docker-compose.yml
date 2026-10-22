@@ -39,6 +39,8 @@ services:
       - ${RPC_BIND_ADDR}:${RONIN_RETH_HTTP_PORT}:8545
       - ${RPC_BIND_ADDR}:${RONIN_RETH_WS_PORT}:8546
       - 127.0.0.1:${RONIN_RETH_AUTHRPC_PORT}:9551
+      - ${P2P_PORT}:${P2P_PORT}
+      - ${P2P_PORT}:${P2P_PORT}/udp
     entrypoint:
       - op-reth
     command:
@@ -59,6 +61,12 @@ services:
       - --authrpc.jwtsecret=/data/jwt.hex
       - --rpc.gascap=${GAS_CAP}
       - --rollup.sequencer=${RONIN_ROLLUP_SEQUENCER}
+      - --nat=extip:${EXT_IP}
+      - --port=${P2P_PORT}
+      - --discovery.addr=0.0.0.0
+      - --discovery.port=${P2P_PORT}
+      - --discovery.v5.port=${P2P_PORT}
+      - --trusted-peers=${OP_RETH_TRUSTED_PEERS}
     networks:
       - ronin-network
 
@@ -80,8 +88,6 @@ services:
       - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
       - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
       - 127.0.0.1:${OP_NODE_METRICS_PORT}:7300
-    environment:
-      OP_NODE_P2P_SYNC_ONLYREQTOSTATIC: ${OP_NODE_P2P_SYNC_ONLYREQTOSTATIC}
     entrypoint:
       - op-node
     command:
@@ -100,7 +106,9 @@ services:
       - --p2p.listen.tcp=${OP_NODE_P2P_PORT}
       - --p2p.listen.udp=${OP_NODE_P2P_PORT}
       - --p2p.advertise.ip=${OP_NODE_P2P_ADVERTISE_IP}
+      - --p2p.no-discovery=true
       - --p2p.static=${OP_NODE_P2P_STATIC}
+      - --syncmode=${OP_NODE_SYNCMODE}
       - --sequencer.enabled=false
       - --verifier.l1-confs=${OP_NODE_L1_CONFS}
       - --altda.enabled=true

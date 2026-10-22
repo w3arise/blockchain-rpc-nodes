@@ -13,11 +13,11 @@ Image: `movachain/movan-syncnode:v0.0.1` (linux/amd64). Commit `6f0cc05`. That i
 ```bash
 ./configure.sh            # .env + EXT_IP + BUILD_UID/GID
 ./init-database.sh        # movad init + chain 61901 genesis (checksum)
-./patch-config.sh         # pruning, peers, gas cap, log caps
+./patch-config.sh         # pruning, peers, packet size, gas cap, log caps
 docker compose up -d
 ```
 
-`movad init` writes **`config.toml`** and **`app.toml`**. Those files are kept (Tendermint/CometBFT standard). **`patch-config.sh`** is **idempotent** and edits them: `pruning = "syncable"`, `indexer = "kv"`, `persistent_peers`, P2P listen/advertise, `logs_cap` / `block_range_cap = 100000`, and `rpc_gas_limit = 600000000`. **`pex`** and **`max_num_inbound_peers`** stay at init defaults unless you add them after testing.
+`movad init` writes **`config.toml`** and **`app.toml`**. Those files are kept (Tendermint/CometBFT standard). **`patch-config.sh`** is **idempotent** and edits them: `pruning = "syncable"`, `indexer = "kv"`, `persistent_peers`, P2P listen/advertise, `max_packet_msg_payload_size` (from `MAX_PACKET_MSG_PAYLOAD_SIZE`), `logs_cap` / `block_range_cap = 100000`, and `rpc_gas_limit = 600000000`. Init’s payload size is **1024**, which drops peers that send larger amino packets (`Read overflow`, maxSize 1047). **`pex`** and **`max_num_inbound_peers`** stay at init defaults unless you add them after testing.
 
 Init’s local genesis is **replaced** with the chain 61901 genesis (downloaded at init, sha256-checked in `init-database.sh` — not committed; gentx memos can contain operator IPs). **`noderpc.toml`** is installed only when init did not create it (gas/log caps live there, not geth `--rpc.gascap`).
 
@@ -26,6 +26,8 @@ If patch fails on a **missing key**, `movad init` on v0.0.1 did not emit that ke
 The vendor image's supervisord passes `--pruning=nothing` (archive). This compose file overrides that with `PRUNING`.
 
 RPC: `http://127.0.0.1:8545` · WS: `ws://127.0.0.1:8546`
+
+Those host ports map to **movad** JSON-RPC inside the container (`9545` / `9546`). `movacli` still listens on `8545` / `8546` and is not published. Its `eth_getLogs` re-encodes the `latest` tag and the node returns `hex string without 0x prefix`. `earliest`, a hex block, and an omitted `toBlock` are unaffected. `safe` and `finalized` are rejected by this client on every method.
 
 ## Upgrade
 
@@ -53,8 +55,8 @@ Do not use `node-snap.movachain.com` — that host is chain 61900.
 
 | Port | Bind | Role |
 | --- | --- | --- |
-| 8545 | localhost | EVM JSON-RPC HTTP (`movacli`) |
-| 8546 | localhost | EVM JSON-RPC WS |
+| 8545 | localhost | EVM JSON-RPC HTTP (container `9545`, movad) |
+| 8546 | localhost | EVM JSON-RPC WS (container `9546`, movad) |
 | 26657 | localhost | CometBFT RPC |
 | 26656 | public TCP+UDP | P2P |
 

@@ -14,6 +14,8 @@ docker compose up -d
 
 `./configure.sh` writes `.env`, fetches genesis and waypoint for the pinned SDK tag, generates `config/identity.yaml`, and renders the node config. The container image runs as uid **10001**.
 
+Compose sets `ENABLE_FORWARD_EPOCH_SYNC=true` (from `.env`) so a lagging PFN uses Galxe’s forward epoch sync path instead of the default-off legacy catch-up. Copy that key into an existing host `.env` after pull.
+
 RPC: `http://127.0.0.1:12745` (HTTP), `ws://127.0.0.1:12746` (WS).
 
 ## State retention
@@ -35,7 +37,7 @@ The archive stays under `$HOME/gravity-snapshot-tmp` (override with `SNAPSHOT_TM
 
 ## Host ports
 
-Compose uses host networking. Allow inbound P2P: `PUBLIC_PORT` (consensus, TCP, default `26180`) and `RETH_P2P_PORT` (execution, TCP + UDP, default `12724`). RPC stays on localhost (`RPC_BIND_ADDR=127.0.0.1`).
+Compose publishes ports on a bridge network. `./configure.sh` sets `EXT_IP`, and gravity-reth advertises it with `--nat=extip`. Allow inbound P2P: `PUBLIC_PORT` (consensus, TCP, default `26180`) and `RETH_P2P_PORT` (execution listen and discovery v4/v5, TCP + UDP, default `12724`). RPC stays on localhost (`RPC_BIND_ADDR=127.0.0.1`, host `HTTP_PORT` `12745`).
 
 ## Upgrade
 

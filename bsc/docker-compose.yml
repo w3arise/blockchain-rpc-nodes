@@ -55,7 +55,6 @@ services:
       - --history.state=${HISTORY_STATE}
       - --history.logs=${HISTORY_LOGS}
       - --miner.gasprice=${MINER_GASPRICE}
-      - --bootnodes=${BOOTNODES}
     volumes:
       - "${HOST_DATADIR:-$HOME/chain-data}:/bsc/.ethereum"
     logging:

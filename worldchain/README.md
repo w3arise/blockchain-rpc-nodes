@@ -13,7 +13,7 @@ docker compose up -d
 
 RPC: `http://127.0.0.1:8341` · WS: `ws://127.0.0.1:8342`
 
-Same-series Superchain patches (`op-reth v2.4.*` / `op-node v1.19.*` while those are the pins) are **tag-only**: `./scripts/apply-tag-only.sh worldchain`. This setup stays on stock OP Labs images (`--chain=worldchain`), not `ghcr.io/worldcoin/world-chain`.
+Same-series Superchain patches are **tag-only**: `./scripts/apply-tag-only.sh worldchain`. This setup stays on stock OP Labs images (`--chain=worldchain`), not `ghcr.io/worldcoin/world-chain`.
 
 ## Host ports
 

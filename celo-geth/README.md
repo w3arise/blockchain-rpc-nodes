@@ -1,33 +1,26 @@
-# Celo (op-geth + op-node + EigenDA)
+# Celo (op-geth, frozen)
 
-Deprecated L2 setup kept for historical / pre-migration needs. Prefer [`celo/`](../celo/) (op-reth) for new nodes. Chain data: `../.celo/op-geth`, `../.celo/shared`, `../.celo/eigenda-data` (relative to this directory).
-
-## Why this directory stays in the repo
-
-We **keep** `celo-geth/` (not only document it) because production still runs this stack for **archival / pre-L2 Celo L1 state** — migrated op-geth datadir, `OP_GETH__HISTORICAL_RPC`, and related paths that **op-reth cannot replace** (`celo/` README: post-L2 op-reth does not reuse op-geth datadir). Do not delete or fold into `celo/` unless archival RPC is retired or served another way. Bump these pins only when archival sync or security requires it; the live L2 node tracks [`celo/`](../celo/) and official `celo-l2-node-docker-compose`.
+Mainnet historical RPC. Serves the existing op-geth datadir and does not follow the chain. The live node is [`celo/`](../celo/) (op-reth). Chain data: `HOST_DATADIR` (default `$HOME/celo-op-geth-data`).
 
 ## Start
 
 ```bash
-cp mainnet.env .env    # set OP_NODE__RPC_ENDPOINT, OP_NODE__L1_BEACON, OP_NODE__P2P_ADVERTISE_IP
-docker compose up -d
+./configure.sh                # creates .env or adds new keys; checks the datadir
+docker compose up -d --remove-orphans
 ```
 
-RPC defaults in `mainnet.env`: `http://127.0.0.1:7545` (HTTP), `ws://127.0.0.1:7546` (WS).
+`--remove-orphans` stops a previously running op-node or eigenda-proxy. RPC: `http://127.0.0.1:8441`, `ws://127.0.0.1:8442` (`RPC_BIND_ADDR`, `HTTP_PORT`, `WS_PORT`).
 
-## Snapshot / migrated datadir
+## State retention
 
-Snap sync (`OP_GETH__SYNCMODE` empty / default for `NODE_TYPE=full`) needs no migrated datadir. Full sync / archive needs a migrated L1 full-node datadir — download or run `./migrate.sh` per [Migrating a Celo L1 node](https://docs.celo.org/cel2/operators/migrate-node).
+Serves whatever is already in `HOST_DATADIR`. There is no snapshot or sync; `./configure.sh` fails if the datadir is empty. `--gcmode=full` keeps block and receipt history; state is whatever that datadir still has. P2P is off (`--nodiscover --maxpeers=0`).
 
-## Pre-L2 history
+## Read-only
 
-Set `OP_GETH__HISTORICAL_RPC` or `HISTORICAL_RPC_DATADIR_PATH` in `.env` so op-geth can proxy pre-hardfork state to a legacy archive.
+Writes are not supported. There is no sequencer forwarding and no `txpool` or `debug` API. `eth_sendRawTransaction` may return a hash, but the transaction is never broadcast or included. Send transactions through [`celo/`](../celo/).
 
-## Testnet
+## Upgrade
 
-```bash
-cp alfajores.env .env   # or baklava.env
-docker compose up -d
-```
+Stop the service, copy `OP_GETH_IMAGE` from `env.template` into `.env`, then `docker compose pull` and `docker compose up -d`. Verify `eth_chainId` returns `0xa4ec` (42220) and `eth_blockNumber` is unchanged. Bump only for security fixes; see [op-geth deprecation](https://docs.celo.org/infra-partners/notices/op-geth-deprecation).
 
-Docs: [Run a node](https://docs.celo.org/infra-partners/operators/run-node) · [op-geth deprecation](https://docs.celo.org/infra-partners/notices/op-geth-deprecation) · [celo-l2-node-docker-compose](https://github.com/celo-org/celo-l2-node-docker-compose)
+Docs: [Run a node](https://docs.celo.org/infra-partners/operators/run-node) · [op-geth deprecation](https://docs.celo.org/infra-partners/notices/op-geth-deprecation)

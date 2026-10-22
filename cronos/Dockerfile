@@ -1,6 +1,6 @@
 FROM alpine:3.20
 
-ARG CRONOS_VERSION=1.7.8
+ARG CRONOS_VERSION=1.8.0
 ARG TARGETARCH
 # Set by ./configure.sh (your host uid/gid) so bind-mounted datadir stays writable
 ARG BUILD_UID=1000

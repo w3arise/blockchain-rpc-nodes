@@ -10,7 +10,7 @@ Mainnet node. Chain data: `$HOME/berachain-beacond-data`, `$HOME/berachain-reth-
 docker compose up -d
 ```
 
-Same-series `bera-reth v1.4.*` patches are **tag-only** (`./scripts/apply-tag-only.sh berachain`). beacon-kit stays manual.
+Same-series **bera-reth** patches are **tag-only** (`./scripts/apply-tag-only.sh berachain`). beacon-kit stays manual.
 
 ## Snapshot
 

@@ -17,7 +17,7 @@
     "mergeNetsplitBlock": 0,
     "shanghaiTime": 0,
     "cancunTime": 0,
-    "bedrockBlock": 32956468,
+    "bedrockBlock": 0,
     "regolithTime": 0,
     "canyonTime": 0,
     "ecotoneTime": 0,
@@ -34,6 +34,7 @@
       "eip1559DenominatorCanyon": 250
     },
     "conduit": {
+      "migrationBlock": 32956469,
       "stateOverrideFork0": {
         "time": 1789488001,
         "updates": {

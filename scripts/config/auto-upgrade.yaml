@@ -8,6 +8,11 @@
 # same across patch tags on the currently pinned major.minor series.
 # Crossing a minor/major line is always needs-review (human bump onto the
 # new series, then auto can follow patches on that series).
+#
+# allow_series_jump: true — host auto-apply may install a merged pin whose
+# major.minor differs from the pin already in .env. Set it on every row of
+# an apply_group. CI still opens PRs only for the pinned series. Image
+# prefix, exclude, and tag shape are still checked.
 
 chains:
   - id: aptos
@@ -53,11 +58,14 @@ chains:
     source_repo: berachain/bera-reth
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   # Celo L2 op-reth only (celo-v* registry tags from celo-kona git celo/reth-v*).
   # OP_NODE_IMAGE and EIGENDA_PROXY_IMAGE stay manual — no same-series git feed for op-node.
   - id: celo-op-reth
     class: tag-only
+    allow_series_jump: true
     env_file: celo/env.template
     var: OP_RETH_IMAGE
     image_prefix: "us-west1-docker.pkg.dev/devopsre/celo-blockchain-public/op-reth:"
@@ -78,6 +86,7 @@ chains:
   # op-reth/v* and op-node/v* map to docker tags v* via strip_git_prefix.
   - id: bob-op-reth
     class: tag-only
+    allow_series_jump: true
     env_file: bob/env.template
     var: OP_RETH_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
@@ -89,9 +98,12 @@ chains:
     tag_prefix: op-reth/v
     strip_git_prefix: "op-reth/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr,-falcorocks"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: bob-op-node
     class: tag-only
+    allow_series_jump: true
     env_file: bob/env.template
     var: OP_NODE_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
@@ -117,6 +129,8 @@ chains:
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
     compose_build: true
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: gnosis-reth
     class: tag-only
@@ -148,6 +162,7 @@ chains:
 
   - id: katana-op-reth
     class: tag-only
+    allow_series_jump: true
     env_file: katana/env.template
     var: OP_RETH_IMAGE
     image_prefix: "ghcr.io/conduitxyz/conduit-op-reth:"
@@ -163,6 +178,7 @@ chains:
 
   - id: katana-op-node
     class: tag-only
+    allow_series_jump: true
     env_file: katana/env.template
     var: OP_NODE_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
@@ -177,6 +193,7 @@ chains:
 
   - id: lisk-op-reth
     class: tag-only
+    allow_series_jump: true
     env_file: lisk/env.template
     var: OP_RETH_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
@@ -193,6 +210,7 @@ chains:
 
   - id: lisk-op-node
     class: tag-only
+    allow_series_jump: true
     env_file: lisk/env.template
     var: OP_NODE_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
@@ -205,8 +223,41 @@ chains:
     strip_git_prefix: "op-node/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
 
+  # Paired mantle-op-geth + mantle-op-node. Git tags v* are the Docker Hub tags.
+  # Follows those tags on the pinned series; the networks compose file can lag.
+  - id: mantle-op-geth
+    class: tag-only
+    env_file: mantle/env.template
+    var: OP_GETH_IMAGE
+    image_prefix: "mantlenetworkio/mantle-op-geth:"
+    compose_dir: mantle
+    apply_group: mantle
+    chain_links: false
+    source_type: github_releases
+    source_repo: mantlenetworkio/op-geth
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-arm"
+    health_mode: block_time
+    health_port_var: HTTP_PORT
+    health_bind_var: RPC_BIND_ADDR
+
+  - id: mantle-op-node
+    class: tag-only
+    allow_series_jump: true
+    env_file: mantle/env.template
+    var: OP_NODE_IMAGE
+    image_prefix: "mantlenetworkio/mantle-op-node:"
+    compose_dir: mantle
+    apply_group: mantle
+    chain_links: false
+    source_type: github_releases
+    source_repo: mantlenetworkio/mantle-v2
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-arm"
+
   - id: mode-op-reth
     class: tag-only
+    allow_series_jump: true
     env_file: mode/env.template
     var: OP_RETH_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
@@ -223,6 +274,7 @@ chains:
 
   - id: mode-op-node
     class: tag-only
+    allow_series_jump: true
     env_file: mode/env.template
     var: OP_NODE_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
@@ -279,9 +331,12 @@ chains:
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
     compose_build: true
+    health_mode: block_time
+    health_port_var: HTTP_PORT
 
   - id: optimism-op-reth
     class: tag-only
+    allow_series_jump: true
     env_file: optimism/env.template
     var: OP_RETH_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
@@ -298,6 +353,7 @@ chains:
 
   - id: optimism-op-node
     class: tag-only
+    allow_series_jump: true
     env_file: optimism/env.template
     var: OP_NODE_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
@@ -345,6 +401,7 @@ chains:
 
   - id: ronin-op-reth
     class: tag-only
+    allow_series_jump: true
     env_file: ronin/env.template
     var: RONIN_RETH_IMAGE
     image_prefix: "ghcr.io/conduitxyz/conduit-op-reth:"
@@ -360,6 +417,7 @@ chains:
 
   - id: ronin-op-node
     class: tag-only
+    allow_series_jump: true
     env_file: ronin/env.template
     var: OP_NODE_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
@@ -405,6 +463,7 @@ chains:
 
   - id: soneium-op-reth
     class: tag-only
+    allow_series_jump: true
     env_file: soneium/env.template
     var: OP_RETH_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
@@ -421,6 +480,7 @@ chains:
 
   - id: soneium-op-node
     class: tag-only
+    allow_series_jump: true
     env_file: soneium/env.template
     var: OP_NODE_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
@@ -433,7 +493,7 @@ chains:
     strip_git_prefix: "op-node/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
 
-  # GHCR tags omit the git "v" prefix (tempo:1.14.0 from tag v1.14.0).
+  # GHCR tags omit the git "v" prefix (tempo:1.16.1 from tag v1.16.1).
   - id: tempo
     class: tag-only
     env_file: tempo/env.template
@@ -451,6 +511,7 @@ chains:
 
   - id: worldchain-op-reth
     class: tag-only
+    allow_series_jump: true
     env_file: worldchain/env.template
     var: OP_RETH_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-reth:"
@@ -467,6 +528,7 @@ chains:
 
   - id: worldchain-op-node
     class: tag-only
+    allow_series_jump: true
     env_file: worldchain/env.template
     var: OP_NODE_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"
@@ -481,6 +543,7 @@ chains:
 
   - id: zircuit-op-reth
     class: tag-only
+    allow_series_jump: true
     env_file: zircuit/env.template
     var: OP_RETH_IMAGE
     image_prefix: "ghcr.io/conduitxyz/conduit-op-reth:"
@@ -496,6 +559,7 @@ chains:
 
   - id: zircuit-op-node
     class: tag-only
+    allow_series_jump: true
     env_file: zircuit/env.template
     var: OP_NODE_IMAGE
     image_prefix: "us-docker.pkg.dev/oplabs-tools-artifacts/images/op-node:"

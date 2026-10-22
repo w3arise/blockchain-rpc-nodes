@@ -8,7 +8,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 
 | Chain | Git pin | Upgrade class | Allowlist (`auto-upgrade.yaml`) | Host apply |
 | --- | --- | --- | --- | --- |
-| Aptos | `aptos-node-v1.48.7-hotfix` | tag-only | **yes** — same-series `v1.48.*` | `./scripts/apply-tag-only.sh aptos` |
+| Aptos | `aptos-node-v1.49.6` | tag-only | **yes** — same-series `v1.49.*` | `./scripts/apply-tag-only.sh aptos` |
 | Arbitrum | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (docker tag from the GitHub release body, not the bare git tag) | `./scripts/apply-tag-only.sh arbitrum` |
 | Berachain | `bera-reth:v1.4.4` | tag-only | **yes** — same-series `v1.4.*`. beacon-kit stays `needs-review` | `./scripts/apply-tag-only.sh berachain` |
 | Celo | op-reth `celo-v1.0.*` | tag-only | **yes** — `celo-op-reth` only; op-node + EigenDA manual | `./scripts/apply-tag-only.sh celo` |
@@ -17,16 +17,17 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Gnosis Chain | `reth_gnosis` + `lighthouse` | tag-only | **yes** — same-series (`apply_group: gnosis`) | `./scripts/apply-tag-only.sh gnosis` |
 | Katana | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: katana`) | `./scripts/apply-tag-only.sh katana` |
 | Lisk | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: lisk`) | `./scripts/apply-tag-only.sh lisk` |
+| Mantle | `mantle-op-geth` + `mantle-op-node` `v1.6.*` | tag-only | **yes** — same-series `v1.6.*` (`apply_group: mantle`). Git tags, not the networks compose pin | `./scripts/apply-tag-only.sh mantle` |
 | Mode | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: mode`) | `./scripts/apply-tag-only.sh mode` |
 | Morph | geth `2.2.*` + node `0.6.*` | tag-only | **yes** — paired `apply_group: morph` (post–L1 cutover series) | `./scripts/apply-tag-only.sh morph` |
 | Neo X | `GETH_VERSION=v0.6.2` | tag-only | **yes** — same-series `v0.6.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh neox` |
 | Optimism | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: optimism`) | `./scripts/apply-tag-only.sh optimism` |
-| Plume | `nitro-node:v3.9.5-*-validator` | tag-only | **yes** — same-series `v3.9.*-validator` (release body) | `./scripts/apply-tag-only.sh plume` |
+| Plume | `nitro-node:v3.11.4-*-validator` | tag-only | **yes** — same-series `v3.11.*-validator` (release body) | `./scripts/apply-tag-only.sh plume` |
 | Robinhood | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (release body, like Arbitrum) | `./scripts/apply-tag-only.sh robinhood` |
 | Ronin | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: ronin`). EigenDA stays `needs-review` | `./scripts/apply-tag-only.sh ronin` |
 | Sei | `SEID_VERSION=v6.6.3` | tag-only | **yes** — same-series `v6.6.*` | `./scripts/apply-tag-only.sh sei` |
 | Sonic | `SONIC_VERSION=v2.2.*` | tag-only | **yes** — same-series; host apply **builds** the local image | `./scripts/apply-tag-only.sh sonic` |
-| Tempo | `tempo:1.14.0` | tag-only | **yes** — same-series `1.14.*` (git tag `v*` → GHCR tag without `v`) | `./scripts/apply-tag-only.sh tempo` |
+| Tempo | `tempo:1.16.1` | tag-only | **yes** — same-series `1.16.*` (git tag `v*` → GHCR tag without `v`) | `./scripts/apply-tag-only.sh tempo` |
 | Worldchain | OP Labs `op-reth` + `op-node` | tag-only | **yes** — stock Superchain series (`apply_group: worldchain`) | `./scripts/apply-tag-only.sh worldchain` |
 | Zircuit | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: zircuit`) | `./scripts/apply-tag-only.sh zircuit` |
 | Abstract | stays `needs-review` | never auto across EN majors (`v29`→`v31` needs snapshot wipe) | no | `<chain>/README.md` |
@@ -111,10 +112,10 @@ flowchart TD
 
 Examples:
 
-- Aptos `aptos-node-v1.48.5-hotfix` → `v1.48.7-hotfix` — tag-only (allowlisted).
-- Aptos `v1.48` → `v1.49` — human bump onto the new series first; then auto can follow `v1.49.*`.
+- Aptos `v1.48` → `v1.49.6` — human series bump; then auto follows `v1.49.*`.
+- Aptos `v1.49` → `v1.50` — human bump onto the new series first; then auto can follow `v1.50.*`.
 - Abstract `v29` → `v31` — never auto (snapshot wipe).
-- Arbitrum Nitro `3.7` → `3.11` — done as needs-review (one-way DB). Pin is `v3.11.3`; allowlisted for **`v3.11.*` patches only**. A `v3.12` git tag is ignored until a human bumps the pin onto that series.
+- Arbitrum Nitro series jumps (e.g. `3.11` → `3.12`) — needs-review until a human bumps the pin; then auto follows **that** series’ patches only. Cold-copy the datadir only when Offchain Labs notes/docs say one-way / cannot downgrade (not on every series jump).
 
 ## Agent release-notes check
 
@@ -182,7 +183,7 @@ flowchart TB
 
 1. Notes check already said needs-config (or needs-review + user picked). Follow the merged pin PR and upstream upgrade docs; `<chain>/README.md` has durable apply mechanics only.
 2. On the host: `git pull --ff-only`. Copy **only** the pin var from `env.template` into existing `.env` (do not `cp env.template .env` — that wipes L1 URLs). Chains without `configure.sh` are the same: edit one line.
-3. If notes said one-way DB / cannot downgrade: stop the client and cold-copy the datadir first.
+3. Cold-copy the datadir **only** when upstream release notes or official upgrade docs say one-way DB / cannot downgrade (do not invent a backup step for every series jump).
 4. `docker compose pull && docker compose up -d` in the chain directory.
 
 ## Allowlist
@@ -194,9 +195,9 @@ Machine-readable source of truth: [`scripts/config/auto-upgrade.yaml`](scripts/c
 - `tag-only` — also a YAML row; CI may open a pin PR. Host apply after a [notes check](#agent-release-notes-check) says pin-only.
 - `needs-review` — agent playbook only; do not bump until a human picks.
 
-Adding a chain is one YAML object (id, pin file/var, image prefix, GitHub repo, tag prefix, compose dir, optional health URL, optional `image_tag_from: release_body` when the docker tag is not the git tag, optional `strip_git_prefix` when git tags include a component prefix, optional `apply_group` when two pins share a compose dir). Auto only follows tags that share major.minor with **whatever is currently pinned**.
+Adding a chain is one YAML object (id, pin file/var, image prefix, GitHub repo, tag prefix, compose dir, optional health URL, optional `image_tag_from: release_body` when the docker tag is not the git tag, optional `strip_git_prefix` when git tags include a component prefix, optional `apply_group` when two pins share a compose dir, optional `allow_series_jump: true` when host apply may cross major.minor). Auto only follows tags that share major.minor with **whatever is currently pinned**. `allow_series_jump` does not change that; it only lets a merged series jump pass host `validate-pin`.
 
-v1 allowlist: **Aptos**, **Arbitrum**, **Robinhood**, Superchain OP Stack (**Bob**, **Lisk**, **Mode**, **Optimism**, **Worldchain**), Conduit (**Katana**, **Plume**, **Ronin**, **Zircuit**), plus **Berachain** (bera-reth only), **Core**, **Gnosis Chain** (reth_gnosis + lighthouse), **Neo X**, **Sei**, and **Tempo**. OP Stack rows are one pin each (`*-op-reth` / `*-op-node`) with a shared `apply_group` so hosts run `./scripts/apply-tag-only.sh katana` once. OP Labs git tags are `op-reth/v*` / `op-node/v*`; `strip_git_prefix` maps those to docker tags `v*`. Tempo strips the git `v` (`v1.14.0` → GHCR `1.14.0`). Conduit execution uses `conduitxyz/conduit-op-reth` tags `v*`. Plume is Nitro `image_tag_from: release_body` with `image_tag_suffix: -validator`. Core and Neo X set `compose_build: true` (version-only `GETH_VERSION`; apply rebuilds the local image). Auto only follows tags that share major.minor with **whatever is currently pinned**.
+v1 allowlist: **Aptos**, **Arbitrum**, **Robinhood**, Superchain OP Stack (**Bob**, **Lisk**, **Mode**, **Optimism**, **Worldchain**), Conduit (**Katana**, **Plume**, **Ronin**, **Zircuit**), plus **Berachain** (bera-reth only), **Core**, **Gnosis Chain** (reth_gnosis + lighthouse), **Mantle** (mantle-op-geth + mantle-op-node), **Neo X**, **Sei**, and **Tempo**. OP Stack rows are one pin each (`*-op-reth` / `*-op-node`) with a shared `apply_group` so hosts run `./scripts/apply-tag-only.sh katana` once. OP Labs git tags are `op-reth/v*` / `op-node/v*`; `strip_git_prefix` maps those to docker tags `v*`. Tempo strips the git `v` (`v1.16.1` → GHCR `1.16.1`). Conduit execution uses `conduitxyz/conduit-op-reth` tags `v*`. Plume is Nitro `image_tag_from: release_body` with `image_tag_suffix: -validator`. Core and Neo X set `compose_build: true` (version-only `GETH_VERSION`; apply rebuilds the local image). Auto only follows tags that share major.minor with **whatever is currently pinned**.
 
 ## Git layer (detect + PR)
 
@@ -219,7 +220,7 @@ flowchart TD
 Pieces:
 
 - [`scripts/check-auto-upgrades.sh`](scripts/check-auto-upgrades.sh) — reads each YAML row, lists GitHub tags, keeps same-series stable tags (drops `-rc`, `-alpha`, …), writes the pin if upstream is newer. When `image_tag_from: release_body` (Arbitrum), the pin is the docker tag named in that git tag’s release body.
-- [`.github/workflows/auto-upgrade.yml`](.github/workflows/auto-upgrade.yml) — weekly + manual; **no auto-merge**. The job writes the bump table (`Chain` / `From` / `To`) from `check-auto-upgrades.sh` into the PR body and a bot comment. Before merge, run the [agent notes check](#agent-release-notes-check) (or read the notes yourself).
+- [`.github/workflows/auto-upgrade.yml`](.github/workflows/auto-upgrade.yml) — weekly + manual; **no auto-merge**. The job writes the bump table (`Chain` / `From` / `To` / `Release notes`) from `check-auto-upgrades.sh` into the PR body. **Release notes** links to the GitHub release for the new tag. Before merge, run the [agent notes check](#agent-release-notes-check) (or read the notes yourself).
 - Fail closed: if `--write` touches anything other than the pin line and the CHAIN_LINKS version URL, it restores and exits.
 
 ### What `--write` actually edits
@@ -294,29 +295,100 @@ After the PR is merged, a host with a clean `<chain>/` checkout:
 ```mermaid
 flowchart TD
   clean{Tracked files in compose_dir clean?}
+  owner{Compose project only from this dir?}
   pull[git pull --ff-only]
   sync[Copy allowlisted pin var from env.template into .env]
   up[docker compose pull and up -d]
   health[Wait for health URL]
   done[Node running new tag]
   stop[Refuse: stash or commit local edits]
+  clash[Refuse: project also runs from another dir]
 
   clean -->|no| stop
-  clean -->|yes| pull --> sync --> up --> health --> done
+  clean -->|yes| owner
+  owner -->|no| clash
+  owner -->|yes| pull --> sync --> up --> health --> done
 ```
 
 - Requires an existing `.env` (first start is still `./configure.sh` or `cp env.template .env`).
 - Syncs **only** the YAML pin var (e.g. `APTOS_IMAGE`, `NITRO_IMAGE`).
-- Aptos health: GET `http://127.0.0.1:${HTTP_PORT}/v1`. Nitro (Arbitrum, Plume, Robinhood), Gnosis `reth_gnosis`, Sei, Tempo, and OP Stack op-reth pins use `health_mode: block_time` (`eth_getBlockByNumber`, latest block ≤10s old); chains without YAML health config skip the check after compose up.
+- Refuses, before touching `.env`, when the compose project name also has containers from another directory (e.g. another user's checkout of the same chain). `compose up` there would recreate those containers. Give one checkout a distinct `COMPOSE_PROJECT_NAME` in `.env`.
+- After compose up, wait **10s** before the first health probe. A fast recreate can still answer from the previous process and look healthy.
+- Aptos health: GET `http://127.0.0.1:${HTTP_PORT}/v1`. Every EVM execution pin uses `health_mode: block_time` (`eth_getBlockByNumber`, latest block ≤10s old) on `HTTP_PORT` (Ronin: `RONIN_RETH_HTTP_PORT`, Morph geth: `HTTP_HOST_PORT`). op-node and Lighthouse pins have no check of their own; an apply group uses the execution pin. Applying only one of those pins skips the probe.
 - OP Stack: pass the **apply group** (`katana`, `zircuit`, `ronin`, `bob`, `mode`, `lisk`, `optimism`, `worldchain`) to sync both execution and op-node pins in one compose up. Pin ids (`katana-op-reth`) still work for a single var.
 - Core / Neo X: `compose_build: true` — apply runs `docker compose up -d --build` (the binary is baked from `GETH_VERSION`, not pulled).
 - Optional: `SKIP_PULL=1`, `SKIP_COMPOSE=1`, `HEALTH_TIMEOUT=180`.
 
-Example timer (Monday 09:00, after the CI PR window):
+### Apply on merge (cron)
 
+[`scripts/auto-apply-if-merged.sh`](scripts/auto-apply-if-merged.sh) runs the apply step after a merge. Flowcharts: [docs/auto-apply.md](docs/auto-apply.md). Run it from cron as the user that owns the checkout and its chains:
+
+```cron
+*/5 * * * * $HOME/blockchain-rpc-nodes/scripts/auto-apply-if-merged.sh >> $HOME/auto-apply.log 2>&1
 ```
-0 9 * * 1 cd /path/to/blockchain-rpc-nodes && ./scripts/apply-tag-only.sh aptos && ./scripts/apply-tag-only.sh arbitrum && ./scripts/apply-tag-only.sh katana
+
+Each run fetches `origin/main`, fast-forwards only if the new commits are pin-safe, compares each allowlisted pin var (the YAML `var`) in `env.template` with `.env`, validates the new pin, and runs `apply-tag-only.sh` (with `SKIP_PULL=1`) for targets that differ.
+
+**Merge gate.** The checkout fast-forwards only when every changed file is one of:
+
+- `*.md`
+- `<dir>/env.template` (a regular file, not a symlink)
+- a file in a chain dir (has `docker-compose.yml` at the current HEAD) with no `.env` in this checkout
+
+Anything else blocks the merge: `scripts/` (including `auto-upgrade.yaml`), repo root files, and any other file in a chain dir set up here. Chain dirs come from the current HEAD, so a new commit cannot turn `scripts/` into a chain dir. Nothing is merged until a human reviews and runs `git pull --ff-only`. Pins already on disk still apply. After a manual pull, the next run applies pending pins together with what you pulled; restart that chain yourself or set `AUTO_APPLY_HOLD=1` first.
+
+**Pin validation.** Each new pin is checked against the reviewed `auto-upgrade.yaml` and the pin applied in `.env`:
+
+- starts with the pin's `image_prefix`
+- the tag is a plain image tag (`[A-Za-z0-9_][A-Za-z0-9_.-]*`, no digest, quotes, `$` or spaces)
+- same `major.minor` series as the applied pin, unless that row sets `allow_series_jump: true`
+- not in `exclude`; ends with `image_tag_suffix` when set
+
+`allow_series_jump` is host apply only. Weekly CI still opens pin PRs inside the series currently pinned in git. A series jump still lands as a human PR. After that PR is merged, a host that has pulled the YAML flag applies the new pin without a same-series deny. Set the flag on every row of an `apply_group`. The YAML change itself is under `scripts/`, so the checkout will not fast-forward it; pull that commit by hand once.
+
+Without the flag, the only change that reaches a node without a human pull is a same-series tag from the expected publisher.
+
+| Rule | Why |
+| --- | --- |
+| Only targets with `<compose_dir>/.env` in this checkout | Chains set up elsewhere are not this checkout's job |
+| Only when containers run from this checkout (compose `working_dir` label) | A stopped node is never started; it stays pending and applies once it runs |
+| `.env` is the record of what is applied | A pin skipped while the node was down is not lost when HEAD moves on |
+| A `.env` pin that never appeared in `env.template` history is left alone | Manual overrides survive |
+| A pin var missing from `.env` is not added | First setup stays manual (`configure.sh`) |
+| `AUTO_APPLY_HOLD=1` in `<compose_dir>/.env` skips the target | Hold one chain without editing cron |
+| `apply-tag-only.sh` refuses (exit 3) when the compose project name also has containers from another directory | Another user's checkout of the same chain would be recreated |
+| A failed or refused apply writes `.git/auto-apply/failed/<target>` and holds it | No restart loop. Remove the marker once fixed |
+| Checkout must be on `main`, fast-forward only; `flock` blocks overlapping runs | Diverged or hand-edited checkouts need a human |
+
+**Logging.** Every refusal is one line, `DENY <merge|target>: <reason>`, on stderr and in syslog (`logger -t auto-apply`, `journalctl -t auto-apply`). Blocked merges, rejected pins, a pin var missing from `.env`, project collisions and held failures exit 1 on every run until fixed. A manual override and `AUTO_APPLY_HOLD=1` are logged and exit 0.
+
+Commands:
+
+```bash
+./scripts/auto-apply-if-merged.sh --dry-run     # fetch, report every target, change nothing
+./scripts/auto-apply-if-merged.sh aptos katana  # limit to these targets
+journalctl -t auto-apply --since today          # denies and errors
 ```
+
+Start compose from the checkout path itself (not a symlinked path) so the `working_dir` label matches.
+
+Several users on one host: one crontab per user, or [`scripts/auto-apply-dispatcher.sh`](scripts/auto-apply-dispatcher.sh) from root cron or by hand. The dispatcher reads `/etc/blockchain-nodes.conf` (`user:repo_path` per line), checks that the user owns `.git`, and runs the script once per checkout via `runuser -l`. Each checkout fetches as its own user. Nothing runs git as root.
+
+Root must never run the copy inside a user's checkout: that user could edit it and get root. Install a root-owned copy and run that:
+
+```bash
+sudo install -o root -g root -m 0755 scripts/auto-apply-dispatcher.sh /usr/local/sbin/auto-apply-dispatcher
+sudo auto-apply-dispatcher --dry-run   # by hand: report only
+sudo auto-apply-dispatcher             # by hand: apply
+```
+
+```cron
+*/5 * * * * /usr/local/sbin/auto-apply-dispatcher >> /var/log/auto-apply-dispatcher.log 2>&1
+```
+
+The dispatcher refuses (`DENY`, exit 1, syslog tag `auto-apply-dispatcher`) when its own file, its directory, or the config file is not root-owned or is group/world-writable, and skips config lines whose user is uid 0. Re-run the `install` line after you review and pull a dispatcher change. For one chain, run the per-checkout script as its user: `sudo -iu <user> sh -c 'cd ~/blockchain-rpc-nodes && ./scripts/auto-apply-if-merged.sh --dry-run aptos'`.
+
+Script and YAML changes reach a host only through a human `git pull`. Pin bumps still need the [release-notes check](#agent-release-notes-check) before merge, and `main` needs branch protection and required review: validation limits *which* tag can land, not whether the upstream image is trustworthy.
 
 Durable apply mechanics stay in `<chain>/README.md` (see [aptos/README.md](aptos/README.md)); release-specific notes stay in the pin PR.
 
