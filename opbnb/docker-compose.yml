@@ -28,12 +28,12 @@ services:
       - --http.vhosts=*
       - --http.addr=0.0.0.0
       - --http.port=8545
-      - --http.api=eth,net,web3,debug
+      - --http.api=eth,net,web3
       - --ws
       - --ws.addr=0.0.0.0
       - --ws.port=8546
       - --ws.origins=*
-      - --ws.api=eth,net,web3,debug
+      - --ws.api=eth,net,web3
       - --rollup.sequencerhttp=${L2_RPC}
       - --bootnodes=${OP_GETH_BOOTNODES}
       - --port=${OP_GETH_P2P_PORT}
