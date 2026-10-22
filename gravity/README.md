@@ -14,7 +14,7 @@ docker compose up -d
 
 `./configure.sh` writes `.env`, fetches genesis and waypoint for the pinned SDK tag, generates `config/identity.yaml`, and renders the node config. The container image runs as uid **10001**.
 
-Compose sets `ENABLE_FORWARD_EPOCH_SYNC=true` (from `.env`) so a lagging PFN uses Galxe’s forward epoch sync path instead of the default-off legacy catch-up. Copy that key into an existing host `.env` after pull.
+Compose keeps `ENABLE_FORWARD_EPOCH_SYNC=true` (from `.env`). That matches the gravity_node default since v1.10.1; set `false` only for the legacy reverse catch-up path. Copy that key into an existing host `.env` after pull if missing.
 
 RPC: `http://127.0.0.1:12745` (HTTP), `ws://127.0.0.1:12746` (WS).
 

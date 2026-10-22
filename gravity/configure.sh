@@ -90,7 +90,7 @@ mkdir -p "${DATA_DIR}/data" \
   "${LOG_DIR}/consensus_log" "${LOG_DIR}/execution_logs" \
   "${CONFIG_DIR}"
 
-SDK_REF="${GRAVITY_SDK_REF:-v1.9.3}"
+SDK_REF="${GRAVITY_SDK_REF:-v1.10.1}"
 GENESIS_URL="https://raw.githubusercontent.com/Galxe/gravity-sdk/${SDK_REF}/genesis/mainnet/genesis.json"
 WAYPOINT_URL="https://raw.githubusercontent.com/Galxe/gravity-sdk/${SDK_REF}/genesis/mainnet/waypoint.txt"
 
