@@ -119,8 +119,6 @@ monad-rpc -V
 
 Synced full nodes retain limited execution history in TrieDB (not a full archive). Historical RPC requires external archive backends — see [Archive Data Setup](https://docs.monad.xyz/node-ops/archive-data).
 
-For RPC workflows, enable `--trace_calls` on `monad-execution` via `systemctl edit monad-execution` (merge with the package `ExecStart` flags).
-
 ## Host ports and runtime
 
 All long-running daemons run as the **`monad`** user via **systemd** on the host (from the `monad` APT package). This repo does not run Docker for the node itself.
