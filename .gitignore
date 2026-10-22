@@ -4,6 +4,8 @@
 
 # Environment variables
 .env
+metis/config/l1dtl.env
+metis/config/l2geth.env
 
 # Engine API JWT secrets
 **/jwt.hex
