@@ -12,7 +12,7 @@ docker compose build      # image runs as your host user
 docker compose up -d
 ```
 
-`patch-config.sh` is **idempotent** — safe to re-run after snapshots or `.env` changes. It sets `app.toml` to `pruning = "default"`, `minimum-gas-prices = "1basecro"`, `logs-cap` / `block-range-cap = 100000`, and `gas-cap = 600000000`. Start uses `--home /data` (host `$HOME/cronos-data`). Peer discovery often takes 1–2 minutes after each restart.
+`patch-config.sh` is **idempotent** — safe to re-run after snapshots or `.env` changes. It sets `app.toml` to `pruning = "default"`, `minimum-gas-prices = "1basecro"`, `logs-cap` / `block-range-cap = 100000`, `gas-cap = 600000000`, and `txfee-cap = 0` (required for JSON-RPC writes since v1.8). Start uses `--home /data` (host `$HOME/cronos-data`). Peer discovery often takes 1–2 minutes after each restart.
 
 RPC: `http://127.0.0.1:8545` · WS: `ws://127.0.0.1:8546`
 
