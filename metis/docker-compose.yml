@@ -5,15 +5,10 @@ services:
     restart: unless-stopped
     stop_grace_period: 120s
     env_file:
+      - .env
       - config/l1dtl.env
     volumes:
       - ${HOST_DTL_DATADIR:-$HOME/metis-l1dtl-data}:/data
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:${DTL_PORT:-7878}/health || curl -sf http://127.0.0.1:${DTL_PORT:-7878}"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 30s
     networks:
       - metis
 
@@ -23,9 +18,9 @@ services:
     restart: unless-stopped
     stop_grace_period: 120s
     depends_on:
-      l1dtl:
-        condition: service_healthy
+      - l1dtl
     env_file:
+      - .env
       - config/l2geth.env
     volumes:
       - ${HOST_L2GETH_DATADIR:-$HOME/metis-l2geth-data}:/root/.ethereum
@@ -34,12 +29,6 @@ services:
       - ${RPC_BIND_ADDR}:${WS_PORT}:8546
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf -X POST -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":1}' http://127.0.0.1:8545"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 120s
     networks:
       - metis
 
