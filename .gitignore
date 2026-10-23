@@ -2,6 +2,9 @@
 .DS_Store
 ._*
 
+# Local scratch (handovers, notes). Do not commit.
+/temp/
+
 # Environment variables
 .env
 metis/config/l1dtl.env

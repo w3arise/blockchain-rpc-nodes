@@ -48,7 +48,8 @@ Raise L1 geth **`--rpc.batch-response-max-size=50000000`** if DTL reports “res
 
 - JSON-RPC / WS: `RPC_BIND_ADDR` + `HTTP_PORT` / `WS_PORT` (default `127.0.0.1:28555` / `28556`) → container `8545` / `8546`
 - l2geth P2P: set **`P2P_PORT`** in `.env` (host publish + `geth.sh` **`PORT`** inside the container — must match). **`EXT_IP`** is your public IPv4 for the enode (`--nat extip`); `configure.sh` sets it from ip.me.
-- After changing ports or `EXT_IP`: `./configure.sh` then `docker compose up -d --force-recreate`
+- Bootnodes: **`BOOTNODES`** in `.env` (official list from `env.template`); append extra enodes comma-separated
+- After changing ports, `EXT_IP` or `BOOTNODES`: `./configure.sh` then `docker compose up -d --force-recreate`
 - DTL (`7878`) is Docker-internal only
 
 `Fatal: account already exists` on l2geth restart is normal — `geth.sh` re-imports the public block signer key every start.

@@ -28,6 +28,7 @@ collect_missing_env() {
   MISSING_ENV=()
   env_var_ok "${L1_ETH_RPC:-}" || MISSING_ENV+=("L1_ETH_RPC")
   env_var_ok "${L1_BEACON:-}" || MISSING_ENV+=("L1_BEACON")
+  env_var_ok "${BOOTNODES:-}" || MISSING_ENV+=("BOOTNODES")
 }
 
 render_service_env() {
@@ -63,6 +64,12 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   echo "created .env from env.template"
 fi
 
+# .env from an older template has no BOOTNODES; add the official list once.
+if ! grep -qE '^BOOTNODES=' "${ENV_FILE}"; then
+  grep -E '^BOOTNODES=' "${ENV_TEMPLATE}" >> "${ENV_FILE}"
+  echo "added BOOTNODES from env.template to .env"
+fi
+
 PUBLIC_IP="$(curl -4 -sf ip.me | tr -d '[:space:]')"
 if [[ -n "${PUBLIC_IP}" ]]; then
   current_ext="$(grep -E '^EXT_IP=' "${ENV_FILE}" | cut -d= -f2- | tr -d '"'"'" || true)"
@@ -86,6 +93,7 @@ if ((${#MISSING_ENV[@]} > 0)); then
     case "${key}" in
       L1_ETH_RPC) echo "  - L1_ETH_RPC   (Ethereum mainnet execution JSON-RPC)" ;;
       L1_BEACON) echo "  - L1_BEACON    (Ethereum beacon / consensus HTTP API)" ;;
+      BOOTNODES) echo "  - BOOTNODES    (comma-separated enodes; copy the list from env.template)" ;;
       *) echo "  - ${key}" ;;
     esac
   done
@@ -99,7 +107,7 @@ render_service_env
 
 echo ""
 echo "Rendered config/l1dtl.env and config/l2geth.env from .env."
-echo "If you change .env (ports, L1, EXT_IP), run ./configure.sh again, then:"
+echo "If you change .env (ports, L1, EXT_IP, BOOTNODES), run ./configure.sh again, then:"
 echo "  docker compose up -d --force-recreate"
 echo ""
 echo "Next:"
