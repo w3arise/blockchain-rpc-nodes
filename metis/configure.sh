@@ -10,6 +10,15 @@ cd "${SCRIPT_DIR}"
 ENV_FILE="${SCRIPT_DIR}/.env"
 ENV_TEMPLATE="${SCRIPT_DIR}/env.template"
 
+sed_inplace() {
+  local expr="$1"
+  local file="$2"
+  local tmp
+  tmp="$(mktemp)"
+  sed -e "$expr" "$file" > "${tmp}"
+  mv "${tmp}" "${file}"
+}
+
 env_var_ok() {
   local val="${1-}"
   [[ -n "${val}" && "${val}" != "<YOUR_"* && "${val}" != "<MINIO_"* ]]
@@ -54,6 +63,15 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   echo "created .env from env.template"
 fi
 
+PUBLIC_IP="$(curl -4 -sf ip.me | tr -d '[:space:]')"
+if [[ -n "${PUBLIC_IP}" ]]; then
+  current_ext="$(grep -E '^EXT_IP=' "${ENV_FILE}" | cut -d= -f2- | tr -d '"'"'" || true)"
+  if [[ "${current_ext}" != "${PUBLIC_IP}" ]]; then
+    sed_inplace "s|^EXT_IP=.*|EXT_IP=\"${PUBLIC_IP}\"|" "${ENV_FILE}"
+    echo "set EXT_IP=${PUBLIC_IP} in .env"
+  fi
+fi
+
 # shellcheck disable=SC1090
 source "${ENV_FILE}"
 
@@ -81,8 +99,9 @@ render_service_env
 
 echo ""
 echo "Rendered config/l1dtl.env and config/l2geth.env from .env."
-echo "If you change .env later, run ./configure.sh again before docker compose up or recreate."
+echo "If you change .env (ports, L1, EXT_IP), run ./configure.sh again, then:"
+echo "  docker compose up -d --force-recreate"
 echo ""
 echo "Next:"
 echo "  ./restore-snapshot.sh   # if datadirs are empty"
-echo "  docker compose up -d"
+echo "  docker compose up -d --force-recreate"

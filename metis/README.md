@@ -11,7 +11,7 @@ Datadirs: `$HOME/metis-l1dtl-data`, `$HOME/metis-l2geth-data`.
 # edit .env — L1_ETH_RPC and L1_BEACON (MinIO memo creds are in config/l1dtl.env.template)
 ./configure.sh           # re-run after .env edits; renders config/l1dtl.env + l2geth.env
 ./restore-snapshot.sh    # follow AWS EBS snapshot steps if datadirs are empty
-docker compose up -d
+docker compose up -d --force-recreate
 ```
 
 ## Snapshot
@@ -46,9 +46,12 @@ Raise L1 geth **`--rpc.batch-response-max-size=50000000`** if DTL reports “res
 
 ## Host ports
 
-- JSON-RPC / WS: `RPC_BIND_ADDR` + `HTTP_PORT` / `WS_PORT` (default `127.0.0.1:28555` / `28556`)
-- l2geth P2P: `P2P_PORT` (default **30303**, TCP + UDP, public — bump in `.env` if it clashes with another node)
+- JSON-RPC / WS: `RPC_BIND_ADDR` + `HTTP_PORT` / `WS_PORT` (default `127.0.0.1:28555` / `28556`) → container `8545` / `8546`
+- l2geth P2P: set **`P2P_PORT`** in `.env` (host publish + `geth.sh` **`PORT`** inside the container — must match). **`EXT_IP`** is your public IPv4 for the enode (`--nat extip`); `configure.sh` sets it from ip.me.
+- After changing ports or `EXT_IP`: `./configure.sh` then `docker compose up -d --force-recreate`
 - DTL (`7878`) is Docker-internal only
+
+`Fatal: account already exists` on l2geth restart is normal — `geth.sh` re-imports the public block signer key every start.
 
 ## Writes
 
