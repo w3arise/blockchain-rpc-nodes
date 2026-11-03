@@ -335,11 +335,11 @@ Each run fetches `origin/main`, fast-forwards only if the new commits are pin-sa
 - the repo-root `.gitignore` (a regular file, not a symlink)
 - `<dir>/env.template` (a regular file, not a symlink)
 - a file in a chain dir (has `docker-compose.yml` at the current HEAD) with no `.env` in this checkout
-- `scripts/config/auto-upgrade.yaml` (a regular file), when no row whose `compose_dir` has a `.env` here changes an apply key. Check-only keys (`chain_links`, `source_type`, `source_repo`, `tag_prefix`, `strip_git_prefix`, `pin_tag_prefix`, `image_tag_from`) and rows for chains not set up here may change. Any other key, including keys added later, counts as an apply key; so does adding, removing or moving a row into a set-up dir. The comparison uses the parser at the current HEAD, and a YAML it cannot parse blocks.
+- `scripts/config/auto-upgrade.yaml` (a regular file), when no row whose `compose_dir` has a `.env` here changes an apply key. Check-only keys (`chain_links`, `source_type`, `source_repo`, `tag_prefix`, `strip_git_prefix`, `pin_tag_prefix`, `image_tag_from`) and rows for chains not set up here may change. Any other key, including keys added later, counts as an apply key; so does adding, removing or moving a row into a set-up dir. The comparison uses the parser at the current HEAD, and a YAML it cannot parse blocks. The parser requires `compose_dir` to be one plain directory name, `env_file` to be `<compose_dir>/env.template`, and no chain `id` equal to an `apply_group` name. A row for a chain that is not set up arrives unreviewed; review it before you set that chain up on the host, as you would its compose files.
 
 Anything else blocks the merge: the rest of `scripts/` (including `scripts/lib/auto-upgrade-yaml.py`), other repo root files, and any other file in a chain dir set up here. Chain dirs come from the current HEAD, so a new commit cannot turn `scripts/` into a chain dir. Nothing is merged until a human reviews and runs `git pull --ff-only`. Pins already on disk still apply. After a manual pull, the next run applies pending pins together with what you pulled; restart that chain yourself or set `AUTO_APPLY_HOLD=1` first.
 
-**Pin validation.** Each new pin is checked against the reviewed `auto-upgrade.yaml` and the pin applied in `.env`:
+**Pin validation.** Each new pin is checked against `auto-upgrade.yaml` (apply keys of set-up chains only change through a manual pull) and the pin applied in `.env`:
 
 - starts with the pin's `image_prefix`
 - the tag is a plain image tag (`[A-Za-z0-9_][A-Za-z0-9_.-]*`, no digest, quotes, `$` or spaces)

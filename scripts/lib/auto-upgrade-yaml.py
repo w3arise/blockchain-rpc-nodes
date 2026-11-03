@@ -49,6 +49,8 @@ CHECK_ONLY_KEYS = {
     "image_tag_from",
 }
 
+COMPOSE_DIR_RE = re.compile(r"^[A-Za-z0-9_-][A-Za-z0-9._-]*$")
+
 REQUIRED_KEYS = {
     "id",
     "class",
@@ -125,9 +127,25 @@ def load_chains(path: Path) -> list[dict]:
             raise SystemExit(
                 f"{chain['id']}: allow_series_jump must be true or false (got {jump!r})"
             )
+        # One plain directory name, so bash ("$REPO_ROOT/$dir") and Python
+        # (root / dir) resolve it to the same place; no "/x", "..", "x/y".
+        if not COMPOSE_DIR_RE.match(chain["compose_dir"]) or chain["compose_dir"] in (".", ".."):
+            raise SystemExit(
+                f"{chain['id']}: compose_dir must be a single directory name (got {chain['compose_dir']!r})"
+            )
+        if chain["env_file"] != f"{chain['compose_dir']}/env.template":
+            raise SystemExit(
+                f"{chain['id']}: env_file must be {chain['compose_dir']}/env.template (got {chain['env_file']!r})"
+            )
         group = chain.get("apply_group")
         if group:
             groups.setdefault(group, []).append(chain)
+
+    # An exact id wins over a group name in resolve_apply_ids, so a row named
+    # like a group would take that apply target over.
+    clash = sorted(ids & set(groups))
+    if clash:
+        raise SystemExit(f"chain id equals an apply_group name: {clash}")
 
     for group, rows in groups.items():
         compose_dirs = {row["compose_dir"] for row in rows}
