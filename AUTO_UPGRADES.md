@@ -332,10 +332,11 @@ Each run fetches `origin/main`, fast-forwards only if the new commits are pin-sa
 **Merge gate.** The checkout fast-forwards only when every changed file is one of:
 
 - `*.md`
+- the repo-root `.gitignore` (a regular file, not a symlink)
 - `<dir>/env.template` (a regular file, not a symlink)
 - a file in a chain dir (has `docker-compose.yml` at the current HEAD) with no `.env` in this checkout
 
-Anything else blocks the merge: `scripts/` (including `auto-upgrade.yaml`), repo root files, and any other file in a chain dir set up here. Chain dirs come from the current HEAD, so a new commit cannot turn `scripts/` into a chain dir. Nothing is merged until a human reviews and runs `git pull --ff-only`. Pins already on disk still apply. After a manual pull, the next run applies pending pins together with what you pulled; restart that chain yourself or set `AUTO_APPLY_HOLD=1` first.
+Anything else blocks the merge: `scripts/` (including `auto-upgrade.yaml`), other repo root files, and any other file in a chain dir set up here. Chain dirs come from the current HEAD, so a new commit cannot turn `scripts/` into a chain dir. Nothing is merged until a human reviews and runs `git pull --ff-only`. Pins already on disk still apply. After a manual pull, the next run applies pending pins together with what you pulled; restart that chain yourself or set `AUTO_APPLY_HOLD=1` first.
 
 **Pin validation.** Each new pin is checked against the reviewed `auto-upgrade.yaml` and the pin applied in `.env`:
 

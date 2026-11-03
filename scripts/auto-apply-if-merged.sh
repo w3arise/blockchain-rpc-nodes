@@ -213,6 +213,7 @@ update_checkout() {
 # Prints "<path> (<reason>)" for each file changed between $1 (HEAD) and $2
 # that may not be merged without review. Allowed:
 #   - *.md anywhere
+#   - the repo-root .gitignore, as a regular file (only affects git status)
 #   - <dir>/env.template, as a regular file
 #   - files in a chain dir (has docker-compose.yml at HEAD) with no .env here
 # Chain dirs come from HEAD only, so a new commit cannot turn scripts/ (or any
@@ -222,6 +223,13 @@ blocking_files() {
   local f dir mode
   while IFS= read -r f; do
     [[ "${f}" == *.md ]] && continue
+    if [[ "${f}" == ".gitignore" ]]; then
+      mode="$(git ls-tree "${new}" -- "${f}" | awk '{print $1}')"
+      if [[ -n "${mode}" && "${mode}" != "100644" ]]; then
+        echo "${f} (.gitignore is not a regular file: mode ${mode})"
+      fi
+      continue
+    fi
     if [[ "${f}" != */* ]]; then
       echo "${f} (repo root file)"
       continue
