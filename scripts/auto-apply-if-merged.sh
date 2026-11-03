@@ -5,9 +5,11 @@
 #
 # Each run:
 #   1. git fetch. Fast-forward only when every new commit touches nothing but
-#      *.md, <dir>/env.template, or files in chain dirs not set up here.
-#      Anything else (scripts/, root files, other files in a chain dir with a
-#      .env) blocks the merge until a human pulls.
+#      *.md, the root .gitignore, <dir>/env.template, files in chain dirs not
+#      set up here, or auto-upgrade.yaml keys that do not change how a chain
+#      set up here is applied. Anything else (the rest of scripts/, other root
+#      files, other files in a chain dir with a .env) blocks the merge until a
+#      human pulls.
 #   2. For every allowlisted apply target set up in this checkout
 #      (<compose_dir>/.env exists), compare each pin var (the YAML `var`) in
 #      env.template with .env. A difference is a pending upgrade.
@@ -49,7 +51,8 @@ main() {
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
   REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd -P)"
   YAML_PY="${SCRIPT_DIR}/lib/auto-upgrade-yaml.py"
-  # Changes under scripts/ block the merge, so this YAML is the reviewed one.
+  # Changes under scripts/ block the merge, except auto-upgrade.yaml edits that
+# leave every set-up chain's apply keys unchanged (yaml_blocking).
   YAML_FILE="${SCRIPT_DIR}/config/auto-upgrade.yaml"
 
   REMOTE="${REMOTE:-origin}"
@@ -191,11 +194,18 @@ update_checkout() {
     exit 1
   fi
 
-  local line
+  # Collect first and check the exit status: a failed check must block, not
+  # look like an empty (all-clear) list.
+  local line blocking
+  if ! blocking="$(blocking_files "${local_rev}" "${remote_rev}" </dev/null)"; then
+    deny merge "could not check the files changed in ${local_rev:0:8} → ${remote_rev:0:8}; fix by hand"
+    exit 1
+  fi
   while IFS= read -r line; do
+    [[ -n "${line}" ]] || continue
     BLOCKED=1
     deny merge "${REMOTE}/${BRANCH} ${remote_rev:0:8} changes ${line}"
-  done < <(blocking_files "${local_rev}" "${remote_rev}")
+  done <<<"${blocking}"
   if [[ "${BLOCKED}" == "1" ]]; then
     deny merge "not fast-forwarding ${local_rev:0:8} → ${remote_rev:0:8}; review, then git pull --ff-only by hand. Pending pins from ${local_rev:0:8} still apply."
     return 0
@@ -213,22 +223,39 @@ update_checkout() {
 # Prints "<path> (<reason>)" for each file changed between $1 (HEAD) and $2
 # that may not be merged without review. Allowed:
 #   - *.md anywhere
+#   - the repo-root .gitignore, as a regular file (only affects git status)
 #   - <dir>/env.template, as a regular file
 #   - files in a chain dir (has docker-compose.yml at HEAD) with no .env here
+#   - scripts/config/auto-upgrade.yaml, when only check-side keys change for
+#     chains set up here (see yaml_blocking)
 # Chain dirs come from HEAD only, so a new commit cannot turn scripts/ (or any
 # other dir) into a "chain dir" by adding a compose file.
+# Returns non-zero when a check cannot run; the caller then blocks.
 blocking_files() {
   local old="$1" new="$2"
-  local f dir mode
+  local f dir mode changed
+  changed="$(git diff --name-only --no-renames "${old}" "${new}")" || return 1
   while IFS= read -r f; do
+    [[ -n "${f}" ]] || continue
     [[ "${f}" == *.md ]] && continue
+    if [[ "${f}" == ".gitignore" ]]; then
+      mode="$(git ls-tree "${new}" -- "${f}" | awk '{print $1}')" || return 1
+      if [[ -n "${mode}" && "${mode}" != "100644" ]]; then
+        echo "${f} (.gitignore is not a regular file: mode ${mode})"
+      fi
+      continue
+    fi
+    if [[ "${f}" == "scripts/config/auto-upgrade.yaml" ]]; then
+      yaml_blocking "${old}" "${new}" "${f}" || return 1
+      continue
+    fi
     if [[ "${f}" != */* ]]; then
       echo "${f} (repo root file)"
       continue
     fi
     dir="${f%%/*}"
     if [[ "${f}" == "${dir}/env.template" ]]; then
-      mode="$(git ls-tree "${new}" -- "${f}" | awk '{print $1}')"
+      mode="$(git ls-tree "${new}" -- "${f}" | awk '{print $1}')" || return 1
       if [[ -n "${mode}" && "${mode}" != "100644" ]]; then
         echo "${f} (env.template is not a regular file: mode ${mode})"
       fi
@@ -242,7 +269,28 @@ blocking_files() {
       echo "${f} (outside chain dirs)"
       continue
     fi
-  done < <(git diff --name-only --no-renames "${old}" "${new}")
+  done <<<"${changed}"
+}
+
+# auto-upgrade.yaml is the rulebook new pins are validated against, so a change
+# to it may only merge unreviewed when no chain set up here (compose_dir with a
+# .env) changes an apply-relevant key. Uses the parser at HEAD, never the new one.
+yaml_blocking() {
+  local old="$1" new="$2" f="$3" mode out rc
+  mode="$(git ls-tree "${new}" -- "${f}" | awk '{print $1}')" || return 1
+  if [[ "${mode}" != "100644" ]]; then
+    echo "${f} (not a regular file at ${new:0:8}: mode ${mode:-deleted})"
+    return 0
+  fi
+  rc=0
+  out="$(python3 "${YAML_PY}" apply-view-diff \
+    --old <(git show "${old}:${f}") --new <(git show "${new}:${f}") \
+    --root "${REPO_ROOT}" 2>&1 </dev/null)" || rc=$?
+  if [[ "${rc}" == "1" && -n "${out}" ]] && ! grep -qv '^[A-Za-z0-9_.-]*$' <<<"${out}"; then
+    echo "${f} (apply settings change for: $(paste -sd, <<<"${out}"))"
+  elif [[ "${rc}" != "0" ]]; then
+    echo "${f} (cannot compare: $(tail -n1 <<<"${out:-exit ${rc}}"))"
+  fi
 }
 
 env_value() {

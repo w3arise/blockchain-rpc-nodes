@@ -332,19 +332,21 @@ Each run fetches `origin/main`, fast-forwards only if the new commits are pin-sa
 **Merge gate.** The checkout fast-forwards only when every changed file is one of:
 
 - `*.md`
+- the repo-root `.gitignore` (a regular file, not a symlink)
 - `<dir>/env.template` (a regular file, not a symlink)
 - a file in a chain dir (has `docker-compose.yml` at the current HEAD) with no `.env` in this checkout
+- `scripts/config/auto-upgrade.yaml` (a regular file), when no row whose `compose_dir` has a `.env` here changes an apply key. Check-only keys (`chain_links`, `source_type`, `source_repo`, `tag_prefix`, `strip_git_prefix`, `pin_tag_prefix`, `image_tag_from`) and rows for chains not set up here may change. Any other key, including keys added later, counts as an apply key; so does adding, removing or moving a row into a set-up dir. The comparison uses the parser at the current HEAD, and a YAML it cannot parse blocks. The parser requires `compose_dir` to be one plain directory name, `env_file` to be `<compose_dir>/env.template`, and no chain `id` equal to an `apply_group` name. A row for a chain that is not set up arrives unreviewed; review it before you set that chain up on the host, as you would its compose files.
 
-Anything else blocks the merge: `scripts/` (including `auto-upgrade.yaml`), repo root files, and any other file in a chain dir set up here. Chain dirs come from the current HEAD, so a new commit cannot turn `scripts/` into a chain dir. Nothing is merged until a human reviews and runs `git pull --ff-only`. Pins already on disk still apply. After a manual pull, the next run applies pending pins together with what you pulled; restart that chain yourself or set `AUTO_APPLY_HOLD=1` first.
+Anything else blocks the merge: the rest of `scripts/` (including `scripts/lib/auto-upgrade-yaml.py`), other repo root files, and any other file in a chain dir set up here. Chain dirs come from the current HEAD, so a new commit cannot turn `scripts/` into a chain dir. Nothing is merged until a human reviews and runs `git pull --ff-only`. Pins already on disk still apply. After a manual pull, the next run applies pending pins together with what you pulled; restart that chain yourself or set `AUTO_APPLY_HOLD=1` first.
 
-**Pin validation.** Each new pin is checked against the reviewed `auto-upgrade.yaml` and the pin applied in `.env`:
+**Pin validation.** Each new pin is checked against `auto-upgrade.yaml` (apply keys of set-up chains only change through a manual pull) and the pin applied in `.env`:
 
 - starts with the pin's `image_prefix`
 - the tag is a plain image tag (`[A-Za-z0-9_][A-Za-z0-9_.-]*`, no digest, quotes, `$` or spaces)
 - same `major.minor` series as the applied pin, unless that row sets `allow_series_jump: true`
 - not in `exclude`; ends with `image_tag_suffix` when set
 
-`allow_series_jump` is host apply only. Weekly CI still opens pin PRs inside the series currently pinned in git. A series jump still lands as a human PR. After that PR is merged, a host that has pulled the YAML flag applies the new pin without a same-series deny. Set the flag on every row of an `apply_group`. The YAML change itself is under `scripts/`, so the checkout will not fast-forward it; pull that commit by hand once.
+`allow_series_jump` is host apply only. Weekly CI still opens pin PRs inside the series currently pinned in git. A series jump still lands as a human PR. After that PR is merged, a host that has pulled the YAML flag applies the new pin without a same-series deny. Set the flag on every row of an `apply_group`. `allow_series_jump` is an apply key, so on a host where that chain is set up the YAML change blocks the fast-forward; pull that commit by hand once.
 
 Without the flag, the only change that reaches a node without a human pull is a same-series tag from the expected publisher.
 
@@ -398,4 +400,4 @@ Durable apply mechanics stay in `<chain>/README.md` (see [aptos/README.md](aptos
 - No rewriting per-chain `configure.sh` to merge all template keys
 - The check-client-updates agent skill still handles `needs-review` chains
 
-Conduit OP Stack, Superchain replicas, Nitro (Arbitrum/Robinhood/Plume), Tempo, Sei, Core, Neo X, and Berachain bera-reth same-series patches are allowlisted. Beacon-kit and Ronin EigenDA stay `needs-review`. Then consider auto-merge for `tag-only` PRs only.
+Conduit OP Stack, Superchain replicas, Nitro (Arbitrum/Robinhood/Plume), Tempo, Sei, Core, Neo X, and Berachain bera-reth same-series patches are allowlisted. Beacon-kit and Ronin EigenDA stay `needs-review`. Then consider auto-merge for `tag-only` PRs only. Before enabling it, make sure changes to the YAML's check-only keys (`source_repo`, `source_type`, `tag_prefix`, `strip_git_prefix`, `pin_tag_prefix`, `image_tag_from`) still need a human merge. The host merge gate lets them through because host apply never reads them, but CI uses them to pick the next pin, so an auto-merged edit there would steer later pin PRs. Auto-merge only PRs that change nothing but allowlisted pin lines in `env.template` (and the matching `CHAIN_LINKS.md` tag).

@@ -22,7 +22,7 @@ flowchart TD
     fetch["git fetch"]
     same{"HEAD equals origin/main?"}
     anc{"HEAD ancestor of origin/main?"}
-    guard{"any changed file other than *.md,<br/>dir/env.template, or files in chain dirs<br/>without .env here?"}
+    guard{"any changed file other than *.md, root .gitignore,<br/>dir/env.template, files in chain dirs without .env here,<br/>or auto-upgrade.yaml with check-only changes for set-up chains?"}
     blocked["DENY merge per file, BLOCKED<br/>compare against HEAD"]
     drymerge{"--dry-run?"}
     ff["git merge --ff-only"]

@@ -36,6 +36,21 @@ ALLOWED_KEYS = {
     "allow_series_jump",
 }
 
+# Keys only the release check (check-auto-upgrades.sh / CI) reads. Host apply
+# never uses them, so the auto-apply merge gate lets them change without review.
+# Every other key, including any key added later, counts as apply-relevant.
+CHECK_ONLY_KEYS = {
+    "chain_links",
+    "source_type",
+    "source_repo",
+    "tag_prefix",
+    "strip_git_prefix",
+    "pin_tag_prefix",
+    "image_tag_from",
+}
+
+COMPOSE_DIR_RE = re.compile(r"^[A-Za-z0-9_-][A-Za-z0-9._-]*$")
+
 REQUIRED_KEYS = {
     "id",
     "class",
@@ -112,9 +127,25 @@ def load_chains(path: Path) -> list[dict]:
             raise SystemExit(
                 f"{chain['id']}: allow_series_jump must be true or false (got {jump!r})"
             )
+        # One plain directory name, so bash ("$REPO_ROOT/$dir") and Python
+        # (root / dir) resolve it to the same place; no "/x", "..", "x/y".
+        if not COMPOSE_DIR_RE.match(chain["compose_dir"]) or chain["compose_dir"] in (".", ".."):
+            raise SystemExit(
+                f"{chain['id']}: compose_dir must be a single directory name (got {chain['compose_dir']!r})"
+            )
+        if chain["env_file"] != f"{chain['compose_dir']}/env.template":
+            raise SystemExit(
+                f"{chain['id']}: env_file must be {chain['compose_dir']}/env.template (got {chain['env_file']!r})"
+            )
         group = chain.get("apply_group")
         if group:
             groups.setdefault(group, []).append(chain)
+
+    # An exact id wins over a group name in resolve_apply_ids, so a row named
+    # like a group would take that apply target over.
+    clash = sorted(ids & set(groups))
+    if clash:
+        raise SystemExit(f"chain id equals an apply_group name: {clash}")
 
     for group, rows in groups.items():
         compose_dirs = {row["compose_dir"] for row in rows}
@@ -252,6 +283,27 @@ def pin_vars_for_env(chains: list[dict], env_file: str) -> list[str]:
     return vars_
 
 
+def apply_view_changes(old: list[dict], new: list[dict], root: Path) -> list[str]:
+    """IDs whose apply-relevant keys differ between OLD and NEW, limited to rows
+    whose compose_dir (in either version) has a .env under ROOT."""
+    def views(chains: list[dict]) -> dict[str, dict]:
+        return {
+            c["id"]: {k: v for k, v in c.items() if k not in CHECK_ONLY_KEYS}
+            for c in chains
+        }
+
+    old_v, new_v = views(old), views(new)
+    changed: list[str] = []
+    for chain_id in sorted(set(old_v) | set(new_v)):
+        a, b = old_v.get(chain_id), new_v.get(chain_id)
+        if a == b:
+            continue
+        dirs = {v["compose_dir"] for v in (a, b) if v is not None}
+        if any((root / d / ".env").is_file() for d in dirs):
+            changed.append(chain_id)
+    return changed
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -285,6 +337,10 @@ def main() -> int:
     validate_p.add_argument("id")
     validate_p.add_argument("--current", required=True)
     validate_p.add_argument("--new", required=True)
+    view_p = sub.add_parser("apply-view-diff")
+    view_p.add_argument("--old", required=True)
+    view_p.add_argument("--new", required=True)
+    view_p.add_argument("--root", required=True)
     body_p = sub.add_parser("docker-tag-from-body")
     body_p.add_argument("--image-prefix", required=True)
     body_p.add_argument("--git-tag", required=True)
@@ -317,6 +373,14 @@ def main() -> int:
             if same_series(comparable, series):
                 print(tag)
         return 0
+
+    if args.cmd == "apply-view-diff":
+        changed = apply_view_changes(
+            load_chains(Path(args.old)), load_chains(Path(args.new)), Path(args.root)
+        )
+        for chain_id in changed:
+            print(chain_id)
+        return 1 if changed else 0
 
     chains = load_chains(path)
     if args.cmd == "list":
