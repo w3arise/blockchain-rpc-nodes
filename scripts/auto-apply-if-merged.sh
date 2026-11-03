@@ -216,6 +216,8 @@ update_checkout() {
 #   - the repo-root .gitignore, as a regular file (only affects git status)
 #   - <dir>/env.template, as a regular file
 #   - files in a chain dir (has docker-compose.yml at HEAD) with no .env here
+#   - scripts/config/auto-upgrade.yaml, when only check-side keys change for
+#     chains set up here (see yaml_blocking)
 # Chain dirs come from HEAD only, so a new commit cannot turn scripts/ (or any
 # other dir) into a "chain dir" by adding a compose file.
 blocking_files() {
@@ -228,6 +230,10 @@ blocking_files() {
       if [[ -n "${mode}" && "${mode}" != "100644" ]]; then
         echo "${f} (.gitignore is not a regular file: mode ${mode})"
       fi
+      continue
+    fi
+    if [[ "${f}" == "scripts/config/auto-upgrade.yaml" ]]; then
+      yaml_blocking "${old}" "${new}" "${f}"
       continue
     fi
     if [[ "${f}" != */* ]]; then
@@ -251,6 +257,27 @@ blocking_files() {
       continue
     fi
   done < <(git diff --name-only --no-renames "${old}" "${new}")
+}
+
+# auto-upgrade.yaml is the rulebook new pins are validated against, so a change
+# to it may only merge unreviewed when no chain set up here (compose_dir with a
+# .env) changes an apply-relevant key. Uses the parser at HEAD, never the new one.
+yaml_blocking() {
+  local old="$1" new="$2" f="$3" mode out rc
+  mode="$(git ls-tree "${new}" -- "${f}" | awk '{print $1}')"
+  if [[ "${mode}" != "100644" ]]; then
+    echo "${f} (not a regular file at ${new:0:8}: mode ${mode:-deleted})"
+    return 0
+  fi
+  rc=0
+  out="$(python3 "${YAML_PY}" apply-view-diff \
+    --old <(git show "${old}:${f}") --new <(git show "${new}:${f}") \
+    --root "${REPO_ROOT}" 2>&1)" || rc=$?
+  if [[ "${rc}" == "1" && -n "${out}" ]] && ! grep -qv '^[A-Za-z0-9_.-]*$' <<<"${out}"; then
+    echo "${f} (apply settings change for: $(paste -sd, <<<"${out}"))"
+  elif [[ "${rc}" != "0" ]]; then
+    echo "${f} (cannot compare: ${out:-exit ${rc}})"
+  fi
 }
 
 env_value() {
