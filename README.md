@@ -87,7 +87,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 
 | Chain             | Type                  | Execution Client |
 | ----------------- | --------------------- | ---------------- |
-| 0G                | L1                    | 0g-node + 0g-geth |
+| 0G                | L1                    | 0g-reth + 0gchaind |
 | Astar (L1)        | L1                    | —                |
 | Bittensor         | L1                    | —                |
 | Mode              | L2 (OP Stack)         | op-reth + op-node |
