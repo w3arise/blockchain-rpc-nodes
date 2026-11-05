@@ -2,7 +2,7 @@
 
 Mainnet observer / RPC node. Chain data: `$HOME/plasma-reth-data`, `$HOME/plasma-consensus-data`.
 
-Reth archive (no `--full`): full receipts and logs. Consensus is the public observer image from [node-templates v1.1.0](https://github.com/PlasmaLaboratories/node-templates/releases/tag/v1.1.0).
+Reth archive (no `--full`): full receipts and logs. Reth and consensus pins (tag + digest) follow [node-templates](https://github.com/PlasmaLaboratories/node-templates) `config/mainnet/.env`; see its `UPGRADING.md` before bumping.
 
 ## Start
 

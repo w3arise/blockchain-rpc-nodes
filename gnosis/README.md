@@ -16,7 +16,7 @@ After a merged pin PR (tag-only): `./scripts/apply-tag-only.sh gnosis` from the 
 
 Manual: copy `GNOSIS_RETH_IMAGE` and `LIGHTHOUSE_IMAGE` from `env.template` into `.env`, then `docker compose pull && docker compose up -d`.
 
-Lighthouse `v8.2.2` is an image swap (no DB migration). `reth_gnosis` `v2.1.0` is a regular upstream reth bump; existing storage-v1 datadirs keep working.
+`reth_gnosis` and Lighthouse bumps are image swaps unless the release notes call for a DB migration; existing storage-v1 datadirs keep working on reth 2.x.
 
 ## Host ports
 
