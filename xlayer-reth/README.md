@@ -1,6 +1,6 @@
 # XLayer (xlayer-reth + op-node)
 
-Mainnet OP Stack node (reth alternative to [`xlayer/`](../xlayer/)). Chain data: `$HOME/xlayer-op-reth-data`, `$HOME/xlayer-reth-op-node-data`.
+Mainnet OP Stack node. Replaces the deprecated op-geth setup in [`xlayer/`](../xlayer/). Chain data: `$HOME/xlayer-op-reth-data`, `$HOME/xlayer-reth-op-node-data`.
 
 Run one or both XLayer setups — ports don't clash.
 
