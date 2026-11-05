@@ -92,7 +92,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Sonic | `SONIC_VERSION` | `0xsoniclabs/sonic` | tag-only |
 | Tac | `TACCHAIN_VERSION` | `TacBuild/tacchain` (ignore `-beta` / `-manual` unless requested) | needs-review |
 | Tempo | `TEMPO_IMAGE` | `tempoxyz/tempo` releases `tempo/v*`; `ghcr.io/tempoxyz/tempo` (image tag omits `tempo/v`) | tag-only |
-| Worldchain | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Stock Superchain pins in this repo. Official compose uses `ghcr.io/worldcoin/world-chain`, not stock op-reth | tag-only |
+| Worldchain | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | `worldcoin/world-chain` releases (`ghcr.io/worldcoin/world-chain`, tags `v*`); op-node is the stock OP Labs image | op-node tag-only; `world-chain` image manual (not in auto-upgrade) |
 | XDC | `XDC_VERSION` | `XinFinOrg/XDPoSChain` (ignore `*-testnet`) | needs-review |
 | XLayer | `OP_STACK_IMAGE_TAG`, `OP_GETH_IMAGE_TAG`, `ERIGON_VERSION` | Docker Hub `xlayer/op-node`, `xlayer/op-geth`. `okx/xlayer-erigon` may be private | needs-review |
 | XLayer (op-reth) | `OP_STACK_IMAGE_TAG`, `OP_RETH_IMAGE_TAG` | Docker Hub `xlayer/op-node`, `xlayer/xlayer-reth`; `okx/xlayer-reth` (treat `v0.0.7` as pre until a non-pre release) | needs-review |
@@ -102,7 +102,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 ## Gotchas
 
 - **Linea Besu** tags are `consensys/linea-besu-package:<semver>-<date>-<sha>`. Follow the getting-started compose pin (`2.0.0-…`), not Hub `2.2.0` until that compose moves. Start with `--profile=advanced-mainnet`.
-- **Worldchain** official compose uses `world-chain`, not stock `op-reth`.
+- **Worldchain** runs the `world-chain` client image (not stock `op-reth`); `op-node` stays the stock OP Labs image.
 - **HashKey / B²** freeze OP Labs tags in their own docs; bumping generic Superchain will desync from their genesis/rollup.
 - **Mantle** uses `mantlenetworkio/mantle-op-*` images. Auto-upgrade follows same-series `v*` git tags on `mantlenetworkio/op-geth` and `mantlenetworkio/mantle-v2` (`apply_group: mantle`); the networks compose file can lag those tags. A series jump stays manual. Upgrade mantle-op-geth before mantle-op-node; geth must be healthy before op-node starts.
 - **Celo** images are `celo-v*` on `us-west1-docker.pkg.dev/devopsre/celo-blockchain-public/`, not OP Labs.
