@@ -94,7 +94,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Tempo | `TEMPO_IMAGE` | `tempoxyz/tempo` releases `tempo/v*`; `ghcr.io/tempoxyz/tempo` (image tag omits `tempo/v`) | tag-only |
 | Worldchain | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | `worldcoin/world-chain` releases (`ghcr.io/worldcoin/world-chain`, tags `v*`); op-node is the stock OP Labs image | op-node tag-only; `world-chain` image manual (not in auto-upgrade) |
 | XDC | `XDC_VERSION` | `XinFinOrg/XDPoSChain` (ignore `*-testnet`) | needs-review |
-| XLayer | `OP_STACK_IMAGE_TAG`, `OP_GETH_IMAGE_TAG`, `ERIGON_VERSION` | Docker Hub `xlayer/op-node`, `xlayer/op-geth`. `okx/xlayer-erigon` may be private | needs-review |
+| XLayer (deprecated) | `OP_STACK_IMAGE_TAG`, `OP_GETH_IMAGE_TAG`, `ERIGON_VERSION` | Deprecated: upstream `okx/op-geth` is archived and end-of-support, so no further bumps. Use XLayer (op-reth) | deprecated |
 | XLayer (op-reth) | `OP_STACK_IMAGE_TAG`, `OP_RETH_IMAGE_TAG` | Docker Hub `xlayer/op-node`, `xlayer/xlayer-reth`; `okx/xlayer-reth` (treat `v0.0.7` as pre until a non-pre release) | needs-review |
 | Zircuit | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Conduit op-reth + OP Labs op-node | tag-only |
 | Zircuit (legacy) | `L2_GETH_IMAGE` | Docker Hub `zircuit1/l2-geth`. Historical only; live chain is `zircuit/` | needs-review |

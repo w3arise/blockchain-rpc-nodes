@@ -76,7 +76,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 | Tempo               | `tempo/`       | L1                                  | tempo (Reth SDK + Simplex BFT)            | [README](tempo/README.md)       |
 | Worldchain          | `worldchain/`  | L2 (OP Stack)                       | op-reth + op-node                         | [README](worldchain/README.md)  |
 | XDC                 | `xdc/`         | L1                                  | XDPoSChain (hash-full)                    | [README](xdc/README.md)         |
-| XLayer              | `xlayer/`      | L2 (OP Stack)                       | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md)      |
+| XLayer (deprecated) | `xlayer/`      | L2 (OP Stack)                       | op-geth + op-node + cdk-erigon (archival) | [README](xlayer/README.md)      |
 | XLayer (op-reth)    | `xlayer-reth/` | L2 (OP Stack)                       | xlayer-reth + op-node                     | [README](xlayer-reth/README.md) |
 | Zircuit             | `zircuit/`     | L2 (OP Stack / Conduit)             | conduit-op-reth + op-node                 | [README](zircuit/README.md)     |
 | Zircuit (legacy)    | `zircuit-legacy/` | L2 (OP Stack, pre-Conduit)       | zircuit1/l2-geth (historical RPC)         | [README](zircuit-legacy/README.md) |
@@ -87,7 +87,7 @@ Not every chain uses every file. Chain data is stored under `$HOME` on the host,
 
 | Chain             | Type                  | Execution Client |
 | ----------------- | --------------------- | ---------------- |
-| 0G                | L1                    | 0g-node + 0g-geth |
+| 0G                | L1                    | 0g-reth + 0gchaind |
 | Astar (L1)        | L1                    | —                |
 | Bittensor         | L1                    | —                |
 | Mode              | L2 (OP Stack)         | op-reth + op-node |
