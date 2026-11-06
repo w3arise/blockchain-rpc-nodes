@@ -43,8 +43,8 @@ services:
       - --cache=20000
     env_file: .env
     ports:
-      - ${RPC_BIND_ADDR}:${PORT__OP_GETH_HTTP}:8545
-      - ${RPC_BIND_ADDR}:${PORT__OP_GETH_WS}:8546
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${PORT__OP_GETH_HTTP}:8545
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${PORT__OP_GETH_WS}:8546
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}/udp
     volumes:
@@ -94,7 +94,7 @@ services:
       - --l1.max-concurrency=20
     env_file: .env
     ports:
-      - ${RPC_BIND_ADDR}:${PORT__OP_NODE_RPC}:9545
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${PORT__OP_NODE_RPC}:9545
       - ${PORT__OP_NODE_P2P}:9003
       - ${PORT__OP_NODE_P2P}:9003/udp
     volumes:

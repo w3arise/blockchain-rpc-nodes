@@ -13,8 +13,8 @@ services:
       - ${HEMI_GETH_DATA:-$HOME/hemi-op-geth-data}:/data
       - ${HEMI_TBC_DATA:-$HOME/hemi-tbc-data}:/tbcdata
     ports:
-      - ${RPC_BIND_ADDR}:${OP_GETH_HTTP_PORT}:${OP_GETH_HTTP_PORT}
-      - ${RPC_BIND_ADDR}:${OP_GETH_WS_PORT}:${OP_GETH_WS_PORT}
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${OP_GETH_HTTP_PORT}:${OP_GETH_HTTP_PORT}
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${OP_GETH_WS_PORT}:${OP_GETH_WS_PORT}
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}
       - ${OP_GETH_P2P_PORT}:${OP_GETH_P2P_PORT}/udp
     command:
@@ -76,7 +76,7 @@ services:
       BSS_LOG_LEVEL: INFO
       BSS_ADDRESS: ":${BSS_RPC_PORT}"
     ports:
-      - ${RPC_BIND_ADDR}:${BSS_RPC_PORT}:${BSS_RPC_PORT}
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${BSS_RPC_PORT}:${BSS_RPC_PORT}
     restart: unless-stopped
     networks:
       - hemi-network
@@ -96,7 +96,7 @@ services:
       - ./config/rollup.json:/config/rollup.json:ro
       - ${HEMI_OP_NODE_DATA:-$HOME/hemi-op-node-data}:/data
     ports:
-      - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
       - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
       - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
     command:

@@ -28,8 +28,8 @@ services:
       - ./config:/config
       - ./scripts/:/scripts/
     ports:
-      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
-      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${WS_PORT}:8546
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp
     extra_hosts:

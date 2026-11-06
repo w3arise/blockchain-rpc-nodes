@@ -42,8 +42,8 @@ services:
       - ./config/${NETWORK}/genesis.json:/node/genesis.json:ro
       - ./config/jwt.hex:/jwt/jwt.hex:ro
     ports:
-      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
-      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${WS_PORT}:8546
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp
     healthcheck:
@@ -91,7 +91,7 @@ services:
       - ./config/${NETWORK}/genesis.json:/node/genesis.json:ro
       - ./config/jwt.hex:/jwt/jwt.hex:ro
     ports:
-      - ${RPC_BIND_ADDR}:${CONSENSUS_API_PORT}:35070
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${CONSENSUS_API_PORT}:35070
       - ${CONSENSUS_P2P_PORT}:34070
     depends_on:
       plasma-execution:

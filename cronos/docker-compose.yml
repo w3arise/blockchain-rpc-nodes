@@ -19,11 +19,11 @@ services:
     volumes:
       - ${HOST_DATADIR:-$HOME/cronos-data}:/data
     ports:
-      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
-      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
-      - ${RPC_BIND_ADDR}:${TM_RPC_PORT}:26657
-      - ${RPC_BIND_ADDR}:${API_PORT}:1317
-      - ${RPC_BIND_ADDR}:${GRPC_PORT}:9090
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${TM_RPC_PORT}:26657
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${API_PORT}:1317
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${GRPC_PORT}:9090
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp
     ulimits:
