@@ -36,8 +36,8 @@ services:
     volumes:
       - ${RONIN_RETH_DATADIR}:/data
     ports:
-      - ${RPC_BIND_ADDR}:${RONIN_RETH_HTTP_PORT}:8545
-      - ${RPC_BIND_ADDR}:${RONIN_RETH_WS_PORT}:8546
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${RONIN_RETH_HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${RONIN_RETH_WS_PORT}:8546
       - 127.0.0.1:${RONIN_RETH_AUTHRPC_PORT}:9551
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp

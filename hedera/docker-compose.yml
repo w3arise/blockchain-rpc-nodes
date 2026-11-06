@@ -153,7 +153,7 @@ services:
     volumes:
       - ./config/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - ${RPC_BIND_ADDR}:${MIRROR_API_PORT}:8080
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${MIRROR_API_PORT}:8080
     depends_on:
       - rest
       - rest-java
@@ -192,7 +192,7 @@ services:
       REDIS_ENABLED: "true"
       REDIS_URL: redis://relay-redis:6379
     ports:
-      - ${RPC_BIND_ADDR}:${HTTP_PORT}:7546
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_PORT}:7546
     depends_on:
       api-proxy:
         condition: service_started
@@ -226,8 +226,8 @@ services:
       REDIS_ENABLED: "true"
       REDIS_URL: redis://relay-redis:6379
     ports:
-      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
-      - ${RPC_BIND_ADDR}:${WS_HEALTH_PORT}:8547
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${WS_HEALTH_PORT}:8547
     depends_on:
       api-proxy:
         condition: service_started

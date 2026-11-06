@@ -14,10 +14,10 @@ services:
       - ${HOST_DATADIR:-$HOME/pharos-data}:/data
       - ./config/pharos.conf:/data/pharos.conf:ro
     ports:
-      - ${RPC_BIND_ADDR}:${HTTP_PORT}:18100
-      - ${RPC_BIND_ADDR}:${WS_PORT}:18200
-      - ${RPC_BIND_ADDR}:${INTERNAL_RPC_PORT}:20000
-      - ${RPC_BIND_ADDR}:${P2P_PORT}:19000
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_PORT}:18100
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${WS_PORT}:18200
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${INTERNAL_RPC_PORT}:20000
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${P2P_PORT}:19000
     ulimits:
       nofile:
         soft: 10000000

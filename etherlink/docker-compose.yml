@@ -33,7 +33,7 @@ services:
     volumes:
       - ${HOST_DATADIR:-$HOME/etherlink-data}:/data
     ports:
-      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_PORT}:8545
     logging:
       options:
         max-size: "10m"

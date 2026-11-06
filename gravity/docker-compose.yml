@@ -20,10 +20,10 @@ services:
       - -lc
       - mkdir -p /gravity/logs/consensus_log /gravity/logs/execution_logs /gravity/data/data && exec /usr/local/bin/entrypoint.sh node
     ports:
-      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
-      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${WS_PORT}:8546
       - ${METRICS_BIND_ADDR}:${METRICS_PORT}:6060
-      - ${RPC_BIND_ADDR}:${INSPECTION_PORT}:12791
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${INSPECTION_PORT}:12791
       - ${PUBLIC_PORT}:${PUBLIC_PORT}
       - ${RETH_P2P_PORT}:${RETH_P2P_PORT}
       - ${RETH_P2P_PORT}:${RETH_P2P_PORT}/udp

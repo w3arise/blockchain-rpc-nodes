@@ -37,8 +37,8 @@ services:
       - ${HOST_DATADIR:-$HOME/b2-op-geth-data}:/data
       - ./config:/config:ro
     ports:
-      - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
-      - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_PORT}:8545
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${WS_PORT}:8546
       - ${P2P_PORT}:${P2P_PORT}
       - ${P2P_PORT}:${P2P_PORT}/udp
     restart: unless-stopped
@@ -60,7 +60,7 @@ services:
       - ${HOST_OP_NODE_DATADIR:-$HOME/b2-op-node-data}:/data
       - ./config:/config:ro
     ports:
-      - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
       - ${HOST_OP_NODE_P2P_PORT}:${OP_NODE_P2P_LISTEN_TCP}
       - ${HOST_OP_NODE_P2P_PORT}:${OP_NODE_P2P_LISTEN_UDP}/udp
     restart: unless-stopped
