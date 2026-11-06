@@ -106,14 +106,16 @@ In `env.template` under `### Ports ###`:
 | `HTTP_PORT` | chain-specific | Host port mapped to the client’s in-container HTTP listen port. |
 | `WS_PORT` | chain-specific | Same for WebSocket, when the client exposes it. |
 
-Compose mapping — host side from env, container side **fixed** at the client default (e.g. `8545` / `8546`):
+Compose mapping — host side from env, container side **fixed** at the client default (e.g. `8545` / `8546`). Prefer a **fail-safe** compose default for published binds so an unset var does not open the port on all interfaces:
 
 ```yaml
 ports:
-  - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
-  - ${RPC_BIND_ADDR}:${WS_PORT}:8546
-  - ${METRICS_BIND_ADDR}:${METRICS_PORT}:6060
+  - ${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_PORT}:8545
+  - ${RPC_BIND_ADDR:-127.0.0.1}:${WS_PORT}:8546
+  - ${METRICS_BIND_ADDR:-127.0.0.1}:${METRICS_PORT}:6060
 ```
+
+Same idea for other sensitive host publishes and for client listen flags that interpolate the bind (`--http.addr=${RPC_BIND_ADDR:-127.0.0.1}`). Do not fail-safe P2P ports to localhost — those must stay reachable. An explicit value in `.env` always overrides the compose fail-safe.
 
 Do not make both sides the same env var unless the client requires it.
 
@@ -315,8 +317,8 @@ Typical `env.template` ports block:
 
 ```yaml
 ports:
-  - ${RPC_BIND_ADDR}:${HTTP_PORT}:8545
-  - ${RPC_BIND_ADDR}:${WS_PORT}:8546
+  - ${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_PORT}:8545
+  - ${RPC_BIND_ADDR:-127.0.0.1}:${WS_PORT}:8546
   - ${P2P_PORT}:${P2P_PORT}
   - ${P2P_PORT}:${P2P_PORT}/udp
 ```
@@ -338,7 +340,7 @@ Do not put discovery v5 on a separate port unless chain docs explicitly require 
 
 ```yaml
 ports:
-  - ${RPC_BIND_ADDR}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
+  - ${RPC_BIND_ADDR:-127.0.0.1}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
   - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}
   - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}/udp
 ```
