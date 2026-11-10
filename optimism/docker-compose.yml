@@ -48,6 +48,9 @@ services:
     command:
       - op-node
     env_file: .env
+    environment:
+      OP_NODE_P2P_LISTEN_TCP_PORT: ${OP_NODE_P2P_PORT}
+      OP_NODE_P2P_LISTEN_UDP_PORT: ${OP_NODE_P2P_PORT}
     ports:
       - ${RPC_BIND_ADDR:-127.0.0.1}:${OP_NODE_RPC_PORT}:${OP_NODE_RPC_PORT}
       - ${OP_NODE_P2P_PORT}:${OP_NODE_P2P_PORT}

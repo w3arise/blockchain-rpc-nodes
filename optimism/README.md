@@ -21,7 +21,7 @@ Snap sync (`OP_NODE_SYNCMODE=execution-layer`) works without a snapshot but is s
 
 ## Host ports
 
-When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (op-reth, default `30303`) and `OP_NODE_P2P_PORT` (op-node, default `9222`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
+When running a public replica, allow inbound P2P (TCP + UDP): `P2P_PORT` (op-reth, `23407`) and `OP_NODE_P2P_PORT` (op-node, `9222`). RPC stays localhost-only by default (`RPC_BIND_ADDR=127.0.0.1`).
 
 ## Testnet
 
