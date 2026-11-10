@@ -8,6 +8,7 @@ Mainnet rollup node. Chain data: `$HOME/optimism-op-reth-data`, `$HOME/optimism-
 ./configure.sh          # create .env, set EXT_IP and P2P advertise IP
 # edit .env — set OP_NODE_L1_ETH_RPC, OP_NODE_L1_BEACON
 ./create-jwt.sh
+./restore-snapshot.sh   # optional archive snapshot; skip to sync from peers
 docker compose up -d
 ```
 
@@ -15,9 +16,9 @@ Same-series Superchain patches are **tag-only**: `./scripts/apply-tag-only.sh op
 
 ## Snapshot
 
-Archive nodes benefit from a pre-synced op-reth datadir. See [Optimism snapshots](https://docs.optimism.io/node-operators/guides/management/snapshots). Restore into `$HOME/optimism-op-reth-data`, then start as above (skip fresh sync).
+`./restore-snapshot.sh` downloads the newest OP Mainnet op-reth archive (`op-mainnet-reth-archive-storage-v2-*.tar.zst`) from [datadirs.optimism.io](https://datadirs.optimism.io/), checks sha256, and moves it into `$HOME/optimism-op-reth-data`. An existing `db/` skips both the download and the extract. Set `SNAPSHOT_URL` to pin one tarball. Staging is `$HOME/optimism-snapshot-tmp` (`SNAPSHOT_TMPDIR`); the archive is kept.
 
-Snap sync (`OP_NODE_SYNCMODE=execution-layer`) works without a snapshot but is slower for archive use.
+Peer sync (`OP_NODE_SYNCMODE=execution-layer`) works without a snapshot. See [Optimism snapshots](https://docs.optimism.io/node-operators/guides/management/snapshots).
 
 ## Host ports
 

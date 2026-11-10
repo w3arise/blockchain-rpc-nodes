@@ -31,6 +31,11 @@ services:
       - --authrpc.port=9551
       - --authrpc.jwtsecret=/config/jwt.hex
       - --rpc.gascap=${GAS_CAP}
+      - --rpc.max-connections=${RPC_MAX_CONNECTIONS:-500}
+      - --rpc.max-logs-per-response=${RPC_MAX_LOGS_PER_RESPONSE:-20000}
+      - --rpc.max-blocks-per-filter=${RPC_MAX_BLOCKS_PER_FILTER:-100000}
+      - --rpc-cache.max-concurrent-db-requests=${RPC_CACHE_MAX_CONCURRENT_DB_REQUESTS:-512}
+      - --engine.cross-block-cache-size=${ENGINE_CROSS_BLOCK_CACHE_SIZE:-4096}
       - --nat=extip:${EXT_IP}
       - --port=${P2P_PORT}
       - --discovery.addr=0.0.0.0
