@@ -46,6 +46,8 @@ Subscribe:
 {"jsonrpc":"2.0","id":1,"method":"eth_subscribe","params":["newHeads"]}
 ```
 
+A way to start it from the live hl-node state, instead of an S3 sync from genesis, is sketched in [nanoreth-recent-anchor.md](nanoreth-recent-anchor.md). That path is not deployed here.
+
 Before running it next to this node:
 
 - The `pruner` deletes files under `data/` older than `PRUNE_RETENTION_HOURS` (default 48). nanoreth must ingest faster than that, or exclude `evm_block_and_receipts` from pruning.
