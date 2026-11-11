@@ -7,6 +7,9 @@ services:
     ports:
       - "${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_PORT}:8547"
       - "${RPC_BIND_ADDR:-127.0.0.1}:${WS_PORT}:8548"
+    environment:
+      # Empty = no Go memory limit.
+      GOMEMLIMIT: ${GOMEMLIMIT:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -34,6 +37,11 @@ services:
       - --execution.caching.state-scheme=${STATE_SCHEME}
       - --execution.caching.state-history=${STATE_HISTORY}
       - --execution.caching.archive
+      # Empty in .env = Nitro v3.12 defaults (MB).
+      - --execution.caching.database-cache=${CACHE_DATABASE_MB:-2048}
+      - --execution.caching.snapshot-cache=${CACHE_SNAPSHOT_MB:-400}
+      - --execution.caching.trie-clean-cache=${CACHE_TRIE_CLEAN_MB:-600}
+      - --execution.caching.trie-dirty-cache=${CACHE_TRIE_DIRTY_MB:-1024}
       - --execution.rpc.tx-fee-cap=${TX_FEE_CAP}
       - --execution.rpc.gas-cap=${GAS_CAP}
     logging:

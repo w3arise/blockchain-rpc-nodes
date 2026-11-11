@@ -16,6 +16,10 @@ PathDB archive: `STATE_SCHEME=path`, `STATE_HISTORY=0`, plus `--execution.cachin
 
 **Do not set `STATE_HISTORY` to a non-zero value** on an existing archive datadir or after restoring an archive snapshot — Nitro prunes history immediately. For pruned full-node behavior (~24h retention), set `STATE_HISTORY=345600` and remove `--execution.caching.archive` only on a fresh sync or when you accept the prune. See [AGENTS.md](../AGENTS.md#arbitrum-nitro-pathdb--pbss).
 
+## Memory (optional)
+
+Cache sizes (`CACHE_*_MB`) and `GOMEMLIMIT` are empty in `env.template`, so the node runs with Nitro's defaults (about 4 GB of caches, no Go memory limit). On a host with spare RAM, larger caches speed up state reads for RPC; `GOMEMLIMIT` makes Go free memory before the host runs out. Recreate the node after changing them.
+
 ## Start
 
 ```bash
