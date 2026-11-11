@@ -14,6 +14,7 @@ services:
       - --node.feed.input.url=${FEED_RELAY_INPUT_URL}
       - --node.feed.output.addr=${FEED_RELAY_BIND_ADDR:-127.0.0.1}
       - --node.feed.output.port=${FEED_RELAY_PORT}
+      - --node.feed.output.enable-compression
     logging:
       driver: json-file
       options:
