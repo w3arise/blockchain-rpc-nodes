@@ -16,8 +16,7 @@ services:
     command:
       - --parent-chain.connection.url=${L1_ETH_URL}
       - --parent-chain.blob-client.beacon-url=${L1_ETH_BEACON_URL}
-      - --node.feed.input.url=${FEED_URL}
-      - --node.feed.input.url=${SECONDARY_FEED_URL}
+      - --node.feed.input.url=${FEED_URLS:?set FEED_URLS in .env (see env.template)}
       - --init.genesis-json-file=/config/robinhood-genesis.json
       - --chain.info-files=/config/robinhood-chain-info.json
       - --chain.id=${CHAIN_ID}
