@@ -80,7 +80,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Mova | `MOVA_VERSION` | Docker Hub `movachain/movan-syncnode`. Genesis sync stays on the creation tag (`v0.0.1`, commit `6f0cc05`) until a newer tag's release notes say it can sync from height 0. Not chain 61900 `mainnet-syncnode`. | needs-review |
 | Neo X | `GETH_VERSION` | `bane-labs/go-ethereum` | tag-only |
 | opBNB | `OP_GETH_IMAGE_TAG`, `OP_NODE_IMAGE_TAG` | `bnb-chain/op-geth`, `bnb-chain/opbnb` | needs-review |
-| Optimism | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain | tag-only |
+| Optimism | `OP_RETH_IMAGE`, `OP_NODE_IMAGE`, `KONA_NODE_IMAGE` | Shared Superchain (`op-reth/v*`, `op-node/v*`, `kona-node/v*`). Kona is optional and not production-ready; do not auto-upgrade it with the op-node apply group. | tag-only (op-reth + op-node; kona needs-review) |
 | Pharos | `PHAROS_IMAGE` | `PharosNetwork/resources` + image tag `pharos_community_v*` | needs-review |
 | Plasma | `RETH_IMAGE`, `CONSENSUS_IMAGE` | `PlasmaLaboratories/node-templates` (chain-official compose pins). Do not use generic Reth latest. | needs-review |
 | Plume | `NITRO_IMAGE` | Conduit/Plume docs first; mainline Nitro only if they track it (`*-validator` suffix) | tag-only |
