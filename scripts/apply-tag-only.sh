@@ -26,6 +26,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 YAML_PY="${SCRIPT_DIR}/lib/auto-upgrade-yaml.py"
 YAML_FILE="${SCRIPT_DIR}/config/auto-upgrade.yaml"
+# shellcheck source=SCRIPTDIR/lib/compose-project.sh
+source "${SCRIPT_DIR}/lib/compose-project.sh"
 
 CHAIN_ID="${1:-}"
 if [[ -z "${CHAIN_ID}" || -n "${2:-}" ]]; then
@@ -63,9 +65,15 @@ eval "$(python3 "${YAML_PY}" --file "${YAML_FILE}" export "${TARGET_IDS[0]}")"
 COMPOSE_DIR="${REPO_ROOT}/${AUTO_COMPOSE_DIR}"
 ENV_TEMPLATE="${REPO_ROOT}/${AUTO_ENV_FILE}"
 ENV_FILE="${COMPOSE_DIR}/.env"
+# Same for every pin of an apply_group (the YAML parser enforces it).
+COMPOSE_FILE_NAME="${AUTO_COMPOSE_FILE}"
 
 if [[ ! -d "${COMPOSE_DIR}" ]]; then
   echo "ERROR: missing compose dir ${COMPOSE_DIR}" >&2
+  exit 1
+fi
+if [[ ! -f "${COMPOSE_DIR}/${COMPOSE_FILE_NAME}" ]]; then
+  echo "ERROR: missing compose file ${COMPOSE_DIR}/${COMPOSE_FILE_NAME}" >&2
   exit 1
 fi
 if [[ ! -f "${ENV_TEMPLATE}" ]]; then
@@ -85,7 +93,7 @@ if [[ -n "${dirty}" ]]; then
 fi
 
 if [[ "${SKIP_COMPOSE}" != "1" ]]; then
-  for cmd in docker curl; do
+  for cmd in docker curl timeout; do
     if ! command -v "${cmd}" >/dev/null 2>&1; then
       echo "ERROR: required command not found: ${cmd}" >&2
       exit 1
@@ -96,15 +104,14 @@ if [[ "${SKIP_COMPOSE}" != "1" ]]; then
   # started. Refuse when another directory (e.g. another user's checkout of
   # the same chain) owns containers under that name. Check before .env changes.
   compose_path="$(cd "${COMPOSE_DIR}" && pwd -P)"
-  project="$(cd "${COMPOSE_DIR}" && docker compose config 2>/dev/null | sed -n 's/^name: //p' | head -n1)"
-  project="${project:-$(basename "${compose_path}" | tr '[:upper:]' '[:lower:]')}"
+  project="$(compose_project_name "${COMPOSE_DIR}" "${COMPOSE_FILE_NAME}")"
   other_dirs="$(docker ps -a \
     --filter "label=com.docker.compose.project=${project}" \
     --format '{{.Label "com.docker.compose.project.working_dir"}}' \
     | sort -u | grep -vxF -- "${compose_path}" | grep -v '^$' || true)"
   if [[ -n "${other_dirs}" ]]; then
     echo "ERROR: compose project '${project}' has containers from another directory:" >&2
-    echo "${other_dirs}" | sed 's/^/  /' >&2
+    while IFS= read -r dir; do echo "  ${dir}"; done <<<"${other_dirs}" >&2
     echo "Applying here would recreate them. Set a distinct COMPOSE_PROJECT_NAME in .env or apply from that checkout." >&2
     exit 3
   fi
@@ -159,7 +166,7 @@ for pin_id in "${TARGET_IDS[@]}"; do
     AUTO_HEALTH_PATH AUTO_HEALTH_PORT_VAR AUTO_HEALTH_BIND_VAR \
     AUTO_HEALTH_MODE AUTO_HEALTH_MAX_AGE \
     AUTO_STRIP_GIT_PREFIX AUTO_APPLY_GROUP AUTO_IMAGE_TAG_SUFFIX \
-    AUTO_COMPOSE_BUILD
+    AUTO_COMPOSE_BUILD AUTO_COMPOSE_FILE
   # shellcheck disable=SC1090
   eval "$(python3 "${YAML_PY}" --file "${YAML_FILE}" export "${pin_id}")"
   if [[ "${AUTO_COMPOSE_BUILD:-}" == "true" ]]; then
@@ -188,15 +195,12 @@ if [[ "${SKIP_COMPOSE}" == "1" ]]; then
   exit 0
 fi
 
-(
-  cd "${COMPOSE_DIR}"
-  if [[ "${COMPOSE_BUILD}" -eq 1 ]]; then
-    docker compose up -d --build
-  else
-    docker compose pull
-    docker compose up -d
-  fi
-)
+if [[ "${COMPOSE_BUILD}" -eq 1 ]]; then
+  compose_cmd "${COMPOSE_DIR}" "${COMPOSE_FILE_NAME}" up -d --build
+else
+  compose_cmd "${COMPOSE_DIR}" "${COMPOSE_FILE_NAME}" pull
+  compose_cmd "${COMPOSE_DIR}" "${COMPOSE_FILE_NAME}" up -d
+fi
 
 if [[ -z "${HEALTH_MODE}${HEALTH_PATH}" || -z "${HEALTH_PORT_VAR}" ]]; then
   echo "No health check configured for ${CHAIN_ID}."
@@ -257,6 +261,23 @@ except Exception:
     sleep 5
   done
   echo "ERROR: ${CHAIN_ID} latest block not fresh (<= ${max_age}s) at ${url} within ${HEALTH_TIMEOUT}s" >&2
+  exit 1
+fi
+
+# tcp: healthy once the port accepts a connection (services without an HTTP
+# API, e.g. the Nitro feed relay). bash /dev/tcp, bounded by timeout(1).
+if [[ "${HEALTH_MODE}" == "tcp" ]]; then
+  echo "Waiting for TCP ${health_bind}:${health_port} (timeout ${HEALTH_TIMEOUT}s)"
+  deadline=$((SECONDS + HEALTH_TIMEOUT))
+  while (( SECONDS < deadline )); do
+    # shellcheck disable=SC2016  # $1/$2 expand in the child bash
+    if timeout 3 bash -c 'exec 3<>"/dev/tcp/$1/$2"' _ "${health_bind}" "${health_port}" 2>/dev/null; then
+      echo "Healthy: ${health_bind}:${health_port} accepts TCP"
+      exit 0
+    fi
+    sleep 5
+  done
+  echo "ERROR: ${CHAIN_ID} ${health_bind}:${health_port} did not accept TCP within ${HEALTH_TIMEOUT}s" >&2
   exit 1
 fi
 

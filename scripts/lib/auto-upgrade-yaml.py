@@ -17,6 +17,7 @@ ALLOWED_KEYS = {
     "var",
     "image_prefix",
     "compose_dir",
+    "compose_file",
     "apply_group",
     "chain_links",
     "source_type",
@@ -50,6 +51,10 @@ CHECK_ONLY_KEYS = {
 }
 
 COMPOSE_DIR_RE = re.compile(r"^[A-Za-z0-9_-][A-Za-z0-9._-]*$")
+# One file name inside compose_dir (no "/", no leading "." or "-").
+COMPOSE_FILE_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9._-]*\.ya?ml$")
+DEFAULT_COMPOSE_FILE = "docker-compose.yml"
+HEALTH_MODES = {"http_get", "block_time", "tcp"}
 
 REQUIRED_KEYS = {
     "id",
@@ -133,6 +138,16 @@ def load_chains(path: Path) -> list[dict]:
             raise SystemExit(
                 f"{chain['id']}: compose_dir must be a single directory name (got {chain['compose_dir']!r})"
             )
+        compose_file = chain.get("compose_file", DEFAULT_COMPOSE_FILE)
+        if not isinstance(compose_file, str) or not COMPOSE_FILE_RE.fullmatch(compose_file):
+            raise SystemExit(
+                f"{chain['id']}: compose_file must be a plain .yml/.yaml file name (got {compose_file!r})"
+            )
+        mode = chain.get("health_mode")
+        if mode is not None and mode not in HEALTH_MODES:
+            raise SystemExit(
+                f"{chain['id']}: health_mode must be one of {sorted(HEALTH_MODES)} (got {mode!r})"
+            )
         if chain["env_file"] != f"{chain['compose_dir']}/env.template":
             raise SystemExit(
                 f"{chain['id']}: env_file must be {chain['compose_dir']}/env.template (got {chain['env_file']!r})"
@@ -157,6 +172,11 @@ def load_chains(path: Path) -> list[dict]:
         if len(env_files) != 1:
             raise SystemExit(
                 f"apply_group {group}: env_file must be shared, got {sorted(env_files)}"
+            )
+        compose_files = {row.get("compose_file", DEFAULT_COMPOSE_FILE) for row in rows}
+        if len(compose_files) != 1:
+            raise SystemExit(
+                f"apply_group {group}: compose_file must be shared, got {sorted(compose_files)}"
             )
     return chains
 
@@ -248,6 +268,8 @@ def docker_tag_from_release_body(
 
 
 def dump_export(chain: dict) -> None:
+    # Defaults are filled here only, so callers never repeat them.
+    chain = {"compose_file": DEFAULT_COMPOSE_FILE, **chain}
     for key in sorted(chain):
         value = chain[key]
         if isinstance(value, bool):

@@ -28,6 +28,18 @@ docker compose up -d
 
 Same-series Nitro patches are **tag-only**: `./scripts/apply-tag-only.sh robinhood`
 
+## Feed relay (optional)
+
+`docker-compose.relay.yml` runs the Nitro `relay` binary: it reads `FEED_RELAY_INPUT_URL` and re-serves the feed on `FEED_RELAY_BIND_ADDR:FEED_RELAY_PORT` (host network, default `127.0.0.1:9642`).
+
+```bash
+docker compose -f docker-compose.relay.yml up -d
+```
+
+On an existing `.env`, first copy the `FEED_RELAY_*` keys from `env.template`. To feed the node from the relay, set `FEED_URL=ws://127.0.0.1:9642` in `.env` and recreate the node.
+
+Same-series relay patches are **tag-only** and apply apart from the node: `./scripts/apply-tag-only.sh robinhood-feed-relay`. A `COMPOSE_PROJECT_NAME` in `.env` also renames the relay project (it overrides `name:`), so compose then reports the other file's containers as orphans; never pass `--remove-orphans` in that case.
+
 ## Snapshot
 
 No official snapshot URL is published. Sync from genesis via the sequencer feed, or add `--init.url=<SNAPSHOT_URL>` to `docker-compose.yml` for a one-time first start with an empty datadir if you have a snapshot source.

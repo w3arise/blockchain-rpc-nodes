@@ -83,9 +83,10 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Optimism | `OP_RETH_IMAGE`, `OP_NODE_IMAGE`, `KONA_NODE_IMAGE` | Shared Superchain (`op-reth/v*`, `op-node/v*`, `kona-node/v*`). Kona is optional and not production-ready; do not auto-upgrade it with the op-node apply group. | tag-only (op-reth + op-node; kona needs-review) |
 | Pharos | `PHAROS_IMAGE` | `PharosNetwork/resources` + image tag `pharos_community_v*` | needs-review |
 | Plasma | `RETH_IMAGE`, `CONSENSUS_IMAGE` | `PlasmaLaboratories/node-templates` (chain-official compose pins). Do not use generic Reth latest. | needs-review |
-| Plume | `NITRO_IMAGE` | Conduit/Plume docs first; mainline Nitro only if they track it (`*-validator` suffix) | tag-only |
+| Plume | `NITRO_IMAGE` | Conduit/Plume docs first; mainline Nitro otherwise (node runs with the staker off, so no `-validator` image) | tag-only |
 | Polygon PoS | `BOR_IMAGE` in `polygon-bor/env.template.mainnet` (and `.amoy`) | `0xPolygon/bor` releases. Image `ghcr.io/0xpolygon/bor:v*` (tag includes `v`). Docker Hub stopped after `2.10.1`. | needs-review |
 | Robinhood Chain | `NITRO_IMAGE` | `OffchainLabs/nitro` (mainline) | tag-only |
+| Robinhood Chain feed relay | `FEED_RELAY_IMAGE` | `OffchainLabs/nitro` (mainline, image from the release body) | tag-only |
 | Ronin | `RONIN_RETH_IMAGE`, `OP_NODE_IMAGE`, `EIGENDA_PROXY_IMAGE` | Conduit op-reth + OP Labs op-node + EigenDA monorepo. Reth/op-node are tag-only; EigenDA stays needs-review | tag-only |
 | Sei | `SEID_VERSION` | `sei-protocol/sei-chain` | tag-only |
 | Soneium | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain | tag-only |
@@ -115,7 +116,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 - **Nitro Orbit** (ApeChain, Plume) may require a vendor tag (`apechain-3.9.9` / older `apechain-v*`, `*-validator`).
 - **Monad** APT `MONAD_VERSION`. Release-specific steps (TrieDB timeline, testnet-only builds) stay in that release’s [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions) and in the pin PR.
 - **op-node v1.19.2** is below the Mode/Metal/Zora Karst gas-config floor (`v1.19.3+`) for built-in `--network` configs.
-- **Nitro** series jumps stay `needs-review`. Cold-copy / backup the datadir only when Offchain Labs release notes or docs say one-way / cannot downgrade (historically **3.8 / 3.10**). Do not recommend a backup on every minor jump. Arbitrum One replica is pinned at `v3.12.1` and allowlisted for **`v3.12.*` patches** (`image_tag_from: release_body`). See `arbitrum/README.md`.
+- **Nitro** series jumps stay `needs-review`. Cold-copy / backup the datadir only when Offchain Labs release notes or docs say one-way / cannot downgrade (historically **3.8 / 3.10**). Do not recommend a backup on every minor jump. Arbitrum One replica is allowlisted for **`v3.12.*` patches** (`image_tag_from: release_body`). See `arbitrum/README.md`.
 - **Pharos** image and `bin/VERSION` must stay paired (`./configure.sh` refreshes `mainnet.version`). v0.16 monitoring keys are `storage_cetina_*` (was `pamir_cetina_*`); this repo’s `pharos.conf` has no `monitor_config`. See `pharos/README.md`.
 - **Mova (61901)** genesis sync stays on `movachain/movan-syncnode:v0.0.1` (commit `6f0cc05`, linux/amd64 only) until a newer tag's release notes say it can sync from height 0. Chain **61900** uses `movachain/mainnet-syncnode` (different network). Vendor supervisord uses `--pruning=nothing`; compose overrides to `syncable`. Config: `movad init` + `patch-config.sh` (no vendored full `config.toml`); genesis downloaded at init (checksum in `init-database.sh`). Gas cap in `noderpc.toml`, not geth-style flags. No separate official node-run doc for 61901 in repo links — image, explorer, and snapshot host only.
 
