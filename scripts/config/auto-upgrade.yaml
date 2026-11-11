@@ -380,7 +380,6 @@ chains:
     tag_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
     image_tag_from: release_body
-    image_tag_suffix: "-validator"
     health_mode: block_time
     health_port_var: HTTP_PORT
 

@@ -9,7 +9,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Chain | Git pin | Upgrade class | Allowlist (`auto-upgrade.yaml`) | Host apply |
 | --- | --- | --- | --- | --- |
 | Aptos | `aptos-node-v1.49.6` | tag-only | **yes** — same-series `v1.49.*` | `./scripts/apply-tag-only.sh aptos` |
-| Arbitrum | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (docker tag from the GitHub release body, not the bare git tag) | `./scripts/apply-tag-only.sh arbitrum` |
+| Arbitrum | `nitro-node:v3.12.*` | tag-only | **yes** — same-series `v3.12.*` (docker tag from the GitHub release body, not the bare git tag) | `./scripts/apply-tag-only.sh arbitrum` |
 | Berachain | `bera-reth:v1.4.4` | tag-only | **yes** — same-series `v1.4.*`. beacon-kit stays `needs-review` | `./scripts/apply-tag-only.sh berachain` |
 | Celo | op-reth `celo-v1.0.*` | tag-only | **yes** — `celo-op-reth` only; op-node + EigenDA manual | `./scripts/apply-tag-only.sh celo` |
 | Bob | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: bob`) | `./scripts/apply-tag-only.sh bob` |
@@ -22,8 +22,8 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Morph | geth `2.2.*` + node `0.6.*` | tag-only | **yes** — paired `apply_group: morph` (post–L1 cutover series) | `./scripts/apply-tag-only.sh morph` |
 | Neo X | `GETH_VERSION=v0.6.2` | tag-only | **yes** — same-series `v0.6.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh neox` |
 | Optimism | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: optimism`) | `./scripts/apply-tag-only.sh optimism` |
-| Plume | `nitro-node:v3.11.4-*-validator` | tag-only | **yes** — same-series `v3.11.*-validator` (release body) | `./scripts/apply-tag-only.sh plume` |
-| Robinhood | `nitro-node:v3.11.3-beb2108` | tag-only | **yes** — same-series `v3.11.*` (release body, like Arbitrum) | `./scripts/apply-tag-only.sh robinhood` |
+| Plume | `nitro-node:v3.12.*` | tag-only | **yes** — same-series `v3.12.*` (release body, like Arbitrum) | `./scripts/apply-tag-only.sh plume` |
+| Robinhood | `nitro-node:v3.12.*` | tag-only | **yes** — same-series `v3.12.*` (release body, like Arbitrum) | `./scripts/apply-tag-only.sh robinhood` |
 | Ronin | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: ronin`). EigenDA stays `needs-review` | `./scripts/apply-tag-only.sh ronin` |
 | Sei | `SEID_VERSION=v6.6.3` | tag-only | **yes** — same-series `v6.6.*` | `./scripts/apply-tag-only.sh sei` |
 | Sonic | `SONIC_VERSION=v2.2.*` | tag-only | **yes** — same-series; host apply **builds** the local image | `./scripts/apply-tag-only.sh sonic` |
@@ -197,7 +197,7 @@ Machine-readable source of truth: [`scripts/config/auto-upgrade.yaml`](scripts/c
 
 Adding a chain is one YAML object (id, pin file/var, image prefix, GitHub repo, tag prefix, compose dir, optional health URL, optional `image_tag_from: release_body` when the docker tag is not the git tag, optional `strip_git_prefix` when git tags include a component prefix, optional `apply_group` when two pins share a compose dir, optional `allow_series_jump: true` when host apply may cross major.minor). Auto only follows tags that share major.minor with **whatever is currently pinned**. `allow_series_jump` does not change that; it only lets a merged series jump pass host `validate-pin`.
 
-v1 allowlist: **Aptos**, **Arbitrum**, **Robinhood**, Superchain OP Stack (**Bob**, **Lisk**, **Mode**, **Optimism**, **Worldchain**), Conduit (**Katana**, **Plume**, **Ronin**, **Zircuit**), plus **Berachain** (bera-reth only), **Core**, **Gnosis Chain** (reth_gnosis + lighthouse), **Mantle** (mantle-op-geth + mantle-op-node), **Neo X**, **Sei**, and **Tempo**. OP Stack rows are one pin each (`*-op-reth` / `*-op-node`) with a shared `apply_group` so hosts run `./scripts/apply-tag-only.sh katana` once. OP Labs git tags are `op-reth/v*` / `op-node/v*`; `strip_git_prefix` maps those to docker tags `v*`. Tempo strips the git `tempo/v` (`tempo/v1.17.0` → GHCR `1.17.0`). Conduit execution uses `conduitxyz/conduit-op-reth` tags `v*`. Plume is Nitro `image_tag_from: release_body` with `image_tag_suffix: -validator`. Core and Neo X set `compose_build: true` (version-only `GETH_VERSION`; apply rebuilds the local image). Auto only follows tags that share major.minor with **whatever is currently pinned**.
+v1 allowlist: **Aptos**, **Arbitrum**, **Robinhood**, Superchain OP Stack (**Bob**, **Lisk**, **Mode**, **Optimism**, **Worldchain**), Conduit (**Katana**, **Plume**, **Ronin**, **Zircuit**), plus **Berachain** (bera-reth only), **Core**, **Gnosis Chain** (reth_gnosis + lighthouse), **Mantle** (mantle-op-geth + mantle-op-node), **Neo X**, **Sei**, and **Tempo**. OP Stack rows are one pin each (`*-op-reth` / `*-op-node`) with a shared `apply_group` so hosts run `./scripts/apply-tag-only.sh katana` once. OP Labs git tags are `op-reth/v*` / `op-node/v*`; `strip_git_prefix` maps those to docker tags `v*`. Tempo strips the git `tempo/v` (`tempo/v1.17.0` → GHCR `1.17.0`). Conduit execution uses `conduitxyz/conduit-op-reth` tags `v*`. Arbitrum, Plume and Robinhood are Nitro `image_tag_from: release_body` without a suffix: the body names the plain tag (`v3.12.1-<hash>`); a pin may also be a `-stripped` tag set by hand when a release ships only that image. Core and Neo X set `compose_build: true` (version-only `GETH_VERSION`; apply rebuilds the local image). Auto only follows tags that share major.minor with **whatever is currently pinned**.
 
 ## Git layer (detect + PR)
 
