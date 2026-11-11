@@ -53,6 +53,25 @@ else
   echo "OP_NODE_P2P_ADVERTISE_IP already set to ${PUBLIC_IP}"
 fi
 
+if ! grep -qE '^COMPOSE_PROFILES=' "${ENV_FILE}"; then
+  printf '\n# Rollup client: op-node (default) or kona. Only one runs.\nCOMPOSE_PROFILES=op-node\n' >> "${ENV_FILE}"
+  echo "set COMPOSE_PROFILES=op-node in .env"
+fi
+
+PROFILE="$(grep -E '^COMPOSE_PROFILES=' "${ENV_FILE}" | tail -n 1 | cut -d= -f2- || true)"
+PROFILE="${PROFILE%\"}"
+PROFILE="${PROFILE#\"}"
+
+echo ""
+echo "Rollup client: COMPOSE_PROFILES=${PROFILE}"
+echo "  op-node  default. Container optimism-op-node. Datadir \$HOME/optimism-op-node-data."
+echo "  kona     alternative. Container optimism-kona-node. Datadir \$HOME/optimism-kona-data."
+echo "  Switch: stop the other rollup container, change COMPOSE_PROFILES, then docker compose up -d."
+echo "  Only one of optimism-op-node and optimism-kona-node may run."
+if [[ "${PROFILE}" != "op-node" && "${PROFILE}" != "kona" ]]; then
+  echo "WARNING: COMPOSE_PROFILES=${PROFILE} is not op-node or kona, so no rollup client will start." >&2
+fi
+
 echo ""
 echo "Next:"
 echo "  edit .env — set OP_NODE_L1_ETH_RPC and OP_NODE_L1_BEACON"

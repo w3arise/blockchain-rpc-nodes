@@ -48,6 +48,7 @@ services:
       - optimism-network
 
   optimism-op-node:
+    profiles: ["op-node"]
     image: ${OP_NODE_IMAGE}
     container_name: optimism-op-node
     command:
@@ -64,6 +65,42 @@ services:
       - ${HOST_OP_NODE_DATADIR:-$HOME/optimism-op-node-data}:/data
       - ./config:/config
     restart: unless-stopped
+    depends_on:
+      optimism-op-reth:
+        condition: service_started
+    networks:
+      - optimism-network
+
+  optimism-kona-node:
+    profiles: ["kona"]
+    image: ${KONA_NODE_IMAGE:-us-docker.pkg.dev/oplabs-tools-artifacts/images/kona-node:v1.10.0}
+    container_name: optimism-kona-node
+    entrypoint: ["kona-node"]
+    command:
+      - node
+      - --chain=optimism
+      - --l1-eth-rpc=${OP_NODE_L1_ETH_RPC}
+      - --l1-beacon=${OP_NODE_L1_BEACON}
+      - --l2-engine-rpc=http://optimism-op-reth:9551
+      - --l2-engine-jwt-secret=/config/jwt.hex
+      - --rpc.addr=0.0.0.0
+      - --port=9545
+      - --p2p.listen.ip=0.0.0.0
+      - --p2p.listen.tcp=${KONA_P2P_PORT:-9223}
+      - --p2p.listen.udp=${KONA_P2P_PORT:-9223}
+      - --p2p.advertise.ip=${EXT_IP}
+      - --p2p.priv.path=/data/p2p-priv.txt
+      - --p2p.bootstore=/data
+      - --safedb.path=/data/safedb
+    ports:
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${KONA_RPC_PORT:-8994}:9545
+      - ${KONA_P2P_PORT:-9223}:${KONA_P2P_PORT:-9223}
+      - ${KONA_P2P_PORT:-9223}:${KONA_P2P_PORT:-9223}/udp
+    volumes:
+      - ${HOST_KONA_DATADIR:-$HOME/optimism-kona-data}:/data
+      - ./config:/config:ro
+    restart: unless-stopped
+    stop_grace_period: 360s
     depends_on:
       optimism-op-reth:
         condition: service_started

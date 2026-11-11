@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Generate a shared Engine API JWT for op-reth and op-node.
+# Generate a shared Engine API JWT for op-reth and the rollup client (op-node or kona-node).
 #
 # Usage: ./create-jwt.sh
 
