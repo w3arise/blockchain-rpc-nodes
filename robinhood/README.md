@@ -8,7 +8,7 @@ The `nitro-node` image runs as **`user` (UID 1000, GID 1000)**. Datadir inside t
 
 `eth_sendRawTransaction` is forwarded to the Robinhood sequencer (`FORWARDING_TARGET` in `.env`). Reads are served locally from the archive datadir.
 
-Sequencer feeds: set `FEED_URL` and `SECONDARY_FEED_URL` (delayed backup). Compose passes both as `--node.feed.input.url` so the node runs dual-primary feeds and deduplicates by sequence number ([docs](https://docs.robinhood.com/chain/run-a-full-node/#recommended-run-both-feeds-simultaneously)).
+Sequencer feeds: `FEED_URLS` is a comma-separated list (no spaces) passed to `--node.feed.input.url`. The node reads every feed at once and deduplicates by sequence number; the default is the main feed plus the delayed backup feed. On an existing `.env`, replace `FEED_URL` / `SECONDARY_FEED_URL` with `FEED_URLS` before recreating the node: compose refuses to start without it ([docs](https://docs.robinhood.com/chain/run-a-full-node/#recommended-run-both-feeds-simultaneously)).
 
 ## State retention
 
@@ -36,7 +36,7 @@ Same-series Nitro patches are **tag-only**: `./scripts/apply-tag-only.sh robinho
 docker compose -f docker-compose.relay.yml up -d
 ```
 
-On an existing `.env`, first copy the `FEED_RELAY_*` keys from `env.template`. To feed the node from the relay, set `FEED_URL=ws://127.0.0.1:9642` in `.env` and recreate the node.
+On an existing `.env`, first copy the `FEED_RELAY_*` keys from `env.template`. To feed the node from the relay, set `FEED_URLS=ws://127.0.0.1:9642` in `.env` (or add it to the list) and recreate the node.
 
 Same-series relay patches are **tag-only** and apply apart from the node: `./scripts/apply-tag-only.sh robinhood-feed-relay`. A `COMPOSE_PROJECT_NAME` in `.env` also renames the relay project (it overrides `name:`), so compose then reports the other file's containers as orphans; never pass `--remove-orphans` in that case.
 
