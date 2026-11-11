@@ -1,0 +1,21 @@
+# Optional Nitro feed relay: re-serves the Robinhood sequencer feed to local nodes.
+# docker compose -f docker-compose.relay.yml up -d
+# Own project name: the node's `up --remove-orphans` must not touch the relay, and vice versa.
+name: robinhood-feed-relay
+services:
+  robinhood-feed-relay:
+    image: ${FEED_RELAY_IMAGE}
+    container_name: robinhood-feed-relay
+    restart: unless-stopped
+    network_mode: host
+    entrypoint: ["relay"]
+    command:
+      - --chain.id=${CHAIN_ID}
+      - --node.feed.input.url=${FEED_RELAY_INPUT_URL}
+      - --node.feed.output.addr=${FEED_RELAY_BIND_ADDR:-127.0.0.1}
+      - --node.feed.output.port=${FEED_RELAY_PORT}
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"

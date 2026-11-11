@@ -54,6 +54,8 @@ main() {
   # Changes under scripts/ block the merge, except auto-upgrade.yaml edits that
 # leave every set-up chain's apply keys unchanged (yaml_blocking).
   YAML_FILE="${SCRIPT_DIR}/config/auto-upgrade.yaml"
+  # shellcheck source=SCRIPTDIR/lib/compose-project.sh
+  source "${SCRIPT_DIR}/lib/compose-project.sh"
 
   REMOTE="${REMOTE:-origin}"
   BRANCH="${BRANCH:-main}"
@@ -312,9 +314,23 @@ seen_in_history() {
     | grep -qxF -- "${value}"
 }
 
-# IDs of running containers started from compose dir $1 (working_dir label).
-running_here() {
-  docker ps --quiet --filter "label=com.docker.compose.project.working_dir=$1"
+# IDs of containers of compose file $2 in compose dir $1: working_dir label,
+# the project that file resolves to, and a service defined in that file. Two
+# compose files in one dir (robinhood node + feed relay) never count for each
+# other, even when COMPOSE_PROJECT_NAME in the shared .env merges their
+# projects. Extra docker ps args (e.g. --all) follow. Prints nothing when the
+# project or services cannot be resolved or docker ps fails (never applies).
+containers_here() {
+  local dir="$1" file="$2" project services
+  shift 2
+  project="$(compose_project_name "${dir}" "${file}" 2>/dev/null)" || return 0
+  services="$(compose_services "${dir}" "${file}")" || return 0
+  docker ps "$@" \
+    --filter "label=com.docker.compose.project.working_dir=${dir}" \
+    --filter "label=com.docker.compose.project=${project}" \
+    --format '{{.ID}} {{.Label "com.docker.compose.service"}}' \
+    | awk 'NR == FNR { svc[$0] = 1; next } ($2 in svc) { print $1 }' \
+      <(printf '%s\n' "${services}") - || true
 }
 
 # Prints "apply" when the target should be applied now, "deny" for a security
@@ -325,10 +341,11 @@ check_target() {
   mapfile -t ids < <(python3 "${YAML_PY}" --file "${YAML_FILE}" apply-ids "${target}")
   [[ ${#ids[@]} -gt 0 ]] || return 0
 
-  local AUTO_COMPOSE_DIR="" AUTO_ENV_FILE="" AUTO_VAR=""
+  local AUTO_COMPOSE_DIR="" AUTO_COMPOSE_FILE="" AUTO_ENV_FILE="" AUTO_VAR=""
   # shellcheck disable=SC1090
   eval "$(python3 "${YAML_PY}" --file "${YAML_FILE}" export "${ids[0]}")"
   local compose_path="${REPO_ROOT}/${AUTO_COMPOSE_DIR}"
+  local compose_file="${AUTO_COMPOSE_FILE}"
   local env_file="${compose_path}/.env"
 
   # Not set up from this checkout.
@@ -345,6 +362,14 @@ check_target() {
       continue
     fi
     if [[ -z "${have}" ]]; then
+      # An optional service in a shared compose dir (e.g. the robinhood feed
+      # relay) that was never set up: no var and no containers. Not a deny.
+      if [[ -z "$(containers_here "${compose_path}" "${compose_file}" --all)" ]]; then
+        if [[ "${DRY_RUN}" == "1" ]]; then
+          log "${target}: ${AUTO_VAR} not in .env and no containers; not set up here" >&2
+        fi
+        return 0
+      fi
       deny "${target}" "${AUTO_VAR} is not set in .env; set it up by hand first"
       echo deny
       return 0
@@ -381,8 +406,8 @@ check_target() {
   # Reported once per run by main.
   [[ -f "${STATE_DIR}/failed/${target}" ]] && return 0
 
-  if [[ -z "$(running_here "${compose_path}")" ]]; then
-    log "${target}: not running from ${compose_path}; will apply once it runs" >&2
+  if [[ -z "$(containers_here "${compose_path}" "${compose_file}")" ]]; then
+    log "${target}: not running from ${compose_path}/${compose_file}; will apply once it runs" >&2
     return 0
   fi
 

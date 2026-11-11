@@ -52,7 +52,7 @@ flowchart TD
     valid{"new pin valid?<br/>image_prefix, series, exclude, plain tag"}
     hold{"AUTO_APPLY_HOLD=1?"}
     marker{"failed marker exists?"}
-    running{"containers running from this compose dir?"}
+    running{"containers of this compose file running here?<br/>working_dir, project, service"}
     envx -->|yes| diff
     diff -->|yes| unset
     unset -->|yes| hist
@@ -65,7 +65,7 @@ flowchart TD
   loop --> envx
   envx -->|no| next
   diff -->|"no (--dry-run logs up to date)"| next
-  unset -->|"no, DENY, exit 1"| next
+  unset -->|"no, DENY, exit 1<br/>(no containers: skip quietly)"| next
   hist -->|"no, DENY manual override"| next
   valid -->|"no, DENY, exit 1"| next
   hold -->|"yes, DENY hold"| next

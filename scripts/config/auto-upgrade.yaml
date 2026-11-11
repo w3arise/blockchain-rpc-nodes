@@ -398,6 +398,27 @@ chains:
     health_mode: block_time
     health_port_var: HTTP_PORT
 
+  # Optional feed relay (robinhood/docker-compose.relay.yml, own compose
+  # project). No apply_group: it upgrades and restarts apart from the node.
+  # No suffix, like the node rows: CI writes the image the release body names
+  # (plain or a hand-set -stripped pin; same contents, -stripped lacks debug symbols).
+  - id: robinhood-feed-relay
+    class: tag-only
+    env_file: robinhood/env.template
+    var: FEED_RELAY_IMAGE
+    image_prefix: "offchainlabs/nitro-node:"
+    compose_dir: robinhood
+    compose_file: docker-compose.relay.yml
+    chain_links: false
+    source_type: github_releases
+    source_repo: OffchainLabs/nitro
+    tag_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    image_tag_from: release_body
+    health_mode: tcp
+    health_bind_var: FEED_RELAY_BIND_ADDR
+    health_port_var: FEED_RELAY_PORT
+
   - id: ronin-op-reth
     class: tag-only
     allow_series_jump: true
