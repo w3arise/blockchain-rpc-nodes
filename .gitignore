@@ -5,6 +5,9 @@
 # Local scratch (handovers, notes). Do not commit.
 /temp/
 
+# Host-specific compose overrides (extra bind mounts, offloaded ancients). Not committed.
+**/docker-compose.override.yml
+
 # Environment variables
 .env
 metis/config/l1dtl.env
