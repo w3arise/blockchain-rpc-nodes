@@ -26,7 +26,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Robinhood | `nitro-node:v3.12.*` | tag-only | **yes** — same-series `v3.12.*` (release body, like Arbitrum) | `./scripts/apply-tag-only.sh robinhood` |
 | Robinhood feed relay | `FEED_RELAY_IMAGE=nitro-node:v3.12.*` | tag-only | **yes** — same-series `v3.12.*` (release body, like Arbitrum). Own target and compose file, no `apply_group` with the node | `./scripts/apply-tag-only.sh robinhood-feed-relay` |
 | Ronin | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: ronin`). EigenDA stays `needs-review` | `./scripts/apply-tag-only.sh ronin` |
-| Sei | `SEID_VERSION=v6.6.3` | tag-only | **yes** — same-series `v6.6.*` | `./scripts/apply-tag-only.sh sei` |
+| Sei | `SEID_VERSION=v6.7.4` | tag-only | **yes** — same-series `v6.7.*` | `./scripts/apply-tag-only.sh sei` |
 | Sonic | `SONIC_VERSION=v2.2.*` | tag-only | **yes** — same-series; host apply **builds** the local image | `./scripts/apply-tag-only.sh sonic` |
 | Tempo | `tempo:1.17.*` | tag-only | **yes** — same-series `1.17.*` (git tag `tempo/v*` → GHCR tag without `tempo/v`) | `./scripts/apply-tag-only.sh tempo` |
 | Worldchain | OP Labs `op-node` only (`world-chain` execution image is bumped by hand) | tag-only | **op-node only** (`apply_group: worldchain`) | `./scripts/apply-tag-only.sh worldchain` |
