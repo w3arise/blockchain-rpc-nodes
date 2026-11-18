@@ -14,24 +14,29 @@ docker compose up -d
 
 ## Snapshot
 
-Download and extract a snapshot from [snapshot.morphl2.io](https://snapshot.morphl2.io/) (see [run-morph-node README](https://github.com/morph-l2/run-morph-node#snapshot-information)). Latest mainnet archive: `snapshot-archive-20260701-1`.
+Pick a snapshot from the [official snapshot table](https://github.com/morph-l2/run-morph-node#snapshot-information) ([snapshot.morphl2.io](https://snapshot.morphl2.io/)). Set `SNAPSHOT_NAME` and `L1_MSG_START_HEIGHT` in `.env` from the **same row**.
 
 ```bash
+./configure.sh
+# edit .env — L1 RPCs, SNAPSHOT_NAME, L1_MSG_START_HEIGHT
+SNAP_NAME="$(grep -E '^SNAPSHOT_NAME=' .env | cut -d= -f2-)"
 SNAP_TMP="${SNAPSHOT_TMPDIR:-$HOME/morph-snapshot-tmp}"
-mkdir -p "$SNAP_TMP"
-wget -O "$SNAP_TMP/morph-snapshot.tar.gz" \
-  https://snapshot.morphl2.io/mainnet/snapshot-archive-20260701-1.tar.gz
-tar -xzf "$SNAP_TMP/morph-snapshot.tar.gz" -C "$SNAP_TMP"
-mv "$SNAP_TMP/snapshot-archive-20260701-1/geth" $HOME/morph-geth-data/
-mkdir -p $HOME/morph-node-data/data
-mv "$SNAP_TMP/snapshot-archive-20260701-1/data/"* $HOME/morph-node-data/data/
-rm -rf "$SNAP_TMP"
+SNAP_URL="https://snapshot.morphl2.io/mainnet/${SNAP_NAME}.tar.gz"
+mkdir -p "$SNAP_TMP" "$HOME/morph-geth-data" "$HOME/morph-node-data/data"
+if command -v aria2c >/dev/null; then
+  aria2c -c -x 8 -s 8 -d "$SNAP_TMP" -o "${SNAP_NAME}.tar.gz" "$SNAP_URL"
+else
+  curl -fL -C - -o "$SNAP_TMP/${SNAP_NAME}.tar.gz" "$SNAP_URL"
+fi
+tar -xzf "$SNAP_TMP/${SNAP_NAME}.tar.gz" -C "$SNAP_TMP"
+mv "$SNAP_TMP/${SNAP_NAME}/geth" "$HOME/morph-geth-data/"
+mv "$SNAP_TMP/${SNAP_NAME}/data/"* "$HOME/morph-node-data/data/"
 ./init-database.sh    # stages config/ into $HOME/morph-node-data/config
 ./create-jwt.sh
 docker compose up -d
 ```
 
-Set `L1_MSG_START_HEIGHT` in `.env` to match the snapshot table in the official README.
+Keep `SNAPSHOT_TMPDIR` on the same volume as the datadirs so `mv` is a rename, not a copy. The downloaded archive stays in `$SNAP_TMP` (resumable); delete it yourself once the node is synced.
 
 ## Upgrade
 
