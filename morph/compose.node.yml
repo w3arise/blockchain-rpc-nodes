@@ -1,0 +1,29 @@
+# Shared morph-node definition. Not started directly: docker-compose.yml (geth)
+# and docker-compose.reth.yml (reth) extend it and add depends_on, the L2 RPC /
+# Engine URLs, the start heights and the node datadir.
+# No env_file: the container gets only the variables listed here, so changing an
+# unrelated .env pin (e.g. the other client's image) never recreates it.
+services:
+  morph-node:
+    image: ${NODE_IMAGE}
+    container_name: morph-node
+    restart: unless-stopped
+    environment:
+      - MORPH_NODE_L2_ENGINE_AUTH=/config/jwt.hex
+      - MORPH_NODE_L1_ETH_RPC=${L1_ETH_RPC}
+      - MORPH_NODE_L1_ETH_BEACON_RPC=${L1_ETH_BEACON_RPC}
+      - MORPH_NODE_L1_CHAIN_ID=${L1_CHAIN_ID}
+      - MORPH_NODE_ROLLUP_ADDRESS=${ROLLUP_CONTRACT}
+      - NODE_EXTRA_FLAGS=${NODE_EXTRA_FLAGS}
+    volumes:
+      - ./config/jwt.hex:/config/jwt.hex:ro
+      - ./entrypoint-node.sh:/entrypoint-node.sh:ro
+    ports:
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${NODE_RPC_HOST_PORT}:26657
+      - ${NODE_P2P_PORT}:26656
+      - ${METRICS_BIND_ADDR:-127.0.0.1}:${NODE_METRICS_HOST_PORT}:26660
+    entrypoint:
+      - /bin/sh
+      - /entrypoint-node.sh
+    networks:
+      - morph-network

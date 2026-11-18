@@ -1,0 +1,53 @@
+# morph-reth + morph-node. Select with COMPOSE_FILE in .env (./configure.sh <network> reth).
+# Switching clients: docker compose down first (same container names, same host ports).
+# No env_file: only the variables below reach the containers (see compose.node.yml).
+services:
+  morph-reth:
+    image: ${RETH_IMAGE}
+    container_name: morph-reth
+    restart: unless-stopped
+    stop_grace_period: 120s
+    environment:
+      # The container always uses /db (RETH_DATADIR in .env is the host path).
+      - RETH_DATADIR=/db
+      - RETH_CHAIN=${RETH_CHAIN}
+      - EXT_IP=${EXT_IP}
+      - RETH_P2P_PORT=${RETH_P2P_PORT}
+      - GAS_CAP=${GAS_CAP:-600000000}
+    volumes:
+      - ${RETH_DATADIR:-$HOME/morph-reth-data}:/db
+      - ./config/jwt.hex:/config/jwt.hex:ro
+      - ./entrypoint-reth.sh:/entrypoint.sh:ro
+    ports:
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${HTTP_HOST_PORT}:8545
+      - ${RPC_BIND_ADDR:-127.0.0.1}:${WS_HOST_PORT}:8546
+      - ${METRICS_BIND_ADDR:-127.0.0.1}:${RETH_METRICS_HOST_PORT}:6060
+      # TCP only: discovery is disabled (static peers), so UDP is unused.
+      - ${RETH_P2P_PORT}:${RETH_P2P_PORT}
+    entrypoint:
+      - /bin/sh
+      - /entrypoint.sh
+    networks:
+      - morph-network
+
+  # Service name differs from the geth stack's; the container name stays morph-node.
+  morph-reth-node:
+    extends:
+      file: compose.node.yml
+      service: morph-node
+    depends_on:
+      morph-reth:
+        condition: service_started
+    environment:
+      - MORPH_NODE_L2_ETH_RPC=http://morph-reth:8545
+      - MORPH_NODE_L2_ENGINE_RPC=http://morph-reth:8551
+      # Reth snapshots ship their own heights; keep them paired with RETH_SNAPSHOT_NAME.
+      - MORPH_NODE_SYNC_START_HEIGHT=${RETH_L1_MSG_START_HEIGHT}
+      - MORPH_NODE_DERIVATION_START_HEIGHT=${RETH_DERIVATION_START_HEIGHT}
+      - MORPH_NODE_DERIVATION_BASE_HEIGHT=${RETH_L2_BASE_HEIGHT}
+    volumes:
+      - ${RETH_NODE_DATADIR:-$HOME/morph-reth-node-data}:/db
+
+networks:
+  morph-network:
+    driver: bridge
