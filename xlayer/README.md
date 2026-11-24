@@ -1,8 +1,10 @@
-# XLayer (op-geth + op-node + cdk-erigon)
+# XLayer (op-geth + op-node + cdk-erigon) — deprecated
+
+> **Deprecated.** Upstream `op-geth` for X Layer is end-of-support and archived ([okx/op-geth](https://github.com/okx/op-geth)). It will not follow the L1 Glamsterdam hardfork, and new X Layer hardforks ship on `xlayer-reth` only. Use [`xlayer-reth/`](../xlayer-reth/) for new setups. To migrate, sync `xlayer-reth` alongside this node and switch once it is validated. This setup gets no further pin bumps.
 
 Mainnet OP Stack node with archival cdk-erigon backend. Chain data: `$HOME/xlayer-op-geth-data`, `$HOME/xlayer-op-node-data`, `$HOME/xlayer-cdk-erigon-data`.
 
-Alternative: [`xlayer-reth/`](../xlayer-reth/) (op-reth + op-node). Run one or both — ports don't clash.
+Replacement: [`xlayer-reth/`](../xlayer-reth/) (xlayer-reth + op-node). Ports don't clash, so both can run side by side during migration.
 
 ## Start
 
