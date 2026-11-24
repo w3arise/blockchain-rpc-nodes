@@ -27,6 +27,16 @@ RPC: `http://127.0.0.1:12745` (HTTP), `ws://127.0.0.1:12746` (WS).
 
 At Gravity's ~250 ms blocks, 10064 blocks is about 42 minutes of account and storage history. Receipts, logs, and transaction lookup stay. `--full` is a different profile: it also prunes receipts to that window. Switching a live datadir to `--full` prunes that history on the next start.
 
+## Sync
+
+One `gravity_node` process runs both AptosBFT consensus and gravity-reth. There is no separate consensus and execution client, and no sync-mode setting.
+
+1. **Chain identity:** `config/genesis.json` and `config/waypoint.txt`, fetched by `./configure.sh` for the pinned `GRAVITY_SDK_REF`.
+2. **Block sync:** `config/public_full_node.yaml` joins the **public** P2P network and pulls blocks from the `PreferredUpstream` seeds (`mainnet-rpc-p2p-*.gravity.xyz`).
+3. **Execution:** committed blocks run in the embedded reth datadir (`$HOME/gravity-data/data/reth`).
+
+With a snapshot the node continues from the snapshot height; without one it syncs from genesis. Check progress by comparing local `eth_blockNumber` on `HTTP_PORT` with `https://mainnet-rpc.gravity.xyz`. `eth_syncing` shows reth catch-up only; consensus may still be filling a gap.
+
 ## Snapshot
 
 `./restore-snapshot.sh` downloads the public PFN cut (~105 GiB uncompressed tar):
