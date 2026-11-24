@@ -76,7 +76,7 @@ Allowlist: [`scripts/config/auto-upgrade.yaml`](scripts/config/auto-upgrade.yaml
 | Metis | `DTL_IMAGE`, `L2GETH_IMAGE` | [metis-ansible](https://github.com/MetisProtocol/metis-ansible) `playbooks/files/andromeda/` + Docker Hub `metisdao/dtl`, `metisdao/l2geth`. Bump both together | needs-review |
 | Mode | `OP_RETH_IMAGE`, `OP_NODE_IMAGE` | Shared Superchain. `op-node` v1.19.3+ required for Mode `--network` Karst gas configs | tag-only |
 | Monad | `MONAD_VERSION` | `category-labs/monad` + [upgrade instructions](https://docs.monad.xyz/node-ops/upgrade-instructions). APT pin | needs-review |
-| Morph | `GETH_IMAGE`, `NODE_IMAGE` | `morph-l2/go-ethereum` (`morph-v*` tags vs compose `2.2.x`), `morph-l2/morph` | tag-only |
+| Morph | `GETH_IMAGE`, `NODE_IMAGE`, `RETH_IMAGE` | `morph-l2/go-ethereum` (`morph-v*` tags vs compose `2.2.x`), `morph-l2/morph`, `morph-l2/morph-reth` (`v*` tags = image tags); one `morph` apply group, compose follows `COMPOSE_FILE` in `.env` | tag-only |
 | Mova | `MOVA_VERSION` | Docker Hub `movachain/movan-syncnode`. Genesis sync stays on the creation tag (`v0.0.1`, commit `6f0cc05`) until a newer tag's release notes say it can sync from height 0. Not chain 61900 `mainnet-syncnode`. | needs-review |
 | Neo X | `GETH_VERSION` | `bane-labs/go-ethereum` | tag-only |
 | opBNB | `OP_GETH_IMAGE_TAG`, `OP_NODE_IMAGE_TAG` | `bnb-chain/op-geth`, `bnb-chain/opbnb` | needs-review |

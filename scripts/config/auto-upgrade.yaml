@@ -287,7 +287,7 @@ chains:
     strip_git_prefix: "op-node/"
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet,-pr"
 
-  # Post–L1 cutover pair: bump geth + node together (apply_group morph).
+  # Post–L1 cutover pair: bump geth + node (and reth, see morph-reth) together (apply_group morph).
   - id: morph-geth
     class: tag-only
     env_file: morph/env.template
@@ -317,6 +317,25 @@ chains:
     tag_prefix: v
     strip_git_prefix: v
     exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+
+  # Alternative execution client (morph/docker-compose.reth.yml). Same apply_group and
+  # default compose_file as geth + node: compose follows COMPOSE_FILE in .env, so only
+  # the active stack is pulled and recreated; the other client's pin is only synced.
+  - id: morph-reth
+    class: tag-only
+    env_file: morph/env.template
+    var: RETH_IMAGE
+    image_prefix: "ghcr.io/morph-l2/morph-reth:"
+    compose_dir: morph
+    apply_group: morph
+    chain_links: false
+    source_type: github_releases
+    source_repo: morph-l2/morph-reth
+    tag_prefix: v
+    strip_git_prefix: v
+    exclude: "-rc,-alpha,-beta,-unsafe,-testnet"
+    health_mode: block_time
+    health_port_var: HTTP_HOST_PORT
 
   # Version-only pin; local image neox-geth:${GETH_VERSION} is built on apply.
   - id: neox
