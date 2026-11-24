@@ -28,7 +28,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Ronin | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: ronin`). EigenDA stays `needs-review` | `./scripts/apply-tag-only.sh ronin` |
 | Sei | `SEID_VERSION=v6.8.0` | tag-only | **yes** — same-series `v6.8.*` | `./scripts/apply-tag-only.sh sei` |
 | Sonic | `SONIC_VERSION=v2.2.*` | tag-only | **yes** — same-series; host apply **builds** the local image | `./scripts/apply-tag-only.sh sonic` |
-| Tempo | `tempo:1.17.*` | tag-only | **yes** — same-series `1.17.*` (git tag `tempo/v*` → GHCR tag without `tempo/v`) | `./scripts/apply-tag-only.sh tempo` |
+| Tempo | `tempo:1.19.*` | tag-only | **yes** — same-series `1.19.*` (git tag `tempo/v*` → GHCR tag without `tempo/v`) | `./scripts/apply-tag-only.sh tempo` |
 | Worldchain | OP Labs `op-node` only (`world-chain` execution image is bumped by hand) | tag-only | **op-node only** (`apply_group: worldchain`) | `./scripts/apply-tag-only.sh worldchain` |
 | Zircuit | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: zircuit`) | `./scripts/apply-tag-only.sh zircuit` |
 | Abstract | stays `needs-review` | never auto across EN majors (`v29`→`v31` needs snapshot wipe) | no | `<chain>/README.md` |
