@@ -52,7 +52,6 @@ For full state history (Option B / archive), set `ss-keep-recent=0` and plan **1
 | 8546 | localhost | EVM JSON-RPC WS |
 | 26657 | localhost | CometBFT RPC |
 | 1317 | localhost | Cosmos REST API |
-| 9090 | localhost | gRPC |
 | 26656 | public TCP+UDP | CometBFT P2P |
 
 Change `RPC_BIND_ADDR` in `.env` to `0.0.0.0` only if you need LAN access to RPC. Open inbound **26656/tcp** and **26656/udp** for peers.

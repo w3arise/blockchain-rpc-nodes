@@ -18,8 +18,8 @@ if [[ ! -f "${ENV_FILE}" ]]; then
   exit 1
 fi
 
-# shellcheck disable=SC1090
 set -a
+# shellcheck source=/dev/null  # .env is created per host by configure.sh
 source "${ENV_FILE}"
 set +a
 
@@ -144,8 +144,6 @@ set_toml_section_key "${APP_TOML}" "evm" "simulation_gas_limit" "${GAS_CAP}"
 set_toml_section_key "${APP_TOML}" "evm" "max_blocks_for_log" "${MAX_BLOCKS_FOR_LOG}"
 set_toml_section_key "${APP_TOML}" "api" "enable" "true"
 set_toml_section_key "${APP_TOML}" "api" "address" "\"tcp://0.0.0.0:1317\""
-set_toml_section_key "${APP_TOML}" "grpc" "enable" "true"
-set_toml_section_key "${APP_TOML}" "grpc" "address" "\"0.0.0.0:9090\""
 
 echo ""
 echo "==> Changes"
