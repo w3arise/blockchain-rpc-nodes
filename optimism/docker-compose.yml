@@ -73,7 +73,7 @@ services:
 
   optimism-kona-node:
     profiles: ["kona"]
-    image: ${KONA_NODE_IMAGE:-us-docker.pkg.dev/oplabs-tools-artifacts/images/kona-node:v1.10.0}
+    image: ${KONA_NODE_IMAGE:-us-docker.pkg.dev/oplabs-tools-artifacts/images/kona-node:v1.11.0}
     container_name: optimism-kona-node
     entrypoint: ["kona-node"]
     command:

@@ -13,7 +13,7 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Berachain | `bera-reth:v1.4.4` | tag-only | **yes** — same-series `v1.4.*`. beacon-kit stays `needs-review` | `./scripts/apply-tag-only.sh berachain` |
 | Celo | op-reth `celo-v1.0.*` | tag-only | **yes** — `celo-op-reth` only; op-node + EigenDA manual | `./scripts/apply-tag-only.sh celo` |
 | Bob | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: bob`) | `./scripts/apply-tag-only.sh bob` |
-| Core | `GETH_VERSION=v1.0.26` | tag-only | **yes** — same-series `v1.0.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh core` |
+| Core | `GETH_VERSION=v1.0.27` | tag-only | **yes** — same-series `v1.0.*`; host apply **builds** the local image | `./scripts/apply-tag-only.sh core` |
 | Gnosis Chain | `reth_gnosis` + `lighthouse` | tag-only | **yes** — same-series (`apply_group: gnosis`) | `./scripts/apply-tag-only.sh gnosis` |
 | Katana | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: katana`) | `./scripts/apply-tag-only.sh katana` |
 | Lisk | OP Labs `op-reth` + `op-node` | tag-only | **yes** — same-series Superchain tags (`apply_group: lisk`) | `./scripts/apply-tag-only.sh lisk` |
@@ -26,9 +26,9 @@ Lookup rules for *where* to find upstream versions stay in [CLIENT_UPDATES.md](C
 | Robinhood | `nitro-node:v3.12.*` | tag-only | **yes** — same-series `v3.12.*` (release body, like Arbitrum) | `./scripts/apply-tag-only.sh robinhood` |
 | Robinhood feed relay | `FEED_RELAY_IMAGE=nitro-node:v3.12.*` | tag-only | **yes** — same-series `v3.12.*` (release body, like Arbitrum). Own target and compose file, no `apply_group` with the node | `./scripts/apply-tag-only.sh robinhood-feed-relay` |
 | Ronin | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: ronin`). EigenDA stays `needs-review` | `./scripts/apply-tag-only.sh ronin` |
-| Sei | `SEID_VERSION=v6.7.4` | tag-only | **yes** — same-series `v6.7.*` | `./scripts/apply-tag-only.sh sei` |
+| Sei | `SEID_VERSION=v6.8.0` | tag-only | **yes** — same-series `v6.8.*` | `./scripts/apply-tag-only.sh sei` |
 | Sonic | `SONIC_VERSION=v2.2.*` | tag-only | **yes** — same-series; host apply **builds** the local image | `./scripts/apply-tag-only.sh sonic` |
-| Tempo | `tempo:1.17.*` | tag-only | **yes** — same-series `1.17.*` (git tag `tempo/v*` → GHCR tag without `tempo/v`) | `./scripts/apply-tag-only.sh tempo` |
+| Tempo | `tempo:1.19.*` | tag-only | **yes** — same-series `1.19.*` (git tag `tempo/v*` → GHCR tag without `tempo/v`) | `./scripts/apply-tag-only.sh tempo` |
 | Worldchain | OP Labs `op-node` only (`world-chain` execution image is bumped by hand) | tag-only | **op-node only** (`apply_group: worldchain`) | `./scripts/apply-tag-only.sh worldchain` |
 | Zircuit | `conduit-op-reth` + OP Labs `op-node` | tag-only | **yes** — same-series (`apply_group: zircuit`) | `./scripts/apply-tag-only.sh zircuit` |
 | Abstract | stays `needs-review` | never auto across EN majors (`v29`→`v31` needs snapshot wipe) | no | `<chain>/README.md` |

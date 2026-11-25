@@ -31,7 +31,7 @@ docker stop optimism-op-node          # or optimism-kona-node
 docker compose up -d
 ```
 
-Kona is not the production rollup client. [OP Labs](https://docs.optimism.io/node-operators/kona-node/run/docker) says production deployments should use op-node. Kona v1.10.0 is the pin that matches op-reth v2.8.x. It verifies L1 block hashes; op-node in this setup trusts the L1 RPC (`OP_NODE_L1_TRUST_RPC=true`).
+Kona is not the production rollup client. [OP Labs](https://docs.optimism.io/node-operators/kona-node/run/docker) says production deployments should use op-node. The kona pin in `env.template` matches op-reth v2.8.x. It verifies L1 block hashes; op-node in this setup trusts the L1 RPC (`OP_NODE_L1_TRUST_RPC=true`).
 
 ## Snapshot
 
