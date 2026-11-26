@@ -21,6 +21,11 @@
 # Usage:
 #   sudo auto-apply-dispatcher
 #   sudo auto-apply-dispatcher --dry-run   # passed to each checkout
+#   sudo auto-apply-dispatcher --force     # by hand: asks per checkout before
+#                                          # merging past the file gate
+#
+# --dry-run and --force may be combined. --force needs an interactive terminal
+# (refused from cron); see auto-apply-if-merged.sh.
 #
 # Refuses (DENY, exit 1) when this script, its directory, or the config file is
 # not root-owned or is group/world-writable, and skips lines whose user is
@@ -33,11 +38,12 @@ set -euo pipefail
 
 CONFIG_FILE="${CONFIG_FILE:-/etc/blockchain-nodes.conf}"
 APPLY_ARGS=""
-case "${1:-}" in
-  "") ;;
-  --dry-run) APPLY_ARGS=" --dry-run" ;;
-  *) echo "Usage: $0 [--dry-run]" >&2; exit 2 ;;
-esac
+for arg in "$@"; do
+  case "${arg}" in
+    --dry-run | --force) APPLY_ARGS+=" ${arg}" ;;
+    *) echo "Usage: $0 [--dry-run] [--force]" >&2; exit 2 ;;
+  esac
+done
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
@@ -56,6 +62,11 @@ root_only() {
   read -r uid mode < <(stat -L -c '%u %a' "$1")
   [[ "${uid}" == "0" ]] && (( (8#${mode} & 8#022) == 0 ))
 }
+
+if [[ "${APPLY_ARGS}" == *--force* && ! -t 0 ]]; then
+  deny "dispatcher: --force needs an interactive terminal on stdin; never use it from cron"
+  exit 1
+fi
 
 if [[ "${EUID}" -ne 0 ]]; then
   log "ERROR: run as root (runuser switches to each checkout owner)" >&2
@@ -80,7 +91,9 @@ if ! root_only "${CONFIG_FILE}"; then
 fi
 
 failed=()
-while IFS=: read -r user repo || [[ -n "${user}" ]]; do
+# Config on fd 3 so each checkout keeps this script's stdin (the terminal that
+# --force prompts on), and cannot read the config by accident.
+while IFS=: read -r -u 3 user repo || [[ -n "${user}" ]]; do
   user="${user//[[:space:]]/}"
   repo="${repo//[[:space:]]/}"
   [[ -z "${user}" || "${user}" == \#* ]] && continue
@@ -112,7 +125,7 @@ while IFS=: read -r user repo || [[ -n "${user}" ]]; do
   if ! runuser -l "${user}" -c "cd $(printf '%q' "${repo}") && ./scripts/auto-apply-if-merged.sh${APPLY_ARGS}"; then
     failed+=("${user}:${repo}")
   fi
-done < "${CONFIG_FILE}"
+done 3< "${CONFIG_FILE}"
 
 if [[ ${#failed[@]} -gt 0 ]]; then
   log "ERROR: failed: ${failed[*]}" >&2

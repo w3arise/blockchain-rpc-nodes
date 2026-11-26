@@ -10,7 +10,7 @@ One run, as the user that owns the checkout.
 
 ```mermaid
 flowchart TD
-  start(["cron every 5 min or by hand<br/>optional --dry-run"]) --> deps{"git, python3, docker, flock on PATH?"}
+  start(["cron every 5 min or by hand<br/>optional --dry-run, --force (terminal only)"]) --> deps{"git, python3, docker, flock on PATH?"}
   deps -->|no| err1["ERROR, exit 1"]
   deps -->|yes| lock{"take .git/auto-apply/lock"}
   lock -->|held| quit0["another run, exit 0"]
@@ -23,14 +23,18 @@ flowchart TD
     same{"HEAD equals origin/main?"}
     anc{"HEAD ancestor of origin/main?"}
     guard{"any changed file other than *.md, root .gitignore,<br/>dir/env.template, files in chain dirs without .env here,<br/>or auto-upgrade.yaml with check-only changes for set-up chains?"}
+    force{"--force: list blocking files, show full diff,<br/>answer y?"}
     blocked["DENY merge per file, BLOCKED<br/>compare against HEAD"]
+    reexec["git merge --ff-only, re-run updated script<br/>without --force"]
     drymerge{"--dry-run?"}
     ff["git merge --ff-only"]
     branch -->|yes| fetch --> same
     same -->|no| anc
     anc -->|yes| guard
     guard -->|no| drymerge
-    guard -->|yes| blocked
+    guard -->|yes| force
+    force -->|"no --force, not y, or --dry-run (no prompt)"| blocked
+    force -->|yes| reexec
     drymerge -->|no| ff
   end
 
@@ -114,7 +118,7 @@ Root cron or by hand, from a root-owned installed copy.
 
 ```mermaid
 flowchart TD
-  start(["sudo auto-apply-dispatcher<br/>optional --dry-run"]) --> rootq{"running as root?"}
+  start(["sudo auto-apply-dispatcher<br/>optional --dry-run, --force (terminal only)"]) --> rootq{"running as root?"}
   rootq -->|no| err["ERROR, exit 1"]
   rootq -->|yes| self{"own file and dir root-owned,<br/>not group/world-writable?"}
   self -->|"no, DENY"| err
