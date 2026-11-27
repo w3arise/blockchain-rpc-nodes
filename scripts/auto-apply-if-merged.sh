@@ -37,10 +37,18 @@
 #   ./scripts/auto-apply-if-merged.sh                # all local targets
 #   ./scripts/auto-apply-if-merged.sh aptos katana   # only these targets
 #   ./scripts/auto-apply-if-merged.sh --dry-run      # report every target, change nothing
+#   ./scripts/auto-apply-if-merged.sh --force        # by hand: approve a blocked merge
 #
 # --dry-run fetches but does not merge or apply. It compares against
 # REMOTE/BRANCH (unless the merge is blocked) and also prints targets that are
 # up to date.
+#
+# --force (interactive terminal only, never cron) overrides the file gate of
+# step 1 only: it lists the blocking files, shows the full diff to be merged
+# and asks. On "y" it fast-forwards and re-runs the updated script without
+# --force. Any other answer blocks as usual. Branch, fast-forward and pin
+# checks still apply. With --dry-run it shows the files and diff without
+# asking.
 #
 # Optional:
 #   REMOTE=origin  BRANCH=main
@@ -61,15 +69,20 @@ main() {
   BRANCH="${BRANCH:-main}"
 
   DRY_RUN=0
+  FORCE=0
   FILTER=()
   local arg
   for arg in "$@"; do
     case "${arg}" in
       --dry-run) DRY_RUN=1 ;;
+      --force) FORCE=1 ;;
       -*) die "unknown option: ${arg}" ;;
       *) FILTER+=("${arg}") ;;
     esac
   done
+  if [[ "${FORCE}" == "1" && ! -t 0 ]]; then
+    die "--force needs an interactive terminal on stdin; never use it from cron"
+  fi
 
   for cmd in git python3 docker flock; do
     if ! command -v "${cmd}" >/dev/null 2>&1; then
@@ -203,6 +216,21 @@ update_checkout() {
     deny merge "could not check the files changed in ${local_rev:0:8} → ${remote_rev:0:8}; fix by hand"
     exit 1
   fi
+  if [[ -n "${blocking}" && "${FORCE}" == "1" ]] \
+    && confirm_force "${local_rev}" "${remote_rev}" "${blocking}"; then
+    local msg
+    msg="--force: approved by $(id -un): fast-forward ${local_rev:0:8} → ${remote_rev:0:8} with $(grep -c . <<<"${blocking}") blocking file(s)"
+    log "${msg}"
+    if command -v logger >/dev/null 2>&1; then
+      logger -t auto-apply -p user.info -- "${msg} (${REPO_ROOT})" || true
+    fi
+    git merge --ff-only --quiet "${remote_rev}"
+    # Apply with the code just merged. Close the lock first: the new process
+    # takes it again itself (flock -n on a fresh open of the same file).
+    log "re-running the updated script without --force"
+    exec 9>&-
+    exec "${SCRIPT_DIR}/auto-apply-if-merged.sh" "${FILTER[@]}"
+  fi
   while IFS= read -r line; do
     [[ -n "${line}" ]] || continue
     BLOCKED=1
@@ -272,6 +300,36 @@ blocking_files() {
       continue
     fi
   done <<<"${changed}"
+}
+
+# --force: list the blocking files ($3, from blocking_files), show the whole
+# diff that would be merged and ask on the terminal. Returns 0 only for y/yes.
+# --dry-run never asks. File names are never used as pathspecs (a name such as
+# ':!scripts' would hide files), and cat -v shows escape sequences in the
+# content as text instead of letting them redraw the terminal.
+confirm_force() {
+  local old="$1" new="$2" blocking="$3" answer line changes
+  local -a pager=(cat)
+  if [[ -t 1 ]] && command -v less >/dev/null 2>&1; then
+    pager=(less)
+  fi
+  # Collect first: quitting the pager early must not look like a failed diff.
+  changes="$(git diff --stat --no-renames "${old}" "${new}" \
+    && git diff --no-renames --no-color "${old}" "${new}")" || return 1
+  {
+    echo "Files that block ${old:0:8} -> ${new:0:8}:"
+    while IFS= read -r line; do
+      echo "  ${line}"
+    done <<<"${blocking}"
+    echo
+    echo "${changes}"
+  } | cat -v | "${pager[@]}" || true
+  [[ "${DRY_RUN}" == "1" ]] && return 1
+  read -r -p "Fast-forward ${old:0:8} → ${new:0:8} including these files? [y/N] " answer || answer=""
+  case "${answer,,}" in
+    y | yes) return 0 ;;
+  esac
+  return 1
 }
 
 # auto-upgrade.yaml is the rulebook new pins are validated against, so a change

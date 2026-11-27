@@ -6,17 +6,20 @@
 #
 # Add a chain only when compose, genesis, JWT, and datadir layout stay the
 # same across patch tags on the currently pinned major.minor series.
-# Crossing a minor/major line is always needs-review (human bump onto the
-# new series, then auto can follow patches on that series).
+# CI never crosses a minor/major line: a series jump is a human PR (needs-review),
+# then CI follows patches on that series.
 #
-# allow_series_jump: true — host auto-apply may install a merged pin whose
+# allow_series_jump: true (set on every row) — host auto-apply may install a merged pin whose
 # major.minor differs from the pin already in .env. Set it on every row of
 # an apply_group. CI still opens PRs only for the pinned series. Image
-# prefix, exclude, and tag shape are still checked.
+# prefix, exclude, and tag shape are still checked. The jump must be forward
+# and version-shaped (same leading text as the applied pin, then a higher
+# major.minor); `latest` or a lower series is denied (roll back by hand).
 
 chains:
   - id: aptos
     class: tag-only
+    allow_series_jump: true
     env_file: aptos/env.template
     var: APTOS_IMAGE
     image_prefix: "aptoslabs/validator:"
@@ -34,6 +37,7 @@ chains:
   # OffchainLabs/nitro git tags; --write copies the image named in the release body.
   - id: arbitrum
     class: tag-only
+    allow_series_jump: true
     env_file: arbitrum/env.template
     var: NITRO_IMAGE
     image_prefix: "offchainlabs/nitro-node:"
@@ -49,6 +53,7 @@ chains:
 
   - id: berachain
     class: tag-only
+    allow_series_jump: true
     env_file: berachain/env.template
     var: BERA_RETH_IMAGE
     image_prefix: "ghcr.io/berachain/bera-reth:"
@@ -119,6 +124,7 @@ chains:
   # Version-only pin; local image core-geth:${GETH_VERSION} is built on apply.
   - id: core
     class: tag-only
+    allow_series_jump: true
     env_file: core/env.template
     var: GETH_VERSION
     image_prefix: ""
@@ -134,6 +140,7 @@ chains:
 
   - id: gnosis-reth
     class: tag-only
+    allow_series_jump: true
     env_file: gnosis/env.template
     var: GNOSIS_RETH_IMAGE
     image_prefix: "ghcr.io/gnosischain/reth_gnosis:"
@@ -149,6 +156,7 @@ chains:
 
   - id: gnosis-lighthouse
     class: tag-only
+    allow_series_jump: true
     env_file: gnosis/env.template
     var: LIGHTHOUSE_IMAGE
     image_prefix: "sigp/lighthouse:"
@@ -227,6 +235,7 @@ chains:
   # Follows those tags on the pinned series; the networks compose file can lag.
   - id: mantle-op-geth
     class: tag-only
+    allow_series_jump: true
     env_file: mantle/env.template
     var: OP_GETH_IMAGE
     image_prefix: "mantlenetworkio/mantle-op-geth:"
@@ -290,6 +299,7 @@ chains:
   # Post–L1 cutover pair: bump geth + node together (apply_group morph).
   - id: morph-geth
     class: tag-only
+    allow_series_jump: true
     env_file: morph/env.template
     var: GETH_IMAGE
     image_prefix: "ghcr.io/morph-l2/go-ethereum:"
@@ -306,6 +316,7 @@ chains:
 
   - id: morph-node
     class: tag-only
+    allow_series_jump: true
     env_file: morph/env.template
     var: NODE_IMAGE
     image_prefix: "ghcr.io/morph-l2/node:"
@@ -321,6 +332,7 @@ chains:
   # Version-only pin; local image neox-geth:${GETH_VERSION} is built on apply.
   - id: neox
     class: tag-only
+    allow_series_jump: true
     env_file: neox/env.template
     var: GETH_VERSION
     image_prefix: ""
@@ -370,6 +382,7 @@ chains:
   # -validator image (required for most Orbit validators / AnyTrust).
   - id: plume
     class: tag-only
+    allow_series_jump: true
     env_file: plume/env.template
     var: NITRO_IMAGE
     image_prefix: "offchainlabs/nitro-node:"
@@ -385,6 +398,7 @@ chains:
 
   - id: robinhood
     class: tag-only
+    allow_series_jump: true
     env_file: robinhood/env.template
     var: NITRO_IMAGE
     image_prefix: "offchainlabs/nitro-node:"
@@ -404,6 +418,7 @@ chains:
   # (plain or a hand-set -stripped pin; same contents, -stripped lacks debug symbols).
   - id: robinhood-feed-relay
     class: tag-only
+    allow_series_jump: true
     env_file: robinhood/env.template
     var: FEED_RELAY_IMAGE
     image_prefix: "offchainlabs/nitro-node:"
@@ -452,6 +467,7 @@ chains:
 
   - id: sei
     class: tag-only
+    allow_series_jump: true
     env_file: sei/env.template
     var: SEID_VERSION
     image_prefix: ""
@@ -467,6 +483,7 @@ chains:
   # Version-only pin; local sonicd image from SONIC_VERSION at build time.
   - id: sonic
     class: tag-only
+    allow_series_jump: true
     env_file: sonic/env.template
     var: SONIC_VERSION
     image_prefix: ""
@@ -516,6 +533,7 @@ chains:
   # GHCR tags omit the git "tempo/v" prefix (tempo:1.17.0 from tag tempo/v1.17.0).
   - id: tempo
     class: tag-only
+    allow_series_jump: true
     env_file: tempo/env.template
     var: TEMPO_IMAGE
     image_prefix: "ghcr.io/tempoxyz/tempo:"

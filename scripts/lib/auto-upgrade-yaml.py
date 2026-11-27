@@ -214,7 +214,9 @@ def pin_problem(chain: dict, current: str, new: str) -> str:
     """Why NEW may not replace CURRENT for this pin, or "" when it may.
 
     Host apply accepts a tag from the pin's image_prefix. It must stay on the
-    applied major.minor series unless allow_series_jump is true.
+    applied major.minor series. With allow_series_jump it may move to a later
+    major.minor, but must keep the applied pin's version shape (same leading
+    text, then major.minor); a rollback stays a manual apply.
     """
     prefix = chain["image_prefix"]
     if not new.startswith(prefix):
@@ -224,13 +226,20 @@ def pin_problem(chain: dict, current: str, new: str) -> str:
         return f"tag {tag!r} is not a plain image tag"
     if not current.startswith(prefix):
         return f"applied pin {current!r} does not start with image_prefix {prefix!r}"
+    match = re.search(r"^(.*?)(\d+)\.(\d+)", current[len(prefix) :])
+    if not match:
+        return f"cannot derive major.minor series from applied pin {current!r}"
+    lead, applied = match.group(1), (int(match.group(2)), int(match.group(3)))
+    series = f"{lead}{applied[0]}.{applied[1]}"
     if not chain.get("allow_series_jump"):
-        match = re.search(r"^(.*?)(\d+)\.(\d+)", current[len(prefix) :])
-        if not match:
-            return f"cannot derive major.minor series from applied pin {current!r}"
-        series = f"{match.group(1)}{match.group(2)}.{match.group(3)}"
         if not same_series(tag, series):
             return f"tag {tag!r} is outside the applied series {series}.*"
+    else:
+        new_match = re.match(re.escape(lead) + r"(\d+)\.(\d+)($|[.\-])", tag)
+        if not new_match:
+            return f"tag {tag!r} is not a {lead}<major>.<minor> version tag"
+        if (int(new_match.group(1)), int(new_match.group(2))) < applied:
+            return f"tag {tag!r} is older than the applied series {series}; roll back by hand"
     if excluded(tag, chain.get("exclude", "")):
         return f"tag {tag!r} matches exclude {chain.get('exclude')!r}"
     suffix = chain.get("image_tag_suffix", "")

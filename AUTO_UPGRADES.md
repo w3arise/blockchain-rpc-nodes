@@ -341,16 +341,18 @@ Each run fetches `origin/main`, fast-forwards only if the new commits are pin-sa
 
 Anything else blocks the merge: the rest of `scripts/` (including `scripts/lib/auto-upgrade-yaml.py`), other repo root files, and any other file in a chain dir set up here. Chain dirs come from the current HEAD, so a new commit cannot turn `scripts/` into a chain dir. Nothing is merged until a human reviews and runs `git pull --ff-only`. Pins already on disk still apply. After a manual pull, the next run applies pending pins together with what you pulled; restart that chain yourself or set `AUTO_APPLY_HOLD=1` first.
 
+**`--force` (by hand only).** Instead of a manual pull, run the script with `--force` in a terminal. It lists the files that block the merge, shows the full diff to be merged (`cat -v`, so escape sequences show as text) and asks `[y/N]`. On `y` it logs the approval (syslog, info), fast-forwards and re-runs the updated script without `--force`, so the new code does the apply. Any other answer blocks as before. `--force` only overrides the file gate: a wrong branch, a non-fast-forward or a gate check that cannot run still block, and pin validation and every rule below still apply. Without a terminal on stdin (cron) it refuses and exits 1. With `--dry-run` it shows the files and the diff without asking.
+
 **Pin validation.** Each new pin is checked against `auto-upgrade.yaml` (apply keys of set-up chains only change through a manual pull) and the pin applied in `.env`:
 
 - starts with the pin's `image_prefix`
 - the tag is a plain image tag (`[A-Za-z0-9_][A-Za-z0-9_.-]*`, no digest, quotes, `$` or spaces)
-- same `major.minor` series as the applied pin, unless that row sets `allow_series_jump: true`
+- same `major.minor` series as the applied pin, unless that row sets `allow_series_jump: true`; then the tag must still have the applied pin's shape (same leading text, then `major.minor`) and a series no lower than the applied one. `latest` and a lower `major.minor` are denied (a patch downgrade within the series still passes); roll back by hand with `apply-tag-only.sh`
 - not in `exclude`; ends with `image_tag_suffix` when set
 
 `allow_series_jump` is host apply only. Weekly CI still opens pin PRs inside the series currently pinned in git. A series jump still lands as a human PR. After that PR is merged, a host that has pulled the YAML flag applies the new pin without a same-series deny. Set the flag on every row of an `apply_group`. `allow_series_jump` is an apply key, so on a host where that chain is set up the YAML change blocks the fast-forward; pull that commit by hand once.
 
-Without the flag, the only change that reaches a node without a human pull is a same-series tag from the expected publisher.
+Every row sets the flag, so a merged series-jump PR reaches running nodes on the next cron run. Merge it when the upgrade is due (halt height, fork time), or set `AUTO_APPLY_HOLD=1` in that chain's `.env` first. When the release notes say the database cannot be downgraded, hold the chain, cold-copy the datadir, then remove the hold. Remove the flag from a row to keep that chain on same-series tags only.
 
 | Rule | Why |
 | --- | --- |
@@ -371,6 +373,7 @@ Commands:
 ```bash
 ./scripts/auto-apply-if-merged.sh --dry-run     # fetch, report every target, change nothing
 ./scripts/auto-apply-if-merged.sh aptos katana  # limit to these targets
+./scripts/auto-apply-if-merged.sh --force       # by hand: review and approve a blocked merge
 journalctl -t auto-apply --since today          # denies and errors
 ```
 
@@ -384,13 +387,14 @@ Root must never run the copy inside a user's checkout: that user could edit it a
 sudo install -o root -g root -m 0755 scripts/auto-apply-dispatcher.sh /usr/local/sbin/auto-apply-dispatcher
 sudo auto-apply-dispatcher --dry-run   # by hand: report only
 sudo auto-apply-dispatcher             # by hand: apply
+sudo auto-apply-dispatcher --force     # by hand: asks per checkout when the merge is blocked
 ```
 
 ```cron
 */5 * * * * /usr/local/sbin/auto-apply-dispatcher >> /var/log/auto-apply-dispatcher.log 2>&1
 ```
 
-The dispatcher refuses (`DENY`, exit 1, syslog tag `auto-apply-dispatcher`) when its own file, its directory, or the config file is not root-owned or is group/world-writable, and skips config lines whose user is uid 0. Re-run the `install` line after you review and pull a dispatcher change. For one chain, run the per-checkout script as its user: `sudo -iu <user> sh -c 'cd ~/blockchain-rpc-nodes && ./scripts/auto-apply-if-merged.sh --dry-run aptos'`.
+The dispatcher refuses (`DENY`, exit 1, syslog tag `auto-apply-dispatcher`) when its own file, its directory, or the config file is not root-owned or is group/world-writable, and skips config lines whose user is uid 0. Re-run the `install` line after you review and pull a dispatcher change (the installed copy does not update itself). `--force` and `--dry-run` are passed to each checkout; `runuser -l` keeps the terminal on stdin, so each blocked checkout asks in turn. For one chain, run the per-checkout script as its user: `sudo -iu <user> sh -c 'cd ~/blockchain-rpc-nodes && ./scripts/auto-apply-if-merged.sh --dry-run aptos'`.
 
 Script and YAML changes reach a host only through a human `git pull`. Pin bumps still need the [release-notes check](#agent-release-notes-check) before merge, and `main` needs branch protection and required review: validation limits *which* tag can land, not whether the upstream image is trustworthy.
 
